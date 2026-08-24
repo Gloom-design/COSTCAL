@@ -127,7 +127,7 @@
         <div class="flex justify-between items-center text-sm pt-1">
           <span class="text-slate-300">調整後平均成本：</span>
           <div class="text-right">
-            <div id="tw_resAvgPrice" class="font-bold text-xl text-yellow-300">$0</div>
+            <div id="tw_resAvgPrice" class="font-bold text-xl text-yellow-300">$0.00</div>
             <div id="tw_resNewPnl" class="text-xs text-slate-400 mt-1">攤平後損益(最新)：-%</div>
             <div id="tw_resNewPrevPnl" class="text-xs text-slate-400 mt-0.5">攤平後損益(依前收)：-%</div>
           </div>
@@ -245,7 +245,7 @@
         <div class="flex justify-between items-center text-sm pt-1">
           <span class="text-slate-300">調整後平均成本：</span>
           <div class="text-right">
-            <div id="us_resAvgPrice" class="font-bold text-xl text-yellow-300">$0</div>
+            <div id="us_resAvgPrice" class="font-bold text-xl text-yellow-300">$0.00</div>
             <div id="us_resNewPnl" class="text-xs text-slate-400 mt-1">攤平後損益(最新)：-%</div>
             <div id="us_resNewPrevPnl" class="text-xs text-slate-400 mt-0.5">攤平後損益(依前收)：-%</div>
           </div>
@@ -301,9 +301,16 @@
       }
     }
 
+    // 金額四捨五入取整數並加上千分位
     function formatMoney(num) {
       if (isNaN(num) || !isFinite(num)) return '0';
       return Math.round(num).toLocaleString('en-US');
+    }
+
+    // 平均成本保留兩位小數
+    function formatPrice(num) {
+      if (isNaN(num) || !isFinite(num)) return '0.00';
+      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
 
     function copyPrice(type) {
@@ -415,7 +422,7 @@
 
         document.getElementById('tw_resN2').innerText = `${calcN2.toFixed(2)} 股`;
         document.getElementById('tw_resTotalN').innerText = `${totalN.toFixed(2)} 股`;
-        document.getElementById('tw_resAvgPrice').innerText = `$${formatMoney(calcAvg)}`;
+        document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
         document.getElementById('tw_resAddCost').innerText = `$${formatMoney(addCostTotal)} (含手續費 $${formatMoney(addBuyFee)})`;
         document.getElementById('tw_resTotalCost').innerText = `$${formatMoney(totalCostFinal)}`;
@@ -497,7 +504,7 @@
 
         document.getElementById('us_resN2').innerText = `${calcN2.toFixed(2)} 股`;
         document.getElementById('us_resTotalN').innerText = `${totalN.toFixed(2)} 股`;
-        document.getElementById('us_resAvgPrice').innerText = `$${formatMoney(calcAvg)}`;
+        document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(n1 * p1)}`;
         document.getElementById('us_resOriginalCostTWD').innerText = `約 NT$ ${formatMoney(n1 * p1 * rate)}`;
         document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(addCostUSD)}`;
