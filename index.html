@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 導入最新的 ESM Supabase 模組，徹底解決初始化問題 -->
-  <script type="module">
-    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-    window.supabaseCreateClient = createClient;
-  </script>
+  <!-- 採用最穩定的全域同步載入，確保沒有時間差問題 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -20,10 +17,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.5</span>
         </div>
         <!-- 📝 更新內容簡單說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：改用 ESM 模組徹底修復登入初始化問題</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復初始化時間差與網址參數清理</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端同步就緒</div>
       </div>
       
@@ -47,15 +44,15 @@
       <select id="stockSelector" onchange="switchStock(this.value)" class="flex-1 border rounded-lg p-1.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
         <!-- 動態載入組別 -->
       </select>
-      <button onclick="renameCurrentStock()" class="bg-amber-50 text-amber-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-amber-100 text-[10px] sm:text-xs">✏️ 改名</button>
-      <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-indigo-100 text-[10px] sm:text-xs">+ 新增</button>
-      <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-rose-100 text-[10px] sm:text-xs">刪除</button>
+      <button onclick="renameCurrentStock()" class="bg-amber-50 text-amber-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
+      <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
+      <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
     </div>
 
     <!-- 分頁切換 -->
     <div class="grid grid-cols-2 gap-1.5 bg-slate-200 p-1 rounded-xl">
-      <button id="tabTwBtn" onclick="switchTab('tw')" class="py-2 font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm">🇹🇼 台股專用</button>
-      <button id="tabUsBtn" onclick="switchTab('us')" class="py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm">🇺🇸 美股專用</button>
+      <button id="tabTwBtn" onclick="switchTab('tw')" class="py-2 font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer">🇹🇼 台股專用</button>
+      <button id="tabUsBtn" onclick="switchTab('us')" class="py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
     </div>
 
     <!-- ================= 🇹🇼 台股介面 ================= -->
@@ -99,7 +96,7 @@
             <input id="tw_prevClose" type="number" step="0.01" placeholder="前收價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
           <div>
-            <div class="flex justify-between items-center mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">目前市價</label><label class="text-[9px] text-slate-400"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label></div>
+            <div class="flex justify-between items-center mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">目前市價</label><label class="text-[9px] text-slate-400 cursor-pointer"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label></div>
             <input id="tw_currentPrice" type="number" step="0.01" placeholder="目前市價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
         </div>
@@ -121,7 +118,7 @@
         <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
-            <div class="flex justify-between mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 (P2)</label><button type="button" onclick="copyPrice('tw')" class="text-[9px] sm:text-xs text-indigo-600 underline">帶入市價</button></div>
+            <div class="flex justify-between mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 (P2)</label><button type="button" onclick="copyPrice('tw')" class="text-[9px] sm:text-xs text-indigo-600 underline cursor-pointer">帶入市價</button></div>
             <input id="tw_p2" type="number" step="0.01" placeholder="買入價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
           <div>
@@ -219,7 +216,7 @@
         <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
-            <div class="flex justify-between mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 ($ P2)</label><button type="button" onclick="copyPrice('us')" class="text-[9px] sm:text-xs text-teal-600 underline">帶入市價</button></div>
+            <div class="flex justify-between mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 ($ P2)</label><button type="button" onclick="copyPrice('us')" class="text-[9px] sm:text-xs text-teal-600 underline cursor-pointer">帶入市價</button></div>
             <input id="us_p2" type="number" step="0.01" placeholder="買入價" class="us-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
           <div>
@@ -271,7 +268,7 @@
     <div id="aiWindow" class="hidden absolute bottom-14 right-0 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3 space-y-2 text-xs">
       <div class="flex justify-between items-center border-b pb-1.5">
         <span class="font-bold text-blue-700">✨ AI 助手 & GitHub 自動同步</span>
-        <button onclick="toggleAiPanel()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+        <button onclick="toggleAiPanel()" class="text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕</button>
       </div>
       <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">Gemini API Key</label>
@@ -322,7 +319,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.4）往後加一版，並更新更新說明文字。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.5）往後加一版，並更新更新說明文字。` }] }]
           })
         });
 
@@ -381,9 +378,12 @@
     }
 
     // ================= 🔐 Supabase 雲端設定 =================
+    // 確保這裡不會有 duplicate variable declarations (重複宣告) 造成的錯誤
     const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
-    let sbClient = null;
+    
+    // 初始化確保不會出錯，因為最上方的 script 標籤是同步載入的
+    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
     let saveTimeout = null;
@@ -497,57 +497,37 @@
     }
 
     async function loginWithGoogle() {
-      if (!sbClient) { alert("雲端模組正在初始化，請稍候再試"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
+        // 確保跳轉網址嚴格對齊 GitHub Pages (避免大小寫問題)
         options: { redirectTo: window.location.origin + window.location.pathname }
       });
       if (error) alert("登入失敗: " + error.message);
     }
 
     async function logout() {
-      if (!sbClient) return;
       await sbClient.auth.signOut();
       localStorage.clear();
       window.location.href = window.location.pathname;
     }
 
     async function initAuth() {
-      // 確保 window.supabaseCreateClient 載入完成
-      let retries = 0;
-      while (!window.supabaseCreateClient && retries < 15) {
-        await new Promise(r => setTimeout(r, 200));
-        retries++;
-      }
-
-      if (!window.supabaseCreateClient) {
-        document.getElementById('syncStatus').innerText = '雲端模組載入失敗';
-        return;
-      }
-
-      try {
-        sbClient = window.supabaseCreateClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        sbClient.auth.onAuthStateChange(async (event, session) => {
-          currentUser = session?.user || null;
-          updateAuthUI();
-          checkAdminPermission(currentUser);
-          if (currentUser) await loadUserData();
-        });
-
-        const { data: { session } } = await sbClient.auth.getSession();
+      sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
         checkAdminPermission(currentUser);
-        if (currentUser) {
-          await loadUserData();
-        } else {
-          renderStockSelector();
-          loadStockToUI(currentStockKey);
-        }
-      } catch (err) {
-        document.getElementById('syncStatus').innerText = '初始化異常';
-        console.error(err);
+        if (currentUser) await loadUserData();
+      });
+
+      const { data: { session } } = await sbClient.auth.getSession();
+      currentUser = session?.user || null;
+      updateAuthUI();
+      checkAdminPermission(currentUser);
+      if (currentUser) {
+        await loadUserData();
+      } else {
+        renderStockSelector();
+        loadStockToUI(currentStockKey);
       }
     }
 
@@ -569,12 +549,16 @@
     }
 
     async function loadUserData() {
-      if (!currentUser || !sbClient) return;
-      const { data } = await sbClient
+      if (!currentUser) return;
+      const { data, error } = await sbClient
         .from('user_portfolios')
         .select('portfolio_data')
         .eq('user_id', currentUser.id)
         .maybeSingle();
+
+      if (error) {
+        console.warn("載入資料時發生錯誤，可能缺少表格或 RLS 權限問題", error);
+      }
 
       if (data && data.portfolio_data) {
         cloudData = data.portfolio_data;
@@ -706,7 +690,7 @@
     }
 
     function saveData() {
-      if (!currentUser || !sbClient) return;
+      if (!currentUser) return;
       saveUIToCurrentStock();
       document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
@@ -725,7 +709,7 @@
     }
 
     async function manualSaveDataSilent() {
-      if (!currentUser || !sbClient) return;
+      if (!currentUser) return;
       saveUIToCurrentStock();
       const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
       if (existing) {
@@ -908,6 +892,7 @@
     document.getElementById('tw_sameAsPrev').addEventListener('change', () => { calculateTw(); saveData(); });
 
     window.onload = async () => {
+      // 關鍵修復：清除 GitHub Pages 登入後殘留在網址列的冗長 Token，防止干擾後續運作
       if (window.location.hash && window.location.hash.includes('access_token')) {
         window.history.replaceState(null, document.title, window.location.pathname);
       }
