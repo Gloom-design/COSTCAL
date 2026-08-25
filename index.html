@@ -176,7 +176,7 @@
           </div>
         </div>
 
-        <!-- 移至下方的「手動確認存檔按鈕」 -->
+        <!-- 位於下方的「手動確認存檔按鈕」 -->
         <div class="pt-3 border-t border-slate-700">
           <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
             💾 確認儲存目前持倉至雲端
@@ -307,7 +307,7 @@
           </div>
         </div>
 
-        <!-- 移至下方的「手動確認存檔按鈕」 -->
+        <!-- 位於下方的「手動確認存檔按鈕」 -->
         <div class="pt-3 border-t border-slate-700">
           <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
             💾 確認儲存目前持倉至雲端
@@ -385,7 +385,7 @@
         .from('user_portfolios')
         .select('portfolio_data')
         .eq('user_id', currentUser.id)
-        .single();
+        .maybeSingle();
 
       if (data && data.portfolio_data) {
         cloudData = data.portfolio_data;
@@ -507,16 +507,32 @@
       }
     }
 
-    // 自動背景儲存
+    // 安全版自動背景儲存（不依賴資料庫唯一約束）
     function saveData() {
       if (!currentUser) return;
       saveUIToCurrentStock();
       document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
-        const { error } = await sbClient
+        const { data: existing } = await sbClient
           .from('user_portfolios')
-          .upsert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+          .select('user_id')
+          .eq('user_id', currentUser.id)
+          .maybeSingle();
+
+        let error;
+        if (existing) {
+          const res = await sbClient
+            .from('user_portfolios')
+            .update({ portfolio_data: cloudData, updated_at: new Date().toISOString() })
+            .eq('user_id', currentUser.id);
+          error = res.error;
+        } else {
+          const res = await sbClient
+            .from('user_portfolios')
+            .insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
+          error = res.error;
+        }
 
         if (!error) {
           document.getElementById('syncStatus').innerText = '雲端同步完成';
@@ -526,7 +542,7 @@
       }, 1000);
     }
 
-    // 手動點擊確認存檔（已修正日期格式與防錯）
+    // 安全版手動確認存檔
     async function manualSaveData() {
       saveUIToCurrentStock();
       if (!currentUser) {
@@ -535,13 +551,25 @@
       }
       document.getElementById('syncStatus').innerText = '手動儲存中...';
       
-      const { error } = await sbClient
+      const { data: existing } = await sbClient
         .from('user_portfolios')
-        .upsert({ 
-          user_id: currentUser.id, 
-          portfolio_data: cloudData, 
-          updated_at: new Date().toISOString() 
-        }, { onConflict: 'user_id' });
+        .select('user_id')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      let error;
+      if (existing) {
+        const res = await sbClient
+          .from('user_portfolios')
+          .update({ portfolio_data: cloudData, updated_at: new Date().toISOString() })
+          .eq('user_id', currentUser.id);
+        error = res.error;
+      } else {
+        const res = await sbClient
+          .from('user_portfolios')
+          .insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
+        error = res.error;
+      }
 
       if (!error) {
         document.getElementById('syncStatus').innerText = '手動儲存成功！';
