@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 載入 Supabase 核心 UMD 腳本確保 100% 成功初始化 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- 導入最新的 ESM Supabase 模組，徹底解決初始化問題 -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    window.supabaseCreateClient = createClient;
+  </script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -17,10 +20,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.4</span>
         </div>
         <!-- 📝 更新內容簡單說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級 Supabase 載入核心修復初始化問題</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：改用 ESM 模組徹底修復登入初始化問題</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端同步就緒</div>
       </div>
       
@@ -319,7 +322,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.3）往後加一版，並更新更新說明文字。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.4）往後加一版，並更新更新說明文字。` }] }]
           })
         });
 
@@ -397,17 +400,15 @@
     };
     let currentStockKey = "2330 台積電 (主組合)";
 
-    // 🌟 檢查登入信箱並決定是否解鎖 AI 面板
     function checkAdminPermission(user) {
       const aiContainer = document.getElementById('aiPanelContainer');
       if (user && user.email === 'ihmfeporsky@gmail.com') {
-        aiContainer.classList.remove('hidden'); // 只有本人解鎖顯示
+        aiContainer.classList.remove('hidden');
       } else {
-        aiContainer.classList.add('hidden'); // 其他人完全看不到
+        aiContainer.classList.add('hidden');
       }
     }
 
-    // 將 AI 設定填入介面
     function loadAiSettingsToUI() {
       const settings = cloudData.aiSettings || {};
       if (settings.apiKey) document.getElementById('aiApiKey').value = settings.apiKey;
@@ -512,35 +513,41 @@
     }
 
     async function initAuth() {
-      // 確保 window.supabase.createClient 可以被正確調用
-      let supabaseModule = window.supabase;
-      if (!supabaseModule && typeof supabase !== 'undefined') {
-        supabaseModule = supabase;
+      // 確保 window.supabaseCreateClient 載入完成
+      let retries = 0;
+      while (!window.supabaseCreateClient && retries < 15) {
+        await new Promise(r => setTimeout(r, 200));
+        retries++;
       }
 
-      if (!supabaseModule || typeof supabaseModule.createClient !== 'function') {
+      if (!window.supabaseCreateClient) {
         document.getElementById('syncStatus').innerText = '雲端模組載入失敗';
         return;
       }
 
-      sbClient = supabaseModule.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      try {
+        sbClient = window.supabaseCreateClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-      sbClient.auth.onAuthStateChange(async (event, session) => {
+        sbClient.auth.onAuthStateChange(async (event, session) => {
+          currentUser = session?.user || null;
+          updateAuthUI();
+          checkAdminPermission(currentUser);
+          if (currentUser) await loadUserData();
+        });
+
+        const { data: { session } } = await sbClient.auth.getSession();
         currentUser = session?.user || null;
         updateAuthUI();
         checkAdminPermission(currentUser);
-        if (currentUser) await loadUserData();
-      });
-
-      const { data: { session } } = await sbClient.auth.getSession();
-      currentUser = session?.user || null;
-      updateAuthUI();
-      checkAdminPermission(currentUser);
-      if (currentUser) {
-        await loadUserData();
-      } else {
-        renderStockSelector();
-        loadStockToUI(currentStockKey);
+        if (currentUser) {
+          await loadUserData();
+        } else {
+          renderStockSelector();
+          loadStockToUI(currentStockKey);
+        }
+      } catch (err) {
+        document.getElementById('syncStatus').innerText = '初始化異常';
+        console.error(err);
       }
     }
 
