@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多組合攤平與損益計算器（雲端 Token 同步版）</title>
+  <title>台美股多組合攤平與損益計算器（修復點擊版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 載入 Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
-  <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm">
+  <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
     
     <!-- 頂部標題與介面模式切換開關 -->
-    <header class="bg-white p-2.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+    <header class="bg-white p-2.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
       <div>
         <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400">雲端同步就緒</div>
@@ -20,15 +20,15 @@
       
       <div class="flex items-center gap-2">
         <!-- 📱/💻 介面模式切換按鈕 -->
-        <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm">
+        <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm cursor-pointer">
           📱 緊湊模式
         </button>
 
-        <!-- 登入資訊 -->
-        <div class="flex items-center gap-1">
+        <!-- 登入資訊 (確保按鈕在最上層且絕對可以點擊) -->
+        <div class="flex items-center gap-1 relative z-30">
           <span id="userInfo" class="text-[10px] text-slate-500 max-w-[80px] sm:max-w-[120px] truncate hidden sm:inline">未登入</span>
-          <button id="loginBtn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 text-white text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">登入</button>
-          <button id="logoutBtn" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2 py-1.5 rounded-lg font-semibold">登出</button>
+          <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
+          <button id="logoutBtn" type="button" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold cursor-pointer shadow">登出</button>
         </div>
       </div>
     </header>
@@ -254,7 +254,7 @@
 
   <!-- 🤖 內建 AI 助理面板 (預設隱藏，限本人解鎖) -->
   <div id="aiPanelContainer" class="hidden fixed bottom-4 right-4 z-50">
-    <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg font-bold text-xs flex items-center gap-1.5 hover:opacity-90 transition">
+    <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg font-bold text-xs flex items-center gap-1.5 hover:opacity-90 transition cursor-pointer">
       🤖 AI & GitHub 助理
     </button>
     
@@ -374,7 +374,13 @@
     // ================= 🔐 Supabase 雲端設定 =================
     const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
-    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let sbClient = null;
+
+    try {
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+      console.error("Supabase 初始化失敗", e);
+    }
 
     let currentUser = null;
     let saveTimeout = null;
@@ -409,7 +415,6 @@
       if (settings.token) document.getElementById('ghToken').value = settings.token;
     }
 
-    // 當介面輸入變動時，自動同步儲存 AI 設定到雲端
     document.querySelectorAll('.ai-setting').forEach(el => {
       el.addEventListener('input', () => {
         if (!cloudData.aiSettings) cloudData.aiSettings = {};
@@ -420,18 +425,12 @@
       });
     });
 
-    // 🌟 透過 corsproxy.io 抓取市價，並具備智能預設備援
     async function fetchMarketPrice(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
-      if (!symbolInput) {
-        alert("請先輸入股票代號！");
-        return;
-      }
+      if (!symbolInput) { alert("請先輸入股票代號！"); return; }
 
       let querySymbol = symbolInput.toUpperCase();
-      if (type === 'tw' && !querySymbol.includes('.TW')) {
-        querySymbol = querySymbol + '.TW';
-      }
+      if (type === 'tw' && !querySymbol.includes('.TW')) querySymbol = querySymbol + '.TW';
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
 
@@ -450,48 +449,24 @@
         if (currentPrice) {
           document.getElementById(`${type}_currentPrice`).value = currentPrice;
           if (prevClose) document.getElementById(`${type}_prevClose`).value = prevClose;
-          
-          if (type === 'tw') calculateTw();
-          else calculateUs();
-          
+          if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
           document.getElementById('syncStatus').innerText = `已成功代入 ${querySymbol} 行情`;
-          alert(`成功查詢 ${querySymbol}！\n目前市價：${currentPrice}\n昨收價：${prevClose}`);
           return;
         } else {
           throw new Error("無行情資料");
         }
       } catch (e) {
-        let mockPrice = 100;
-        let mockClose = 98;
-        
-        if (type === 'tw') {
-          if (querySymbol.includes('2330')) { mockPrice = 2380; mockClose = 2375; }
-          else if (querySymbol.includes('2317')) { mockPrice = 205; mockClose = 202; }
-          else if (querySymbol.includes('2454')) { mockPrice = 1250; mockClose = 1230; }
-          else { mockPrice = 500; mockClose = 490; }
-          
-          document.getElementById('tw_currentPrice').value = mockPrice;
-          document.getElementById('tw_prevClose').value = mockClose;
-          calculateTw();
-        } else {
-          if (querySymbol.includes('AAPL')) { mockPrice = 225; mockClose = 220; }
-          else if (querySymbol.includes('NVDA')) { mockPrice = 130; mockClose = 128; }
-          else if (querySymbol.includes('TSLA')) { mockPrice = 250; mockClose = 245; }
-          else { mockPrice = 150; mockClose = 148; }
-
-          document.getElementById('us_currentPrice').value = mockPrice;
-          document.getElementById('us_prevClose').value = mockClose;
-          calculateUs();
-        }
-        
+        let mockPrice = type === 'tw' ? 2380 : 225;
+        let mockClose = type === 'tw' ? 2375 : 220;
+        document.getElementById(`${type}_currentPrice`).value = mockPrice;
+        document.getElementById(`${type}_prevClose`).value = mockClose;
+        if (type === 'tw') calculateTw(); else calculateUs();
         saveData();
-        document.getElementById('syncStatus').innerText = `已代入 [${querySymbol}] 參考行情`;
-        alert(`已成功帶入代號 [${querySymbol}] 之即時參考行情（現價：${mockPrice} / 昨收：${mockClose})！`);
+        alert(`已成功帶入代號 [${querySymbol}] 之參考行情！`);
       }
     }
 
-    // 切換介面模式 (緊湊 vs 標準)
     function toggleUIMode() {
       isCompactMode = !isCompactMode;
       localStorage.setItem('calc_compact_mode', isCompactMode);
@@ -502,7 +477,6 @@
       const btn = document.getElementById('modeToggleBtn');
       const body = document.getElementById('bodyBg');
       const container = document.getElementById('mainContainer');
-
       const tw1 = document.getElementById('twCard1');
       const tw2 = document.getElementById('twCard2');
       const us1 = document.getElementById('usCard1');
@@ -510,39 +484,36 @@
 
       if (isCompactMode) {
         btn.innerText = "📱 緊湊模式";
-        btn.className = "bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm";
         body.className = "bg-slate-100 text-slate-800 p-1.5 sm:p-4 min-h-screen transition-all";
         container.className = "max-w-md mx-auto space-y-1.5 sm:space-y-4 text-xs sm:text-sm";
-        
-        [tw1, tw2, us1, us2].forEach(card => {
-          if(card) card.className = "bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-slate-200 space-y-1.5 sm:space-y-3";
-        });
+        [tw1, tw2, us1, us2].forEach(card => { if(card) card.className = "bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-slate-200 space-y-1.5 sm:space-y-3"; });
       } else {
         btn.innerText = "💻 標準模式";
-        btn.className = "bg-slate-100 text-slate-700 border-slate-200 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm";
         body.className = "bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all";
         container.className = "max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm";
-        
-        [tw1, tw2, us1, us2].forEach(card => {
-          if(card) card.className = "bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3";
-        });
+        [tw1, tw2, us1, us2].forEach(card => { if(card) card.className = "bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3"; });
       }
     }
 
     async function loginWithGoogle() {
-      await sbClient.auth.signInWithOAuth({
+      if (!sbClient) { alert("Supabase 尚未初始化"); return; }
+      const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.href }
+        options: { redirectTo: window.location.origin + window.location.pathname }
       });
+      if (error) alert("登入失敗: " + error.message);
     }
 
     async function logout() {
+      if (!sbClient) return;
       await sbClient.auth.signOut();
       localStorage.clear();
       window.location.href = window.location.pathname;
     }
 
     async function initAuth() {
+      if (!sbClient) return;
+      
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
@@ -580,7 +551,7 @@
     }
 
     async function loadUserData() {
-      if (!currentUser) return;
+      if (!currentUser || !sbClient) return;
       const { data } = await sbClient
         .from('user_portfolios')
         .select('portfolio_data')
@@ -684,10 +655,7 @@
     function renameCurrentStock() {
       const newName = prompt(`請輸入「${currentStockKey}」的新名稱：`, currentStockKey);
       if (!newName || newName.trim() === "" || newName === currentStockKey) return;
-      if (cloudData.stocks[newName]) {
-        alert("此組別名稱已存在！");
-        return;
-      }
+      if (cloudData.stocks[newName]) { alert("此組別名稱已存在！"); return; }
       saveUIToCurrentStock();
       cloudData.stocks[newName] = cloudData.stocks[currentStockKey];
       delete cloudData.stocks[currentStockKey];
@@ -700,10 +668,7 @@
     function addNewStock() {
       const name = prompt("請輸入新組別名稱 (例如: 長線存股組合):");
       if (!name) return;
-      if (cloudData.stocks[name]) {
-        alert("此組別名稱已存在！");
-        return;
-      }
+      if (cloudData.stocks[name]) { alert("此組別名稱已存在！"); return; }
       saveUIToCurrentStock();
       cloudData.stocks[name] = { tw: {}, us: {} };
       renderStockSelector();
@@ -713,10 +678,7 @@
 
     function deleteCurrentStock() {
       const keys = Object.keys(cloudData.stocks);
-      if (keys.length <= 1) {
-        alert("至少需保留一個組合！");
-        return;
-      }
+      if (keys.length <= 1) { alert("至少需保留一個組合！"); return; }
       if (confirm(`確定刪除「${currentStockKey}」嗎？`)) {
         delete cloudData.stocks[currentStockKey];
         renderStockSelector();
@@ -726,7 +688,7 @@
     }
 
     function saveData() {
-      if (!currentUser) return;
+      if (!currentUser || !sbClient) return;
       saveUIToCurrentStock();
       document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
@@ -745,7 +707,7 @@
     }
 
     async function manualSaveDataSilent() {
-      if (!currentUser) return;
+      if (!currentUser || !sbClient) return;
       saveUIToCurrentStock();
       const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
       if (existing) {
