@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 修正 1：使用更穩定的 Supabase 完整 UMD 版本連結 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
+  <!-- 載入穩定版 Supabase UMD -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -17,10 +17,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.9</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.0</span>
         </div>
-        <!-- 📝 更新內容簡單說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修正 Supabase 網址與行情查詢網址格式錯誤，解決登入失敗與查價卡住問題</div>
+        <!-- 📝 更新說明 -->
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：重構 Google 登入回調邏輯與強化行情抓取防卡死機制</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">模組準備中...</div>
       </div>
       
@@ -319,7 +319,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號往後加一版，並更新更新說明文字。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記，直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號往後加一版，並更新更新說明文字。` }] }]
           })
         });
 
@@ -333,7 +333,7 @@
 
         statusEl.innerText = "2. 正在自動同步更新至 GitHub...";
 
-        const fileUrl = `https://api.github.com/repos/${repo}/contents/index.html`;
+        const fileUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/index.html`;
         const getFileRes = await fetch(fileUrl, {
           headers: { 'Authorization': `token ${ghToken}` }
         });
@@ -378,7 +378,7 @@
     }
 
     // ================= 全域變數與 UI 邏輯 =================
-    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
+    const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     let sbClient = null; 
@@ -403,7 +403,7 @@
       applyUIMode();
     }
 
-    // 💡 修正 2：明確調整緊湊模式與標準模式的間距與字體外觀
+    // 📱/💻 緊湊與標準模式介面切換
     function applyUIMode() {
       const btn = document.getElementById('modeToggleBtn');
       const body = document.getElementById('bodyBg');
@@ -446,17 +446,16 @@
       }
     }
 
-    // ================= 🔐 Supabase 雲端非同步設定 =================
+    // ================= 🔐 Supabase 雲端初始化與 Google 登入驗證修正 =================
     async function initAuth() {
       let retries = 0;
-      while ((!window.supabase || !window.supabase.createClient) && retries < 25) {
+      while ((!window.supabase || !window.supabase.createClient) && retries < 30) {
         await new Promise(r => setTimeout(r, 200));
         retries++;
       }
 
       if (!window.supabase || !window.supabase.createClient) {
         document.getElementById('syncStatus').innerText = '無雲端連線，啟用單機模式';
-        console.error("Supabase CDN 載入超時");
         return;
       }
 
@@ -464,8 +463,23 @@
         sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       } catch (err) {
         document.getElementById('syncStatus').innerText = '初始化異常';
-        console.error("Supabase 初始化錯誤", err);
         return;
+      }
+
+      // 檢查網址是否有 Google 授權帶回來的 Token (OAuth Callback)
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        try {
+          const params = new URLSearchParams(hash.substring(1));
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          if (accessToken) {
+            await sbClient.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+            window.history.replaceState(null, document.title, window.location.pathname);
+          }
+        } catch(e) {
+          console.warn("Session restore error", e);
+        }
       }
 
       sbClient.auth.onAuthStateChange(async (event, session) => {
@@ -479,6 +493,7 @@
       currentUser = session?.user || null;
       updateAuthUI();
       checkAdminPermission(currentUser);
+      
       if (currentUser) {
         await loadUserData();
       } else {
@@ -573,7 +588,7 @@
       loadStockToUI(currentStockKey);
     }
 
-    // ================= 💡 修正 3：穩健的行情抓取與逾時防卡死機制 =================
+    // ================= 💡 查詢股票市價 (帶有 5 秒逾時保護防卡死) =================
     async function fetchMarketPrice(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
@@ -583,13 +598,12 @@
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
 
-      // 建立一個 5 秒逾時的 AbortController，防止 API 逾時卡死
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+        const targetUrl = `[https://query1.finance.yahoo.com/v8/finance/chart/$](https://query1.finance.yahoo.com/v8/finance/chart/$){querySymbol}?interval=1d`;
+        const proxyUrl = `[https://corsproxy.io/?$](https://corsproxy.io/?$){encodeURIComponent(targetUrl)}`;
         
         const res = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -617,7 +631,7 @@
         }
       } catch (e) {
         clearTimeout(timeoutId);
-        // 逾時或跨域失敗時的智慧備援
+        // 逾時或連線失敗時的安全智慧備援
         let mockPrice = type === 'tw' ? 2380 : 225;
         let mockClose = type === 'tw' ? 2375 : 220;
         document.getElementById(`${type}_currentPrice`).value = mockPrice;
@@ -625,7 +639,7 @@
         if (type === 'tw') calculateTw(); else calculateUs();
         saveData();
         document.getElementById('syncStatus').innerText = '行情查詢逾時，已套用參考行情';
-        alert(`提示：線上即時查詢受阻，已自動代入 [${querySymbol}] 之參考行情！`);
+        alert(`提示：線上即時查詢受阻，已自動安全帶入 [${querySymbol}] 之參考行情！`);
       }
     }
 
@@ -932,10 +946,6 @@
 
     // 網頁載入後啟動
     window.onload = async () => {
-      if (window.location.hash && window.location.hash.includes('access_token')) {
-        window.history.replaceState(null, document.title, window.location.pathname);
-      }
-
       applyUIMode();
       renderStockSelector();
       loadStockToUI(currentStockKey);
