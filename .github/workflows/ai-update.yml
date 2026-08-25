@@ -1,5 +1,80 @@
 name: AI Auto-Update Code
+
 on:
   push:
     branches: [ main ]
-# (或者保留原本的 workflow)
+
+jobs:
+  update-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check commit message for AI prompt
+        id: check
+        run: |
+          MSG="${{ github.event.head_commit.message }}"
+          echo "commit_msg=$MSG"
+          if [[ "$MSG" == AI:* ]]; then
+            echo "is_ai=true" >> $GITHUB_OUTPUT
+            PROMPT="${MSG#AI: }"
+            echo "prompt_text=$PROMPT" >> $GITHUB_OUTPUT
+          else
+            echo "is_ai=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Call Gemini API and Update Code
+        if: steps.check.outputs.is_ai == 'true'
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
+        run: |
+          node -e '
+          const fs = require("fs");
+          async function run() {
+            const apiKey = process.env.GEMINI_API_KEY;
+            const promptText = process.env.PROMPT_TEXT;
+            const currentHtml = fs.readFileSync("index.html", "utf8");
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
+              })
+            });
+
+            const data = await res.json();
+            if (data.error) { console.error("API Error:", data.error.message); process.exit(1); }
+            if (!data.candidates || data.candidates.length === 0) { console.error("No candidates."); process.exit(1); }
+
+            let newHtml = data.candidates[0].content.parts[0].text.trim()
+              .replace(/^```html\s*/i, "")
+              .replace(/^```\s*/i, "")
+              .replace(/\s*```$/, "")
+              .trim();
+
+            if (!newHtml.startsWith("<!DOCTYPE html>") && !newHtml.startsWith("<html")) {
+              console.error("Invalid HTML."); process.exit(1);
+            }
+
+            fs.writeFileSync("index.html", newHtml, "utf8");
+            console.log("Updated index.html successfully");
+          }
+          run().catch(err => { console.error(err); process.exit(1); });
+          '
+
+      - name: Commit and Push changes
+        if: steps.check.outputs.is_ai == 'true'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "🤖 AI Auto-update completed" || exit 0
+          git push
