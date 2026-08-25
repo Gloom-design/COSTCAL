@@ -15,10 +15,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.2</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：直接內建整合最新的 GitHub Token 預設值</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：增強 AI JSON 解析防護與 GitHub 錯誤攔截</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -297,7 +297,7 @@
     </div>
   </div>
 
-  <!-- 整合預設金鑰的 ESM 模組 -->
+  <!-- 防禦與強固版 ESM 模組 -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -309,7 +309,6 @@
     let saveTimeout = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     
-    // 🌟 在這裡直接為 ihmfeporsky@gmail.com 內建你的 API Key 與全新 GitHub Token
     let cloudData = { 
       stocks: { 
         "2330 台積電 (主組合)": { 
@@ -492,6 +491,7 @@
       document.getElementById('aiWindow').classList.toggle('hidden');
     };
 
+    // 🌟 強化防禦版的 AI 呼叫與 GitHub 同步核心
     window.askAiAndUpdateGithub = async function() {
       const apiKey = document.getElementById('aiApiKey').value.trim();
       const repo = document.getElementById('ghRepo').value.trim();
@@ -513,17 +513,29 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼，絕對不要包含任何 markdown 標記（例如不要有 \`\`\`html）。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
           })
         });
-        const data = await response.json();
-        if (!data.candidates || data.candidates.length === 0) throw new Error("Gemini API 回應格式錯誤");
+
+        const rawText = await response.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (e) {
+          throw new Error("Gemini API 回應無法解析為 JSON: " + rawText.substring(0, 100));
+        }
+
+        if (!data.candidates || data.candidates.length === 0) throw new Error("Gemini API 未回傳有效候選內容");
         
         let newHtml = data.candidates[0].content.parts[0].text.trim()
           .replace(/^```html\s*/i, '')
           .replace(/^```\s*/i, '')
           .replace(/\s*```$/, '')
           .trim();
+
+        if (!newHtml.startsWith('<!DOCTYPE html>') && !newHtml.startsWith('<html')) {
+          throw new Error("AI 回傳的內容格式不正確，不是完整的 HTML。");
+        }
 
         statusEl.innerText = "2. 正在同步至 GitHub...";
         
@@ -557,8 +569,13 @@
         });
 
         if (!updateRes.ok) {
-          const errData = await updateRes.json();
-          throw new Error(`GitHub 拒絕寫入 (${updateRes.status}): ${errData.message || '權限不足'}`);
+          const errRaw = await updateRes.text();
+          let errMessage = "權限不足";
+          try {
+            const errJson = JSON.parse(errRaw);
+            errMessage = errJson.message || errMessage;
+          } catch(err) {}
+          throw new Error(`GitHub 拒絕寫入 (${updateRes.status}): ${errMessage}`);
         }
 
         alert("同步成功！網頁即將重新整理...");
