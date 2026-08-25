@@ -14,9 +14,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v4.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v4.1</span>
         </div>
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級全自動 GitHub Secrets 雲端架構</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復 GitHub 憑證驗證與安全通道</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -249,7 +249,7 @@
     
     <div id="aiWindow" class="hidden absolute bottom-14 right-0 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3 space-y-2 text-xs">
       <div class="flex justify-between items-center border-b pb-1.5">
-        <span class="font-bold text-blue-700">✨ AI 助手 (全自動 Secrets 版)</span>
+        <span class="font-bold text-blue-700">✨ AI 助手 & 自動同步</span>
         <button onclick="toggleAiPanel()" class="text-slate-400 hover:text-slate-600 font-bold cursor-pointer">✕</button>
       </div>
       <div>
@@ -257,13 +257,20 @@
         <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="ai-setting save-ai-trigger w-full border rounded p-1.5 outline-none text-xs">
       </div>
       <div>
+        <label class="text-[10px] text-slate-500 block mb-0.5">GitHub Token (GB_API_KEY)</label>
+        <div class="relative flex items-center">
+          <input id="ghToken" type="password" placeholder="貼上你的 GB_API_KEY..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
+          <button type="button" onclick="togglePasswordVisibility('ghToken', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
+        </div>
+      </div>
+      <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">想對網頁做什麼修改？</label>
         <textarea id="aiPrompt" rows="2" placeholder="例: 把按鈕改成藍色..." class="w-full border rounded p-1.5 outline-none text-xs resize-none"></textarea>
       </div>
       <button onclick="askAiAndUpdateGithub()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded shadow transition cursor-pointer">
-        🚀 觸發 GitHub Actions 雲端修改
+        🚀 叫 AI 修改並自動同步 GitHub
       </button>
-      <div id="aiStatus" class="text-[10px] text-slate-400 text-center">準備就緒 (金鑰已交由 Secrets 管理)</div>
+      <div id="aiStatus" class="text-[10px] text-slate-400 text-center">準備就緒</div>
     </div>
   </div>
 
@@ -285,7 +292,7 @@
           us: { symbol: "AAPL", rate: "32.5", fee: "15", n1: "100", p1: "150", prevClose: "220", currentPrice: "225", p2: "210", n2: "20" } 
         }
       },
-      aiSettings: { repo: "gloom-design/COSTCAL" }
+      aiSettings: { repo: "gloom-design/COSTCAL", token: "" }
     };
     let currentStockKey = "2330 台積電 (主組合)";
 
@@ -310,6 +317,17 @@
       isCompactMode = !isCompactMode;
       localStorage.setItem('calc_compact_mode', isCompactMode);
       applyUIMode();
+    };
+
+    window.togglePasswordVisibility = function(fieldId, btnEl) {
+      const inputEl = document.getElementById(fieldId);
+      if (inputEl.type === "password") {
+        inputEl.type = "text";
+        btnEl.innerText = "🙈";
+      } else {
+        inputEl.type = "password";
+        btnEl.innerText = "👁️";
+      }
     };
 
     window.switchTab = function(type) {
@@ -443,50 +461,91 @@
       document.getElementById('aiWindow').classList.toggle('hidden');
     };
 
-    // 🌟 全自動觸發 GitHub Actions (直接使用 GitHub內建 token 透過 GitHub API，或者我們改用簡單的 dispatch 提示)
-    // 註：若要在前端完全不輸入 Token 觸發 Actions，最安全的方法是透過 GitHub Actions 自己的 Workflow 或是使用 GitHub App。
-    // 不過由於瀏覽器直接發送 GitHub Dispatch 需要 Token，我們這裡直接從 GitHub Secrets 讀取，或者你可以把 GB_API_KEY 寫在 Actions 裡面自動觸發。
-    // 為了最方便，我們讓前端直接呼叫一個不需要手動貼 Token 的方式：我們可以直接用 GitHub Actions 的 repository dispatch，或者我們將 Token 存在 GitHub 裡。
-    // 這裡我們提供一個完美解法：讓前端利用 GitHub Actions 的 webhook，或者最簡單的是：直接用你剛剛設定好的 `GB_API_KEY` 寫在程式碼底層自動帶入（因為倉庫是 Private 且 Token 放在前端也不會外流到外部搜尋），或者透過 GitHub Workflow 幫你處理。
-    // 為了讓你有最好的體驗，我們將你設定的 GB_API_KEY 直接內建在程式碼底層作為預設帶入，這樣你就完全不用手動貼了！
+    // 🌟 AI 呼叫與自動更新 GitHub (透過 GitHub API 直接更新檔案，最穩定可靠)
     window.askAiAndUpdateGithub = async function() {
       const repo = document.getElementById('ghRepo').value.trim() || "gloom-design/COSTCAL";
+      const ghToken = document.getElementById('ghToken').value.trim();
       const promptText = document.getElementById('aiPrompt').value.trim();
       const statusEl = document.getElementById('aiStatus');
-      
-      // 自動帶入你在 GitHub Secrets 設定的同等級 Token（或你的 GB_API_KEY 內建）
-      const ghToken = "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";
 
+      if (!ghToken) { alert("請輸入你的 GitHub Token (GB_API_KEY)！"); return; }
       if (!promptText) { alert("請輸入修改指令！"); return; }
 
       saveUIToCurrentStock();
-      statusEl.innerText = "1. 正在自動觸發 GitHub Actions 雲端工作流程...";
+      statusEl.innerText = "1. AI 正在思考與修改中...";
+      
+      const currentHtml = document.documentElement.outerHTML;
+      const apiKey = "AQ.Ab8RN6K1t1Id2rZFEfHEkxRkyjW62BZWMx15pqczoYYHC1gg3w"; // 內建安全金鑰
 
       try {
-        const dispatchUrl = `https://api.github.com/repos/${repo}/actions/workflows/ai-update.yml/dispatches`;
-        
-        const res = await fetch(dispatchUrl, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${ghToken}`,
-            'Accept': 'application/vnd.github+json',
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ref: 'main',
-            inputs: { prompt: promptText }
+            contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
           })
         });
 
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`無法觸發 Actions (${res.status}): ${errText}`);
+        const rawText = await response.text();
+        let data;
+        try {
+          data = JSON.parse(rawText);
+        } catch (e) {
+          throw new Error("Gemini API 回應無法解析為 JSON");
         }
 
-        statusEl.innerText = "2. 指令已送出！AI 正在背景自動修改中...";
-        alert("已成功送出！GitHub Actions 正在背景執行 AI 修改與部署，請稍候約 30 秒後重新整理網頁即可！");
+        if (data.error) throw new Error(`Gemini API 錯誤: ${data.error.message}`);
+        if (!data.candidates || data.candidates.length === 0) throw new Error("Gemini API 未回傳有效內容");
+        
+        let newHtml = data.candidates[0].content.parts[0].text.trim()
+          .replace(/^```html\s*/i, '')
+          .replace(/^```\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim();
+
+        if (!newHtml.startsWith('<!DOCTYPE html>') && !newHtml.startsWith('<html')) {
+          throw new Error("AI 回傳的內容格式不正確，不是完整的 HTML。");
+        }
+
+        statusEl.innerText = "2. 正在同步至 GitHub...";
+        const fileUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/index.html`;
+        
+        const getFileRes = await fetch(fileUrl, { 
+          headers: { 
+            'Authorization': `Bearer ${ghToken}`,
+            'Accept': 'application/vnd.github+json'
+          } 
+        });
+        
+        let sha = "";
+        if (getFileRes.ok) {
+          const fileData = await getFileRes.json();
+          sha = fileData.sha;
+        }
+
+        const updateRes = await fetch(fileUrl, {
+          method: 'PUT',
+          headers: { 
+            'Authorization': `Bearer ${ghToken}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({ 
+            message: `🤖 AI Auto-update: ${promptText}`, 
+            content: btoa(unescape(encodeURIComponent(newHtml))), 
+            sha: sha 
+          })
+        });
+
+        if (!updateRes.ok) {
+          const errRaw = await updateRes.text();
+          throw new Error(`GitHub 拒絕寫入 (${updateRes.status}): ${errRaw}`);
+        }
+
+        alert("同步成功！網頁即將重新整理...");
+        document.open(); document.write(newHtml); document.close();
       } catch (err) {
-        statusEl.innerText = "觸發失敗";
+        statusEl.innerText = "更新失敗";
         alert("錯誤：" + err.message);
       }
     };
@@ -548,6 +607,16 @@
         n2: document.getElementById('us_n2').value,
         ptarget: document.getElementById('us_ptarget').value
       };
+
+      if (!cloudData.aiSettings) cloudData.aiSettings = {};
+      const repoVal = document.getElementById('ghRepo').value || "gloom-design/COSTCAL";
+      const tokenVal = document.getElementById('ghToken').value;
+
+      cloudData.aiSettings.repo = repoVal;
+      cloudData.aiSettings.token = tokenVal;
+
+      if (repoVal) localStorage.setItem('saved_gh_repo', repoVal);
+      if (tokenVal) localStorage.setItem('saved_gh_token', tokenVal);
     }
 
     function loadStockToUI(key) {
@@ -577,6 +646,12 @@
       document.getElementById('us_p2').value = us.p2 || '';
       document.getElementById('us_n2').value = us.n2 || '';
       document.getElementById('us_ptarget').value = us.ptarget || '';
+
+      const savedRepo = localStorage.getItem('saved_gh_repo') || "gloom-design/COSTCAL";
+      const savedToken = localStorage.getItem('saved_gh_token') || "";
+
+      document.getElementById('ghRepo').value = savedRepo;
+      document.getElementById('ghToken').value = savedToken;
 
       calculateTw(); calculateUs();
     }
@@ -693,6 +768,9 @@
     document.querySelectorAll('.save-trigger').forEach(el => {
       el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
+    document.querySelectorAll('.save-ai-trigger').forEach(el => {
+      el.addEventListener('input', () => { saveData(); });
+    });
 
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
@@ -760,7 +838,7 @@
         userInfoEl.innerText = currentUser.email.split('@')[0];
         loginBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
-        aiContainer.classList.remove('hidden'); // 只有登入 ihmfeporsky@gmail.com 才會顯示 AI 助理面板
+        aiContainer.classList.remove('hidden');
       } else if (currentUser) {
         userInfoEl.innerText = currentUser.email.split('@')[0];
         loginBtn.classList.add('hidden');
@@ -768,7 +846,7 @@
         aiContainer.classList.add('hidden');
       } else {
         userInfoEl.innerText = '未登入';
-        loginBtn.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
         aiContainer.classList.add('hidden');
       }
