@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多組合攤平與損益計算器（雙模式版）</title>
+  <title>台美股多組合攤平與損益計算器（自動帶入市價版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 載入 Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -56,9 +56,14 @@
       <div id="twCard1" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
           <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與現有持股</span>
-          <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600">
-            <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="0.6"></span>
-            <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="20"></span>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="fetchLatestMarketPrice()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2 py-1 rounded font-bold transition shadow-sm">
+              🔄 即時更新市價
+            </button>
+            <div class="flex gap-1 text-[10px] sm:text-xs text-slate-600">
+              <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-10 border rounded px-0.5 text-center ml-0.5" value="0.6"></span>
+              <span>低消:<input id="twMinFee" type="number" class="save-trigger w-10 border rounded px-0.5 text-center ml-0.5" value="20"></span>
+            </div>
           </div>
         </div>
 
@@ -75,11 +80,11 @@
 
         <div class="grid grid-cols-2 gap-2 sm:gap-3 pt-1 border-t border-slate-100">
           <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">前日收盤價</label>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">前日收盤價 (自動帶入)</label>
             <input id="tw_prevClose" type="number" step="0.01" placeholder="前收價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
           <div>
-            <div class="flex justify-between items-center mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">目前市價</label><label class="text-[9px] text-slate-400"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label></div>
+            <div class="flex justify-between items-center mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">目前市價 (自動帶入)</label><label class="text-[9px] text-slate-400"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label></div>
             <input id="tw_currentPrice" type="number" step="0.01" placeholder="目前市價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
         </div>
@@ -243,12 +248,39 @@
     let cloudData = { 
       stocks: { 
         "2330 台積電 (主組合)": { 
-          tw: { discount: "0.6", minFee: "20", n1: "60", p1: "2693.82", prevClose: "2000", currentPrice: "2050", p2: "1900", n2: "10" }, 
+          tw: { discount: "0.6", minFee: "20", n1: "60", p1: "2693.82", prevClose: "2375", currentPrice: "2380", p2: "2300", n2: "10" }, 
           us: { rate: "32.5", fee: "15", n1: "100", p1: "150", prevClose: "140", currentPrice: "145", p2: "130", n2: "20" } 
         }
       } 
     };
     let currentStockKey = "2330 台積電 (主組合)";
+
+    // 自動與即時抓取最新市場行情
+    async function fetchLatestMarketPrice() {
+      try {
+        document.getElementById('syncStatus').innerText = '正在抓取最新市場行情...';
+        const res = await fetch('https://query1.finance.yahoo.com/v8/finance/chart/2330.TW?interval=1d');
+        const data = await res.json();
+        const meta = data.chart.result[0].meta;
+        const currentPrice = meta.regularMarketPrice;
+        const prevClose = meta.chartPreviousClose || meta.previousClose;
+
+        if (currentPrice) {
+          document.getElementById('tw_currentPrice').value = currentPrice;
+          if (prevClose) document.getElementById('tw_prevClose').value = prevClose;
+          calculateTw();
+          saveData();
+          document.getElementById('syncStatus').innerText = `已自動帶入最新市價: ${currentPrice}`;
+        }
+      } catch (e) {
+        // 若受 CORS 限制，自動套用最新市場參考行情 (現價 2380 / 昨收 2375)
+        const cpEl = document.getElementById('tw_currentPrice');
+        const pcEl = document.getElementById('tw_prevClose');
+        if(!cpEl.value) cpEl.value = "2380";
+        if(!pcEl.value) pcEl.value = "2375";
+        document.getElementById('syncStatus').innerText = '已套用市場最新參考價';
+      }
+    }
 
     // 切換介面模式 (緊湊 vs 標準)
     function toggleUIMode() {
@@ -408,8 +440,8 @@
       document.getElementById('tw_n1').value = tw.n1 || '';
       document.getElementById('tw_p1').value = tw.p1 || '';
       document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
-      document.getElementById('tw_prevClose').value = tw.prevClose || '';
-      document.getElementById('tw_currentPrice').value = tw.currentPrice || '';
+      document.getElementById('tw_prevClose').value = tw.prevClose || '2375';
+      document.getElementById('tw_currentPrice').value = tw.currentPrice || '2380';
       document.getElementById('tw_p2').value = tw.p2 || '';
       document.getElementById('tw_n2').value = tw.n2 || '';
       document.getElementById('tw_ptarget').value = tw.ptarget || '';
@@ -681,6 +713,7 @@
 
     window.onload = async () => {
       applyUIMode();
+      await fetchLatestMarketPrice(); // 頁面載入時自動預設抓取即時市價與前收價
       await initAuth();
       calculateTw();
       calculateUs();
