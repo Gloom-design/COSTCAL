@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 載入 Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 載入 Supabase 核心 UMD 腳本確保 100% 成功初始化 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -17,10 +17,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.3</span>
         </div>
         <!-- 📝 更新內容簡單說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復雲端登入與版本號顯示</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級 Supabase 載入核心修復初始化問題</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端同步就緒</div>
       </div>
       
@@ -319,7 +319,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.2）往後加一版，並更新更新說明文字。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.3）往後加一版，並更新更新說明文字。` }] }]
           })
         });
 
@@ -496,7 +496,7 @@
     }
 
     async function loginWithGoogle() {
-      if (!sbClient) { alert("Supabase 尚未初始化，請稍候再試"); return; }
+      if (!sbClient) { alert("雲端模組正在初始化，請稍候再試"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: window.location.origin + window.location.pathname }
@@ -512,19 +512,18 @@
     }
 
     async function initAuth() {
-      // 防呆等待 Supabase 載入完成
-      let retries = 0;
-      while (!window.supabase && retries < 15) {
-        await new Promise(r => setTimeout(r, 200));
-        retries++;
+      // 確保 window.supabase.createClient 可以被正確調用
+      let supabaseModule = window.supabase;
+      if (!supabaseModule && typeof supabase !== 'undefined') {
+        supabaseModule = supabase;
       }
 
-      if (!window.supabase) {
+      if (!supabaseModule || typeof supabaseModule.createClient !== 'function') {
         document.getElementById('syncStatus').innerText = '雲端模組載入失敗';
         return;
       }
 
-      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      sbClient = supabaseModule.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
@@ -860,7 +859,7 @@
         const pct = ((currentPrice - p1) / p1) * 100;
         const el = document.getElementById('us_pnlDisplay');
         el.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        el.innerText =`${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+        el.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
       }
 
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
