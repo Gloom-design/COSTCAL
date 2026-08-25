@@ -14,21 +14,17 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
-          <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.5</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.7</span>
         </div>
-        <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修正 AI 模型為 gemini-2.5-flash，解決 404 找不到模型錯誤</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：內建整合全新 Gemini API Key</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
       <div class="flex items-center gap-2">
-        <!-- 📱/💻 介面模式切換按鈕 -->
         <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm cursor-pointer">
           📱 緊湊模式
         </button>
 
-        <!-- 登入資訊 -->
         <div class="flex items-center gap-1 relative z-30">
           <span id="userInfo" class="text-[10px] text-slate-500 max-w-[80px] sm:max-w-[120px] truncate hidden sm:inline">未登入</span>
           <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
@@ -40,7 +36,6 @@
     <!-- 組合管理列 -->
     <div class="bg-white p-2.5 sm:p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-1.5">
       <select id="stockSelector" onchange="switchStock(this.value)" class="flex-1 border rounded-lg p-1.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
-        <!-- 動態載入組別 -->
       </select>
       <button onclick="renameCurrentStock()" class="bg-amber-50 text-amber-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
       <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
@@ -53,10 +48,8 @@
       <button id="tabUsBtn" onclick="switchTab('us')" class="py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
     </div>
 
-    <!-- ================= 🇹🇼 台股介面 ================= -->
+    <!-- 台股介面 -->
     <div id="twView" class="space-y-2 sm:space-y-4">
-      
-      <!-- 現有持股與設定 -->
       <div id="twCard1" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
           <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與代號查詢</span>
@@ -66,7 +59,6 @@
           </div>
         </div>
 
-        <!-- 台股代號輸入與帶入區塊 -->
         <div class="bg-indigo-50/60 p-2 rounded-lg border border-indigo-100 flex items-center gap-2">
           <div class="flex-1">
             <label class="text-[10px] text-indigo-700 font-bold block mb-0.5">台股代號 (例: 2330)</label>
@@ -111,7 +103,6 @@
         </div>
       </div>
 
-      <!-- 補倉規劃 -->
       <div id="twCard2" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-2 sm:gap-3">
@@ -130,7 +121,6 @@
         </div>
       </div>
 
-      <!-- 計算結果 -->
       <div class="bg-slate-900 text-white p-3 sm:p-4 rounded-xl shadow-md space-y-2">
         <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">台股試算結果</h2>
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-1.5">
@@ -157,10 +147,8 @@
       </div>
     </div>
 
-
-    <!-- ================= 🇺🇸 美股介面 ================= -->
+    <!-- 美股介面 -->
     <div id="usView" class="space-y-2 sm:space-y-4 hidden">
-      <!-- 美股設定與現有持股 -->
       <div id="usCard1" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
           <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與代號查詢</span>
@@ -170,7 +158,6 @@
           </div>
         </div>
 
-        <!-- 美股代號輸入與帶入區塊 -->
         <div class="bg-teal-50/60 p-2 rounded-lg border border-teal-100 flex items-center gap-2">
           <div class="flex-1">
             <label class="text-[10px] text-teal-700 font-bold block mb-0.5">美股代號 (例: AAPL / NVDA)</label>
@@ -209,7 +196,6 @@
         </div>
       </div>
 
-      <!-- 美股補倉規劃 -->
       <div id="usCard2" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-2 sm:gap-3">
@@ -228,7 +214,6 @@
         </div>
       </div>
 
-      <!-- 美股試算結果 -->
       <div class="bg-slate-900 text-white p-3 sm:p-4 rounded-xl shadow-md space-y-2">
         <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-1.5">
@@ -262,7 +247,6 @@
       🤖 AI & GitHub 助理
     </button>
     
-    <!-- AI 對話互動視窗 -->
     <div id="aiWindow" class="hidden absolute bottom-14 right-0 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 p-3 space-y-2 text-xs">
       <div class="flex justify-between items-center border-b pb-1.5">
         <span class="font-bold text-blue-700">✨ AI 助手 & GitHub 自動同步</span>
@@ -271,7 +255,7 @@
       <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">Gemini API Key</label>
         <div class="relative flex items-center">
-          <input id="aiApiKey" type="password" placeholder="貼上你的 Gemini API Key..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
+          <input id="aiApiKey" type="password" value="AQ.Ab8RN6K1t1Id2rZFEfHEkxRkyjW62BZWMx15pqczoYYHC1gg3w" placeholder="貼上你的 Gemini API Key..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
           <button type="button" onclick="togglePasswordVisibility('aiApiKey', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
         </div>
       </div>
@@ -282,7 +266,7 @@
       <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">GitHub Personal Access Token (github_pat_...)</label>
         <div class="relative flex items-center">
-          <input id="ghToken" type="password" placeholder="貼上你的 github_pat_..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
+          <input id="ghToken" type="password" value="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" placeholder="貼上你的 github_pat_..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
           <button type="button" onclick="togglePasswordVisibility('ghToken', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
         </div>
       </div>
@@ -297,7 +281,6 @@
     </div>
   </div>
 
-  <!-- 修正版 ESM 模組 -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -317,7 +300,7 @@
         }
       },
       aiSettings: { 
-        apiKey: "AIzaSyCQADICgX4_VaOQ2rypCkQBoSJ4gEvWmhw", 
+        apiKey: "AQ.Ab8RN6K1t1Id2rZFEfHEkxRkyjW62BZWMx15pqczoYYHC1gg3w", 
         repo: "gloom-design/COSTCAL", 
         token: "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" 
       }
@@ -491,7 +474,6 @@
       document.getElementById('aiWindow').classList.toggle('hidden');
     };
 
-    // 🌟 更新為 gemini-2.5-flash 模型端點
     window.askAiAndUpdateGithub = async function() {
       const apiKey = document.getElementById('aiApiKey').value.trim();
       const repo = document.getElementById('ghRepo').value.trim() || "gloom-design/COSTCAL";
@@ -692,13 +674,13 @@
       document.getElementById('us_n2').value = us.n2 || '';
       document.getElementById('us_ptarget').value = us.ptarget || '';
 
-      const cloudKey = cloudData.aiSettings?.apiKey;
-      const cloudRepo = cloudData.aiSettings?.repo;
-      const cloudToken = cloudData.aiSettings?.token;
+      const savedKey = localStorage.getItem('saved_ai_key') || "AQ.Ab8RN6K1t1Id2rZFEfHEkxRkyjW62BZWMx15pqczoYYHC1gg3w";
+      const savedRepo = localStorage.getItem('saved_gh_repo') || "gloom-design/COSTCAL";
+      const savedToken = localStorage.getItem('saved_gh_token') || "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";
 
-      document.getElementById('aiApiKey').value = cloudKey || localStorage.getItem('saved_ai_key') || '';
-      document.getElementById('ghRepo').value = cloudRepo || localStorage.getItem('saved_gh_repo') || 'gloom-design/COSTCAL';
-      document.getElementById('ghToken').value = cloudToken || localStorage.getItem('saved_gh_token') || '';
+      document.getElementById('aiApiKey').value = savedKey;
+      document.getElementById('ghRepo').value = savedRepo;
+      document.getElementById('ghToken').value = savedToken;
 
       calculateTw(); calculateUs();
     }
