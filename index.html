@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 復原為最原始且確定可運作的官方 UMD 短網址 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 修正 1：使用更穩定的 Supabase 完整 UMD 版本連結 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.js"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -17,10 +17,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.7</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.8</span>
         </div>
         <!-- 📝 更新內容簡單說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：將雲端模組與 UI 脫鉤，確保按鈕絕對可用</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修正 Supabase 登入、強化緊湊模式與行情查詢穩定度</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">模組準備中...</div>
       </div>
       
@@ -59,7 +59,7 @@
     <div id="twView" class="space-y-2 sm:space-y-4">
       
       <!-- 現有持股與設定 -->
-      <div id="twCard1" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+      <div id="twCard1" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
           <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與代號查詢</span>
           <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600">
@@ -114,7 +114,7 @@
       </div>
 
       <!-- 補倉規劃 -->
-      <div id="twCard2" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+      <div id="twCard2" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
@@ -163,7 +163,7 @@
     <!-- ================= 🇺🇸 美股介面 ================= -->
     <div id="usView" class="space-y-2 sm:space-y-4 hidden">
       <!-- 美股設定與現有持股 -->
-      <div id="usCard1" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+      <div id="usCard1" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <div class="flex justify-between items-center border-b pb-2">
           <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與代號查詢</span>
           <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600">
@@ -212,7 +212,7 @@
       </div>
 
       <!-- 美股補倉規劃 -->
-      <div id="usCard2" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+      <div id="usCard2" class="card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
         <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
@@ -319,7 +319,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.7）往後加一版，並更新更新說明文字。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號往後加一版，並更新更新說明文字。` }] }]
           })
         });
 
@@ -377,11 +377,10 @@
       }
     }
 
-    // ================= 全域變數與 UI 邏輯（絕對不會被 Supabase 錯誤中斷）=================
+    // ================= 全域變數與 UI 邏輯 =================
     const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
-    // 初始化為 null，等待 window.onload 之後才去接 Supabase
     let sbClient = null; 
     let currentUser = null;
     let saveTimeout = null;
@@ -404,25 +403,27 @@
       applyUIMode();
     }
 
+    // 💡 修正 2：明確調整緊湊模式與標準模式的間距與字體外觀
     function applyUIMode() {
       const btn = document.getElementById('modeToggleBtn');
       const body = document.getElementById('bodyBg');
       const container = document.getElementById('mainContainer');
-      const tw1 = document.getElementById('twCard1');
-      const tw2 = document.getElementById('twCard2');
-      const us1 = document.getElementById('usCard1');
-      const us2 = document.getElementById('usCard2');
+      const cards = document.querySelectorAll('.card-box');
 
       if (isCompactMode) {
         btn.innerText = "📱 緊湊模式";
-        body.className = "bg-slate-100 text-slate-800 p-1.5 sm:p-4 min-h-screen transition-all";
-        container.className = "max-w-md mx-auto space-y-1.5 sm:space-y-4 text-xs sm:text-sm";
-        [tw1, tw2, us1, us2].forEach(card => { if(card) card.className = "bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-slate-200 space-y-1.5 sm:space-y-3"; });
+        body.className = "bg-slate-100 text-slate-800 p-1 min-h-screen transition-all";
+        container.className = "max-w-md mx-auto space-y-1.5 text-[11px] sm:text-xs";
+        cards.forEach(card => {
+          card.className = "card-box bg-white p-2 rounded-lg shadow-sm border border-slate-200 space-y-1";
+        });
       } else {
         btn.innerText = "💻 標準模式";
         body.className = "bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all";
         container.className = "max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm";
-        [tw1, tw2, us1, us2].forEach(card => { if(card) card.className = "bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3"; });
+        cards.forEach(card => {
+          card.className = "card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3";
+        });
       }
     }
 
@@ -445,23 +446,21 @@
       }
     }
 
-    // ================= 🔐 Supabase 雲端非同步設定 (獨立於主邏輯外) =================
+    // ================= 🔐 Supabase 雲端非同步設定 =================
     async function initAuth() {
-      // 給予 CDN 載入的緩衝時間 (最多等 2 秒)
       let retries = 0;
-      while (!window.supabase && retries < 20) {
-        await new Promise(r => setTimeout(r, 100));
+      while ((!window.supabase || !window.supabase.createClient) && retries < 25) {
+        await new Promise(r => setTimeout(r, 200));
         retries++;
       }
 
-      if (!window.supabase) {
+      if (!window.supabase || !window.supabase.createClient) {
         document.getElementById('syncStatus').innerText = '無雲端連線，啟用單機模式';
-        console.error("Supabase CDN 載入失敗");
+        console.error("Supabase CDN 載入超時");
         return;
       }
 
       try {
-        // 安全地初始化 Client
         sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       } catch (err) {
         document.getElementById('syncStatus').innerText = '初始化異常';
@@ -469,7 +468,6 @@
         return;
       }
 
-      // 接續 Auth 邏輯
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
@@ -491,7 +489,7 @@
 
     async function loginWithGoogle() {
       if (!sbClient) { 
-        alert("雲端模組初始化失敗或尚未載入完成。\n請檢查網路連線或稍後再試！"); 
+        alert("雲端模組初始化失敗，請檢查網路連線或重新整理頁面！"); 
         return; 
       }
       const { error } = await sbClient.auth.signInWithOAuth({
@@ -575,7 +573,7 @@
       loadStockToUI(currentStockKey);
     }
 
-    // ================= 計算器與其它核心邏輯 (與 Supabase 完全無關) =================
+    // ================= 💡 修正 3：穩健的行情抓取與逾時防卡死機制 =================
     async function fetchMarketPrice(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
@@ -585,14 +583,24 @@
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
 
+      // 建立一個 5 秒逾時的 AbortController，防止 API 逾時卡死
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
       try {
         const targetUrl = `[https://query1.finance.yahoo.com/v8/finance/chart/$](https://query1.finance.yahoo.com/v8/finance/chart/$){querySymbol}?interval=1d`;
         const proxyUrl = `[https://corsproxy.io/?$](https://corsproxy.io/?$){encodeURIComponent(targetUrl)}`;
         
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error("網路請求失敗");
+        const res = await fetch(proxyUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error("網路請求狀態異常");
         
         const data = await res.json();
+        if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+          throw new Error("查無此代號資料");
+        }
+
         const meta = data.chart.result[0].meta;
         const currentPrice = meta.regularMarketPrice;
         const prevClose = meta.chartPreviousClose || meta.previousClose;
@@ -605,16 +613,19 @@
           document.getElementById('syncStatus').innerText = `已成功代入 ${querySymbol} 行情`;
           return;
         } else {
-          throw new Error("無行情資料");
+          throw new Error("無行情數值");
         }
       } catch (e) {
+        clearTimeout(timeoutId);
+        // 逾時或跨域失敗時的智慧備援
         let mockPrice = type === 'tw' ? 2380 : 225;
         let mockClose = type === 'tw' ? 2375 : 220;
         document.getElementById(`${type}_currentPrice`).value = mockPrice;
         document.getElementById(`${type}_prevClose`).value = mockClose;
         if (type === 'tw') calculateTw(); else calculateUs();
         saveData();
-        alert(`已成功帶入代號 [${querySymbol}] 之參考行情！`);
+        document.getElementById('syncStatus').innerText = '行情查詢逾時，已套用參考行情';
+        alert(`提示：線上即時查詢受阻，已自動代入 [${querySymbol}] 之參考行情！`);
       }
     }
 
@@ -813,8 +824,10 @@
       if (p1 > 0 && prevClose > 0) {
         const pct = ((prevClose - p1) / p1) * 100;
         const prevEl = document.getElementById('tw_prevPnlDisplay');
-        prevEl.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        prevEl.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+        if (prevEl) {
+          prevEl.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+          prevEl.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+        }
       }
 
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
@@ -914,21 +927,19 @@
     document.querySelectorAll('.save-trigger').forEach(el => {
       el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
-    document.getElementById('tw_sameAsPrev').addEventListener('change', () => { calculateTw(); saveData(); });
+    const twSamePrev = document.getElementById('tw_sameAsPrev');
+    if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
-    // 網頁載入後，先啟動 UI 與本地邏輯，再嘗試啟動雲端連線
+    // 網頁載入後啟動
     window.onload = async () => {
       if (window.location.hash && window.location.hash.includes('access_token')) {
         window.history.replaceState(null, document.title, window.location.pathname);
       }
 
       applyUIMode();
-      
-      // 先讓網頁呈現可以操作的狀態
       renderStockSelector();
       loadStockToUI(currentStockKey);
       
-      // 最後才去啟動雲端模組，失敗也不會影響上面的 UI
       await initAuth();
     };
   </script>
