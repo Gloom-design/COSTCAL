@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多標的攤平與損益計算器（雲端會員版）</title>
+  <title>台美股多組合攤平與損益計算器（雲端會員版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 載入 Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,8 +12,8 @@
   <div class="max-w-md mx-auto space-y-4">
     <!-- Header 與 Google 登入區塊 -->
     <header class="text-center py-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-      <h1 class="text-xl font-bold text-slate-900">台美股多標的攤平計算器</h1>
-      <p class="text-xs text-slate-500">雲端同步・多標的持倉管理版</p>
+      <h1 class="text-xl font-bold text-slate-900">台美股多組合攤平計算器</h1>
+      <p class="text-xs text-slate-500">雲端即時同步・多數據組合管理</p>
       
       <div id="authSection" class="pt-2 border-t border-slate-100 flex items-center justify-between">
         <div id="userInfo" class="text-xs text-slate-600 truncate max-w-[180px]">檢查登入中...</div>
@@ -29,16 +29,16 @@
       <div class="text-[10px] text-slate-400 text-right" id="syncStatus">資料未同步</div>
     </header>
 
-    <!-- 股票標的切換列 -->
+    <!-- 多組數據組合切換列 -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-2">
       <div class="flex-1">
-        <label class="block text-[10px] font-medium text-slate-500 mb-1">選擇或切換持股標的</label>
+        <label class="block text-[10px] font-medium text-slate-500 mb-1">選擇或切換您的數據組合</label>
         <select id="stockSelector" onchange="switchStock(this.value)" class="w-full border rounded-lg p-1.5 text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
-          <!-- 動態載入標的 -->
+          <!-- 動態載入組合 -->
         </select>
       </div>
       <div class="flex items-end gap-1 pt-4">
-        <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 text-xs px-2.5 py-2 rounded-lg font-bold hover:bg-indigo-100">+ 新增標的</button>
+        <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 text-xs px-2.5 py-2 rounded-lg font-bold hover:bg-indigo-100">+ 新增組合</button>
         <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 text-xs px-2 py-2 rounded-lg font-bold hover:bg-rose-100">刪除</button>
       </div>
     </div>
@@ -60,11 +60,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">手續費折數 (例: 0.6)</label>
-            <input id="twDiscount" type="number" step="0.01" placeholder="例如: 0.6" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="twDiscount" type="number" step="0.01" placeholder="例如: 0.6" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">手續費低消 (元)</label>
-            <input id="twMinFee" type="number" placeholder="例如: 20" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="twMinFee" type="number" placeholder="例如: 20" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
         </div>
       </div>
@@ -176,10 +176,10 @@
           </div>
         </div>
 
-        <!-- 位於下方的「手動確認存檔按鈕」 -->
+        <!-- 手動確認存檔按鈕 -->
         <div class="pt-3 border-t border-slate-700">
           <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
-            💾 確認儲存目前持倉至雲端
+            💾 即時更新並儲存至雲端
           </button>
         </div>
       </div>
@@ -193,11 +193,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">美金匯率 (TWD)</label>
-            <input id="us_exchangeRate" type="number" step="0.01" placeholder="例如: 32.5" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_exchangeRate" type="number" step="0.01" placeholder="例如: 32.5" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">單筆手續費 (USD)</label>
-            <input id="us_fee" type="number" step="0.01" placeholder="例如: 15" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_fee" type="number" step="0.01" placeholder="例如: 15" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
         </div>
       </div>
@@ -307,10 +307,10 @@
           </div>
         </div>
 
-        <!-- 位於下方的「手動確認存檔按鈕」 -->
+        <!-- 手動確認存檔按鈕 -->
         <div class="pt-3 border-t border-slate-700">
           <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
-            💾 確認儲存目前持倉至雲端
+            💾 即時更新並儲存至雲端
           </button>
         </div>
       </div>
@@ -325,8 +325,21 @@
 
     let currentUser = null;
     let saveTimeout = null;
-    let cloudData = { stocks: { "預設標的 (例如 2330)": { tw: {}, us: {} } } };
-    let currentStockKey = "預設標的 (例如 2330)";
+    
+    // 預設帶入測試參數（包含兩組不同的組合供測試）
+    let cloudData = { 
+      stocks: { 
+        "2330 台積電 (主組合)": { 
+          tw: { discount: "0.6", minFee: "20", n1: "60", p1: "2693.82", prevClose: "2000", currentPrice: "2050", p2: "1900", n2: "10" }, 
+          us: { rate: "32.5", fee: "15", n1: "100", p1: "150", prevClose: "140", currentPrice: "145", p2: "130", n2: "20" } 
+        },
+        "觀察中短線組合": { 
+          tw: { discount: "0.5", minFee: "20", n1: "10", p1: "500", prevClose: "490", currentPrice: "505", p2: "480", n2: "5" }, 
+          us: { rate: "32.5", fee: "10", n1: "50", p1: "200", prevClose: "195", currentPrice: "205", p2: "190", n2: "10" } 
+        }
+      } 
+    };
+    let currentStockKey = "2330 台積電 (主組合)";
 
     async function loginWithGoogle() {
       const { error } = await sbClient.auth.signInWithOAuth({
@@ -390,11 +403,14 @@
       if (data && data.portfolio_data) {
         cloudData = data.portfolio_data;
         if (!cloudData.stocks) {
-          cloudData = { stocks: { "預設標的": cloudData } };
+          cloudData = { stocks: { "我的組合": cloudData } };
         }
         const keys = Object.keys(cloudData.stocks);
         if (keys.length > 0) currentStockKey = keys[0];
         document.getElementById('syncStatus').innerText = '已從雲端同步';
+      } else {
+        // 若雲端尚無資料，把預設組合寫入雲端
+        await manualSaveDataSilent();
       }
       renderStockSelector();
       loadStockToUI(currentStockKey);
@@ -403,7 +419,7 @@
     function renderStockSelector() {
       const selector = document.getElementById('stockSelector');
       selector.innerHTML = '';
-      const keys = Object.keys(cloudData.stocks || { "預設標的": { tw: {}, us: {} } });
+      const keys = Object.keys(cloudData.stocks || { "2330 台積電 (主組合)": { tw: {}, us: {} } });
       keys.forEach(key => {
         const opt = document.createElement('option');
         opt.value = key;
@@ -479,10 +495,10 @@
     }
 
     function addNewStock() {
-      const name = prompt("請輸入新標的名稱 (例如: 2330 台積電 或 NVDA):");
+      const name = prompt("請輸入新的數據組合名稱 (例如: 2330 主力部位 或 NVDA 美股):");
       if (!name) return;
       if (cloudData.stocks[name]) {
-        alert("此標的名稱已存在！");
+        alert("此組合名稱已存在！");
         return;
       }
       saveUIToCurrentStock();
@@ -495,10 +511,10 @@
     function deleteCurrentStock() {
       const keys = Object.keys(cloudData.stocks);
       if (keys.length <= 1) {
-        alert("至少需保留一個標的！");
+        alert("至少需保留一個數據組合！");
         return;
       }
-      if (confirm(`確定要刪除標的「${currentStockKey}」嗎？`)) {
+      if (confirm(`確定要刪除組合「${currentStockKey}」嗎？`)) {
         delete cloudData.stocks[currentStockKey];
         const newKeys = Object.keys(cloudData.stocks);
         renderStockSelector();
@@ -507,11 +523,11 @@
       }
     }
 
-    // 安全版自動背景儲存（不依賴資料庫唯一約束）
+    // 即時背景自動儲存
     function saveData() {
       if (!currentUser) return;
       saveUIToCurrentStock();
-      document.getElementById('syncStatus').innerText = '同步中...';
+      document.getElementById('syncStatus').innerText = '即時同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         const { data: existing } = await sbClient
@@ -535,21 +551,38 @@
         }
 
         if (!error) {
-          document.getElementById('syncStatus').innerText = '雲端同步完成';
+          document.getElementById('syncStatus').innerText = '雲端即時同步完成';
         } else {
           document.getElementById('syncStatus').innerText = '同步失敗';
         }
-      }, 1000);
+      }, 500);
     }
 
-    // 安全版手動確認存檔
+    // 靜默儲存（初次無資料時自動建立）
+    async function manualSaveDataSilent() {
+      if (!currentUser) return;
+      saveUIToCurrentStock();
+      const { data: existing } = await sbClient
+        .from('user_portfolios')
+        .select('user_id')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+      if (existing) {
+        await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
+      } else {
+        await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
+      }
+    }
+
+    // 手動點擊確認存檔
     async function manualSaveData() {
       saveUIToCurrentStock();
       if (!currentUser) {
-        alert("請先登入 Google 帳號才能儲存至雲端！");
+        alert("請先登入 Google 帳號才能同步至雲端！");
         return;
       }
-      document.getElementById('syncStatus').innerText = '手動儲存中...';
+      document.getElementById('syncStatus').innerText = '儲存中...';
       
       const { data: existing } = await sbClient
         .from('user_portfolios')
@@ -572,8 +605,8 @@
       }
 
       if (!error) {
-        document.getElementById('syncStatus').innerText = '手動儲存成功！';
-        alert("持倉紀錄已成功儲存至雲端！");
+        document.getElementById('syncStatus').innerText = '更新儲存成功！';
+        alert("目前所有組合與數據已成功即時更新至雲端！");
       } else {
         document.getElementById('syncStatus').innerText = '儲存失敗';
         alert("儲存失敗: " + error.message);
@@ -810,12 +843,11 @@
       }
     }
 
-    // 事件監聽與觸發
-    document.querySelectorAll('.tw-input').forEach(el => {
-      el.addEventListener('input', (e) => {
-        if (e.target.id === 'tw_n2' && e.target.value) document.getElementById('tw_ptarget').value = '';
-        if (e.target.id === 'tw_ptarget' && e.target.value) document.getElementById('tw_n2').value = '';
+    // 事件監聽與即時自動儲存觸發
+    document.querySelectorAll('.save-trigger').forEach(el => {
+      el.addEventListener('input', () => {
         calculateTw();
+        calculateUs();
         saveData();
       });
     });
@@ -823,27 +855,6 @@
     document.getElementById('tw_sameAsPrev').addEventListener('change', () => {
       calculateTw();
       saveData();
-    });
-    document.getElementById('tw_prevClose').addEventListener('input', () => {
-      calculateTw();
-      saveData();
-    });
-
-    document.querySelectorAll('.us-input').forEach(el => {
-      el.addEventListener('input', (e) => {
-        if (e.target.id === 'us_n2' && e.target.value) document.getElementById('us_ptarget').value = '';
-        if (e.target.id === 'us_ptarget' && e.target.value) document.getElementById('us_n2').value = '';
-        calculateUs();
-        saveData();
-      });
-    });
-
-    ['twDiscount', 'twMinFee', 'us_exchangeRate', 'us_fee'].forEach(id => {
-      document.getElementById(id).addEventListener('input', () => {
-        calculateTw();
-        calculateUs();
-        saveData();
-      });
     });
 
     window.onload = async () => {
