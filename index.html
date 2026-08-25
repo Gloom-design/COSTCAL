@@ -14,9 +14,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v3.7.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v3.7.3</span>
         </div>
-        <div id="updateDesc" class="text-[10px] sm:text-xs text-slate-500 mt-1">更新：完整恢復完美排版與 GitHub Secrets 雲端架構</div>
+        <div id="updateDesc" class="text-[10px] sm:text-xs text-slate-500 mt-1">更新：修復前端 Token 欄位與 401 授權錯誤</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -28,7 +28,7 @@
         <div class="flex items-center gap-1.5 relative z-30">
           <span id="userInfo" class="text-[10px] sm:text-xs text-slate-500 max-w-[90px] sm:max-w-[140px] truncate hidden sm:inline">未登入</span>
           <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
-          <button id="logoutBtn" type="button" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
+          <button id="logoutBtn" type="button" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
         </div>
       </div>
     </header>
@@ -241,7 +241,7 @@
     </div>
   </div>
 
-  <!-- 🤖 內建 AI 助理面板 (零 Token 輸入，完全透過 GitHub Secrets 保護) -->
+  <!-- 🤖 內建 AI 助理面板 -->
   <div id="aiPanelContainer" class="hidden fixed bottom-4 right-4 z-50">
     <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3.5 sm:p-4 rounded-full shadow-xl font-bold text-xs flex items-center gap-2 hover:opacity-90 transition cursor-pointer">
       🤖 AI & GitHub 助理
@@ -254,17 +254,23 @@
       </div>
       <div>
         <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">GitHub 倉庫 (帳號/倉庫名)</label>
-        <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="w-full border rounded-xl p-2.5 outline-none text-xs bg-slate-50 font-bold text-slate-700" readonly>
+        <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="w-full border rounded-xl p-2.5 outline-none text-xs bg-slate-50 font-bold text-slate-700">
+      </div>
+      <div>
+        <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">GitHub Token (github_pat_...)</label>
+        <div class="relative flex items-center">
+          <input id="ghToken" type="password" placeholder="貼上你的 github_pat_..." class="w-full border rounded-xl p-2.5 pr-8 outline-none text-xs">
+          <button type="button" onclick="togglePasswordVisibility('ghToken', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
+        </div>
       </div>
       <div>
         <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">想對網頁做什麼修改？</label>
-        <!-- 預設填入測試範例文字 -->
         <textarea id="aiPrompt" rows="2.5" placeholder="例: 把按鈕改成藍色..." class="w-full border rounded-xl p-2.5 outline-none text-xs resize-none font-medium">把按鈕改成紅色</textarea>
       </div>
       <button onclick="askAiAndUpdateGithub()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl shadow transition cursor-pointer text-xs sm:text-sm">
         🚀 叫 AI 修改並自動同步 GitHub
       </button>
-      <div id="aiStatus" class="text-[10px] sm:text-xs text-slate-400 text-center">準備就緒 (金鑰已受 Secrets 保護)</div>
+      <div id="aiStatus" class="text-[10px] sm:text-xs text-slate-400 text-center">準備就緒</div>
     </div>
   </div>
 
@@ -310,6 +316,17 @@
       isCompactMode = !isCompactMode;
       localStorage.setItem('calc_compact_mode', isCompactMode);
       applyUIMode();
+    };
+
+    window.togglePasswordVisibility = function(fieldId, btnEl) {
+      const inputEl = document.getElementById(fieldId);
+      if (inputEl.type === "password") {
+        inputEl.type = "text";
+        btnEl.innerText = "🙈";
+      } else {
+        inputEl.type = "password";
+        btnEl.innerText = "👁️";
+      }
     };
 
     window.switchTab = function(type) {
@@ -444,14 +461,14 @@
     };
 
     window.askAiAndUpdateGithub = async function() {
+      const repo = document.getElementById('ghRepo').value.trim();
+      const ghToken = document.getElementById('ghToken').value.trim();
       const promptText = document.getElementById('aiPrompt').value.trim();
       const statusEl = document.getElementById('aiStatus');
-      const repo = "gloom-design/COSTCAL";
-      const ghToken = "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";
 
+      if (!ghToken) { alert("請輸入 GitHub Token！"); return; }
       if (!promptText) { alert("請輸入修改指令！"); return; }
 
-      saveUIToCurrentStock();
       statusEl.innerText = "1. 正在傳送指令至 GitHub 雲端...";
 
       try {
@@ -464,7 +481,7 @@
           } 
         });
         
-        if (!getFileRes.ok) throw new Error("無法讀取 GitHub 檔案");
+        if (!getFileRes.ok) throw new Error("無法讀取 GitHub 檔案 (請檢查 Token 或權限)");
         const fileData = await getFileRes.json();
         const sha = fileData.sha;
         const currentContent = decodeURIComponent(escape(atob(fileData.content)));
@@ -580,8 +597,15 @@
       document.getElementById('us_n2').value = us.n2 || '';
       document.getElementById('us_ptarget').value = us.ptarget || '';
 
+      const savedToken = localStorage.getItem('saved_gh_token') || "";
+      if (savedToken) document.getElementById('ghToken').value = savedToken;
+
       calculateTw(); calculateUs();
     }
+
+    document.getElementById('ghToken').addEventListener('input', (e) => {
+      localStorage.setItem('saved_gh_token', e.target.value.trim());
+    });
 
     function saveData() {
       if (!currentUser || !sbClient) return;
