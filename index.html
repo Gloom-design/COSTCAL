@@ -41,7 +41,6 @@
 
     <!-- ================= 🇹🇼 台股介面 ================= -->
     <div id="twView" class="space-y-4">
-      <!-- 參數設定：台股手續費與折扣 -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <h2 class="font-semibold text-sm text-indigo-600">台股交易設定</h2>
         <div class="grid grid-cols-2 gap-3">
@@ -56,7 +55,6 @@
         </div>
       </div>
 
-      <!-- 現有持股狀況 -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <h2 class="font-semibold text-sm text-indigo-600">1. 現有持股狀況 (台股)</h2>
         <div class="grid grid-cols-2 gap-3">
@@ -70,7 +68,6 @@
           </div>
         </div>
 
-        <!-- 手動對齊損益率欄位 -->
         <div class="pt-2 border-t border-slate-100">
           <label class="block text-xs font-medium text-indigo-600 mb-1 font-semibold">手動對齊 App 未實現損益率 (%)</label>
           <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24 或 -23.81" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-lg p-2 text-sm font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 outline-none">
@@ -103,7 +100,6 @@
         </div>
       </div>
 
-      <!-- 補倉規劃 -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <h2 class="font-semibold text-sm text-indigo-600">2. 補倉規劃 (台股)</h2>
         <div>
@@ -128,7 +124,6 @@
         </div>
       </div>
 
-      <!-- 計算結果 -->
       <div class="bg-slate-900 text-white p-4 rounded-xl shadow-md space-y-3">
         <h2 class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">台股補倉試算結果</h2>
         <div class="flex justify-between items-center text-sm">
@@ -171,7 +166,6 @@
 
     <!-- ================= 🇺🇸 美股介面 ================= -->
     <div id="usView" class="space-y-4 hidden">
-      <!-- 參數設定：匯率與美股手續費 -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <h2 class="font-semibold text-sm text-teal-600">美股交易設定</h2>
         <div class="grid grid-cols-2 gap-3">
@@ -186,7 +180,6 @@
         </div>
       </div>
 
-      <!-- 現有持股狀況 -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <h2 class="font-semibold text-sm text-teal-600">1. 現有持股狀況 (美股)</h2>
         <div class="grid grid-cols-2 gap-3">
@@ -221,7 +214,6 @@
         </div>
       </div>
 
-      <!-- 補倉規劃 -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
         <h2 class="font-semibold text-sm text-teal-600">2. 補倉規劃 (美股)</h2>
         <div>
@@ -246,7 +238,6 @@
         </div>
       </div>
 
-      <!-- 計算結果 -->
       <div class="bg-slate-900 text-white p-4 rounded-xl shadow-md space-y-3">
         <h2 class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">美股補倉試算結果</h2>
         <div class="flex justify-between items-center text-sm">
@@ -300,7 +291,6 @@
     // ================= 🔐 Supabase 雲端設定 =================
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
-    // 使用 sbClient 避開任何全域變數宣告衝突
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
@@ -315,17 +305,36 @@
       if (error) alert('登入失敗: ' + error.message);
     }
 
-    // 登出
+    // 強制完整登出（清除所有暫存與 Session）
     async function logout() {
       await sbClient.auth.signOut();
-      window.location.reload();
+      // 清除瀏覽器中殘留的 supabase 認證快取
+      localStorage.clear();
+      window.location.href = window.location.pathname;
     }
 
-    // 初始化檢查登入狀態與載入雲端資料
+    // 初始化身分與狀態監聽
     async function initAuth() {
+      // 監聽登入/登出狀態變化，避免頻繁切換時卡住
+      sbClient.auth.onAuthStateChange(async (event, session) => {
+        currentUser = session?.user || null;
+        updateAuthUI();
+        if (currentUser) {
+          await loadUserData();
+        }
+      });
+
+      // 首次載入檢查
       const { data: { session } } = await sbClient.auth.getSession();
       currentUser = session?.user || null;
+      updateAuthUI();
+      if (currentUser) {
+        await loadUserData();
+      }
+    }
 
+    // 更新登入介面顯示
+    function updateAuthUI() {
       const userInfoEl = document.getElementById('userInfo');
       const loginBtn = document.getElementById('loginBtn');
       const logoutBtn = document.getElementById('logoutBtn');
@@ -334,11 +343,11 @@
         userInfoEl.innerText = currentUser.email;
         loginBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
-        await loadUserData();
       } else {
         userInfoEl.innerText = '尚未登入 (未同步)';
         loginBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
+        document.getElementById('syncStatus').innerText = '資料未同步';
       }
     }
 
@@ -692,7 +701,7 @@
       });
     });
 
-    // 頁面載入時初始化身分與數據
+    // 頁面載入時初始化身分監聽
     window.onload = async () => {
       await initAuth();
       calculateTw();
