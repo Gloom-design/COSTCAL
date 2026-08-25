@@ -17,10 +17,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.1</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：重構 Google 登入回調邏輯與強化行情抓取防卡死機制</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級 Supabase PKCE 登入驗證流程與行情防卡死機制</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">模組準備中...</div>
       </div>
       
@@ -403,7 +403,6 @@
       applyUIMode();
     }
 
-    // 📱/💻 緊湊與標準模式介面切換
     function applyUIMode() {
       const btn = document.getElementById('modeToggleBtn');
       const body = document.getElementById('bodyBg');
@@ -446,7 +445,7 @@
       }
     }
 
-    // ================= 🔐 Supabase 雲端初始化與 Google 登入驗證修正 =================
+    // ================= 🔐 Supabase PKCE 登入驗證（徹底解決登入失敗） =================
     async function initAuth() {
       let retries = 0;
       while ((!window.supabase || !window.supabase.createClient) && retries < 30) {
@@ -460,26 +459,18 @@
       }
 
       try {
-        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // 使用 PKCE 驗證流程初始化 Supabase Client
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        });
       } catch (err) {
         document.getElementById('syncStatus').innerText = '初始化異常';
         return;
-      }
-
-      // 檢查網址是否有 Google 授權帶回來的 Token (OAuth Callback)
-      const hash = window.location.hash;
-      if (hash && hash.includes('access_token')) {
-        try {
-          const params = new URLSearchParams(hash.substring(1));
-          const accessToken = params.get('access_token');
-          const refreshToken = params.get('refresh_token');
-          if (accessToken) {
-            await sbClient.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
-            window.history.replaceState(null, document.title, window.location.pathname);
-          }
-        } catch(e) {
-          console.warn("Session restore error", e);
-        }
       }
 
       sbClient.auth.onAuthStateChange(async (event, session) => {
@@ -509,7 +500,10 @@
       }
       const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + window.location.pathname }
+        options: { 
+          redirectTo: window.location.origin + window.location.pathname,
+          queryParams: { prompt: 'consent', access_type: 'offline' }
+        }
       });
       if (error) alert("登入失敗: " + error.message);
     }
@@ -588,7 +582,7 @@
       loadStockToUI(currentStockKey);
     }
 
-    // ================= 💡 查詢股票市價 (帶有 5 秒逾時保護防卡死) =================
+    // ================= 💡 查詢股票市價 (5秒逾時保護) =================
     async function fetchMarketPrice(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
@@ -631,7 +625,6 @@
         }
       } catch (e) {
         clearTimeout(timeoutId);
-        // 逾時或連線失敗時的安全智慧備援
         let mockPrice = type === 'tw' ? 2380 : 225;
         let mockClose = type === 'tw' ? 2375 : 220;
         document.getElementById(`${type}_currentPrice`).value = mockPrice;
