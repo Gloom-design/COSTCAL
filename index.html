@@ -15,10 +15,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.5</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：改用 ESM 模組引入 Supabase 徹底修復登入</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復 GitHub Pages 登入 404 重新導向問題</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -291,7 +291,7 @@
     </div>
   </div>
 
-  <!-- 使用 ESM 模組引入 Supabase，並將所有應用程式邏輯包在裡面 -->
+  <!-- 使用 ESM 模組引入 Supabase，並強固 Hash 攔截機制 -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -314,10 +314,15 @@
     };
     let currentStockKey = "2330 台積電 (主組合)";
 
-    // 將登入與登出等互動函數綁定到全域 window，確保 HTML 上的 onclick 找得到
+    // 將登入與登出等互動函數綁定到全域 window
     window.loginWithGoogle = async function() {
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
-      const { error } = await sbClient.auth.signInWithOAuth({ provider: 'google' });
+      const { error } = await sbClient.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname
+        }
+      });
       if (error) alert("登入失敗: " + error.message);
     };
 
@@ -715,7 +720,7 @@
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
-    // 初始化應用程式與 Supabase ESM
+    // 初始化應用程式與強制 Hash 攔截驗證
     async function init() {
       applyUIMode();
       renderStockSelector();
@@ -723,6 +728,19 @@
 
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // 🌟 關鍵修正：如果網址帶有 Google 授權的 access_token，手動強制解析並寫入 session
+        const hash = window.location.hash;
+        if (hash && hash.includes('access_token')) {
+          const params = new URLSearchParams(hash.replace('#', '?'));
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          if (accessToken) {
+            await sbClient.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+            // 清除醜陋且會造成重新整理 404 的 Hash 網址
+            window.history.replaceState(null, document.title, window.location.pathname);
+          }
+        }
         
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
