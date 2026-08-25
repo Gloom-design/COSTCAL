@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股攤平與損益計算器（雲端會員版）</title>
+  <title>台美股多標的攤平與損益計算器（雲端會員版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 載入 Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -12,11 +12,11 @@
   <div class="max-w-md mx-auto space-y-4">
     <!-- Header 與 Google 登入區塊 -->
     <header class="text-center py-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-      <h1 class="text-xl font-bold text-slate-900">台美股攤平與損益計算器</h1>
-      <p class="text-xs text-slate-500">雲端同步・持倉自動記憶版</p>
+      <h1 class="text-xl font-bold text-slate-900">台美股多標的攤平計算器</h1>
+      <p class="text-xs text-slate-500">雲端同步・多標的持倉管理版</p>
       
       <div id="authSection" class="pt-2 border-t border-slate-100 flex items-center justify-between">
-        <div id="userInfo" class="text-xs text-slate-600 truncate max-w-[200px]">檢查登入中...</div>
+        <div id="userInfo" class="text-xs text-slate-600 truncate max-w-[180px]">檢查登入中...</div>
         <div id="authButtons">
           <button id="loginBtn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 transition-all shadow-sm">
             Gmail 登入
@@ -26,8 +26,25 @@
           </button>
         </div>
       </div>
-      <div id="syncStatus" class="text-[10px] text-slate-400 text-right">資料未同步</div>
+      <div class="flex justify-between items-center pt-1 text-[10px] text-slate-400">
+        <span id="syncStatus">資料未同步</span>
+        <button onclick="manualSaveData()" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded font-bold hover:bg-emerald-100">💾 手動儲存持倉</button>
+      </div>
     </header>
+
+    <!-- 股票標的切換列 -->
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-2">
+      <div class="flex-1">
+        <label class="block text-[10px] font-medium text-slate-500 mb-1">選擇或切換持股標的</label>
+        <select id="stockSelector" onchange="switchStock(this.value)" class="w-full border rounded-lg p-1.5 text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
+          <!-- 動態載入標的 -->
+        </select>
+      </div>
+      <div class="flex items-end gap-1 pt-4">
+        <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 text-xs px-2.5 py-2 rounded-lg font-bold hover:bg-indigo-100">+ 新增標的</button>
+        <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 text-xs px-2 py-2 rounded-lg font-bold hover:bg-rose-100">刪除</button>
+      </div>
+    </div>
 
     <!-- 分頁切換按鈕 -->
     <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1 rounded-xl">
@@ -295,8 +312,9 @@
 
     let currentUser = null;
     let saveTimeout = null;
+    let cloudData = { stocks: { "預設標的 (例如 2330)": { tw: {}, us: {} } } };
+    let currentStockKey = "預設標的 (例如 2330)";
 
-    // Google 登入
     async function loginWithGoogle() {
       const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
@@ -305,17 +323,13 @@
       if (error) alert('登入失敗: ' + error.message);
     }
 
-    // 強制完整登出（清除所有暫存與 Session）
     async function logout() {
       await sbClient.auth.signOut();
-      // 清除瀏覽器中殘留的 supabase 認證快取
       localStorage.clear();
       window.location.href = window.location.pathname;
     }
 
-    // 初始化身分與狀態監聽
     async function initAuth() {
-      // 監聽登入/登出狀態變化，避免頻繁切換時卡住
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
@@ -324,16 +338,17 @@
         }
       });
 
-      // 首次載入檢查
       const { data: { session } } = await sbClient.auth.getSession();
       currentUser = session?.user || null;
       updateAuthUI();
       if (currentUser) {
         await loadUserData();
+      } else {
+        renderStockSelector();
+        loadStockToUI(currentStockKey);
       }
     }
 
-    // 更新登入介面顯示
     function updateAuthUI() {
       const userInfoEl = document.getElementById('userInfo');
       const loginBtn = document.getElementById('loginBtn');
@@ -351,7 +366,6 @@
       }
     }
 
-    // 從雲端載入資料
     async function loadUserData() {
       if (!currentUser) return;
       const { data, error } = await sbClient
@@ -361,71 +375,135 @@
         .single();
 
       if (data && data.portfolio_data) {
-        const d = data.portfolio_data;
-        if (d.tw) {
-          document.getElementById('twDiscount').value = d.tw.discount || '';
-          document.getElementById('twMinFee').value = d.tw.minFee || '';
-          document.getElementById('tw_n1').value = d.tw.n1 || '';
-          document.getElementById('tw_p1').value = d.tw.p1 || '';
-          document.getElementById('tw_manualPnlPct').value = d.tw.manualPnlPct || '';
-          document.getElementById('tw_prevClose').value = d.tw.prevClose || '';
-          document.getElementById('tw_currentPrice').value = d.tw.currentPrice || '';
-          document.getElementById('tw_p2').value = d.tw.p2 || '';
-          document.getElementById('tw_n2').value = d.tw.n2 || '';
-          document.getElementById('tw_ptarget').value = d.tw.ptarget || '';
+        cloudData = data.portfolio_data;
+        if (!cloudData.stocks) {
+          cloudData = { stocks: { "預設標的": cloudData } };
         }
-        if (d.us) {
-          document.getElementById('us_exchangeRate').value = d.us.rate || '';
-          document.getElementById('us_fee').value = d.us.fee || '';
-          document.getElementById('us_n1').value = d.us.n1 || '';
-          document.getElementById('us_p1').value = d.us.p1 || '';
-          document.getElementById('us_prevClose').value = d.us.prevClose || '';
-          document.getElementById('us_currentPrice').value = d.us.currentPrice || '';
-          document.getElementById('us_p2').value = d.us.p2 || '';
-          document.getElementById('us_n2').value = d.us.n2 || '';
-          document.getElementById('us_ptarget').value = d.us.ptarget || '';
-        }
+        const keys = Object.keys(cloudData.stocks);
+        if (keys.length > 0) currentStockKey = keys[0];
         document.getElementById('syncStatus').innerText = '已從雲端同步';
-        calculateTw();
-        calculateUs();
+      }
+      renderStockSelector();
+      loadStockToUI(currentStockKey);
+    }
+
+    function renderStockSelector() {
+      const selector = document.getElementById('stockSelector');
+      selector.innerHTML = '';
+      const keys = Object.keys(cloudData.stocks || { "預設標的": { tw: {}, us: {} } });
+      keys.forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.innerText = key;
+        if (key === currentStockKey) opt.selected = true;
+        selector.appendChild(opt);
+      });
+    }
+
+    function saveUIToCurrentStock() {
+      if (!cloudData.stocks[currentStockKey]) {
+        cloudData.stocks[currentStockKey] = { tw: {}, us: {} };
+      }
+      cloudData.stocks[currentStockKey].tw = {
+        discount: document.getElementById('twDiscount').value,
+        minFee: document.getElementById('twMinFee').value,
+        n1: document.getElementById('tw_n1').value,
+        p1: document.getElementById('tw_p1').value,
+        manualPnlPct: document.getElementById('tw_manualPnlPct').value,
+        prevClose: document.getElementById('tw_prevClose').value,
+        currentPrice: document.getElementById('tw_currentPrice').value,
+        p2: document.getElementById('tw_p2').value,
+        n2: document.getElementById('tw_n2').value,
+        ptarget: document.getElementById('tw_ptarget').value
+      };
+      cloudData.stocks[currentStockKey].us = {
+        rate: document.getElementById('us_exchangeRate').value,
+        fee: document.getElementById('us_fee').value,
+        n1: document.getElementById('us_n1').value,
+        p1: document.getElementById('us_p1').value,
+        prevClose: document.getElementById('us_prevClose').value,
+        currentPrice: document.getElementById('us_currentPrice').value,
+        p2: document.getElementById('us_p2').value,
+        n2: document.getElementById('us_n2').value,
+        ptarget: document.getElementById('us_ptarget').value
+      };
+    }
+
+    function loadStockToUI(key) {
+      currentStockKey = key;
+      const stock = cloudData.stocks[key] || { tw: {}, us: {} };
+      const tw = stock.tw || {};
+      const us = stock.us || {};
+
+      document.getElementById('twDiscount').value = tw.discount || '';
+      document.getElementById('twMinFee').value = tw.minFee || '';
+      document.getElementById('tw_n1').value = tw.n1 || '';
+      document.getElementById('tw_p1').value = tw.p1 || '';
+      document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
+      document.getElementById('tw_prevClose').value = tw.prevClose || '';
+      document.getElementById('tw_currentPrice').value = tw.currentPrice || '';
+      document.getElementById('tw_p2').value = tw.p2 || '';
+      document.getElementById('tw_n2').value = tw.n2 || '';
+      document.getElementById('tw_ptarget').value = tw.ptarget || '';
+
+      document.getElementById('us_exchangeRate').value = us.rate || '';
+      document.getElementById('us_fee').value = us.fee || '';
+      document.getElementById('us_n1').value = us.n1 || '';
+      document.getElementById('us_p1').value = us.p1 || '';
+      document.getElementById('us_prevClose').value = us.prevClose || '';
+      document.getElementById('us_currentPrice').value = us.currentPrice || '';
+      document.getElementById('us_p2').value = us.p2 || '';
+      document.getElementById('us_n2').value = us.n2 || '';
+      document.getElementById('us_ptarget').value = us.ptarget || '';
+
+      calculateTw();
+      calculateUs();
+    }
+
+    function switchStock(key) {
+      saveUIToCurrentStock();
+      loadStockToUI(key);
+    }
+
+    function addNewStock() {
+      const name = prompt("請輸入新標的名稱 (例如: 2330 台積電 或 NVDA):");
+      if (!name) return;
+      if (cloudData.stocks[name]) {
+        alert("此標的名稱已存在！");
+        return;
+      }
+      saveUIToCurrentStock();
+      cloudData.stocks[name] = { tw: {}, us: {} };
+      renderStockSelector();
+      loadStockToUI(name);
+      saveData();
+    }
+
+    function deleteCurrentStock() {
+      const keys = Object.keys(cloudData.stocks);
+      if (keys.length <= 1) {
+        alert("至少需保留一個標的！");
+        return;
+      }
+      if (confirm(`確定要刪除標的「${currentStockKey}」嗎？`)) {
+        delete cloudData.stocks[currentStockKey];
+        const newKeys = Object.keys(cloudData.stocks);
+        renderStockSelector();
+        loadStockToUI(newKeys[0]);
+        saveData();
       }
     }
 
-    // 自動儲存至雲端
+    // 自動與手動儲存
     function saveData() {
       if (!currentUser) return;
+      saveUIToCurrentStock();
       document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
-        const portfolioData = {
-          tw: {
-            discount: document.getElementById('twDiscount').value,
-            minFee: document.getElementById('twMinFee').value,
-            n1: document.getElementById('tw_n1').value,
-            p1: document.getElementById('tw_p1').value,
-            manualPnlPct: document.getElementById('tw_manualPnlPct').value,
-            prevClose: document.getElementById('tw_prevClose').value,
-            currentPrice: document.getElementById('tw_currentPrice').value,
-            p2: document.getElementById('tw_p2').value,
-            n2: document.getElementById('tw_n2').value,
-            ptarget: document.getElementById('tw_ptarget').value
-          },
-          us: {
-            rate: document.getElementById('us_exchangeRate').value,
-            fee: document.getElementById('us_fee').value,
-            n1: document.getElementById('us_n1').value,
-            p1: document.getElementById('us_p1').value,
-            prevClose: document.getElementById('us_prevClose').value,
-            currentPrice: document.getElementById('us_currentPrice').value,
-            p2: document.getElementById('us_p2').value,
-            n2: document.getElementById('us_n2').value,
-            ptarget: document.getElementById('us_ptarget').value
-          }
-        };
-
         const { error } = await sbClient
           .from('user_portfolios')
-          .upsert({ user_id: currentUser.id, portfolio_data: portfolioData, updated_at: new Date() }, { onConflict: 'user_id' });
+          .upsert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date() }, { onConflict: 'user_id' });
 
         if (!error) {
           document.getElementById('syncStatus').innerText = '雲端同步完成';
@@ -433,6 +511,26 @@
           document.getElementById('syncStatus').innerText = '同步失敗';
         }
       }, 1000);
+    }
+
+    async function manualSaveData() {
+      saveUIToCurrentStock();
+      if (!currentUser) {
+        alert("請先登入 Google 帳號才能儲存至雲端！");
+        return;
+      }
+      document.getElementById('syncStatus').innerText = '手動儲存中...';
+      const { error } = await sbClient
+        .from('user_portfolios')
+        .upsert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date() }, { onConflict: 'user_id' });
+
+      if (!error) {
+        document.getElementById('syncStatus').innerText = '手動儲存成功！';
+        alert("持倉紀錄已成功儲存至雲端！");
+      } else {
+        document.getElementById('syncStatus').innerText = '儲存失敗';
+        alert("儲存失敗，請稍後再試。");
+      }
     }
 
     function switchTab(type) {
@@ -701,7 +799,6 @@
       });
     });
 
-    // 頁面載入時初始化身分監聽
     window.onload = async () => {
       await initAuth();
       calculateTw();
