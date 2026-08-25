@@ -15,10 +15,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.1</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：新增密碼顯示切換與預設金鑰同步帶入</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：直接內建整合最新的 GitHub Token 預設值</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -256,7 +256,7 @@
     </div>
   </div>
 
-  <!-- 🤖 內建 AI 助理面板 (預設隱藏，限本人解鎖) -->
+  <!-- 🤖 內建 AI 助理面板 -->
   <div id="aiPanelContainer" class="hidden fixed bottom-4 right-4 z-50">
     <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg font-bold text-xs flex items-center gap-1.5 hover:opacity-90 transition cursor-pointer">
       🤖 AI & GitHub 助理
@@ -280,9 +280,9 @@
         <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="ai-setting save-ai-trigger w-full border rounded p-1.5 outline-none text-xs">
       </div>
       <div>
-        <label class="text-[10px] text-slate-500 block mb-0.5">GitHub Personal Access Token</label>
+        <label class="text-[10px] text-slate-500 block mb-0.5">GitHub Personal Access Token (github_pat_...)</label>
         <div class="relative flex items-center">
-          <input id="ghToken" type="password" placeholder="貼上你的 sbp_..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
+          <input id="ghToken" type="password" placeholder="貼上你的 github_pat_..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
           <button type="button" onclick="togglePasswordVisibility('ghToken', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
         </div>
       </div>
@@ -297,7 +297,7 @@
     </div>
   </div>
 
-  <!-- 具備預設金鑰注入與顯示密碼功能的 ESM 模組 -->
+  <!-- 整合預設金鑰的 ESM 模組 -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -309,7 +309,7 @@
     let saveTimeout = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     
-    // 預設為 ihmfeporsky@gmail.com 預先寫入你的 API Key 與 Token
+    // 🌟 在這裡直接為 ihmfeporsky@gmail.com 內建你的 API Key 與全新 GitHub Token
     let cloudData = { 
       stocks: { 
         "2330 台積電 (主組合)": { 
@@ -320,7 +320,7 @@
       aiSettings: { 
         apiKey: "AIzaSyCQADICgX4_VaOQ2rypCkQBoSJ4gEvWmhw", 
         repo: "gloom-design/COSTCAL", 
-        token: "sbp_f93d92a86542ee6c2184d4348f2739b18cd0038d" 
+        token: "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" 
       }
     };
     let currentStockKey = "2330 台積電 (主組合)";
@@ -350,7 +350,6 @@
       applyUIMode();
     };
 
-    // 🌟 顯示/隱藏密碼切換功能
     window.togglePasswordVisibility = function(fieldId, btnEl) {
       const inputEl = document.getElementById(fieldId);
       if (inputEl.type === "password") {
@@ -506,7 +505,7 @@
 
       saveUIToCurrentStock();
 
-      statusEl.innerText = "1. 思考與修改中...";
+      statusEl.innerText = "1. AI 思考與修改中...";
       const currentHtml = document.documentElement.outerHTML;
 
       try {
@@ -514,25 +513,55 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業前端工程師。目前程式碼：\n${currentHtml}\n\n需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼，不要有 markdown 標記。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼，絕對不要包含任何 markdown 標記（例如不要有 \`\`\`html）。` }] }]
           })
         });
         const data = await response.json();
-        let newHtml = data.candidates[0].content.parts[0].text.trim().replace(/^```html/, '').replace(/^```/, '').replace(/```$/, '').trim();
+        if (!data.candidates || data.candidates.length === 0) throw new Error("Gemini API 回應格式錯誤");
+        
+        let newHtml = data.candidates[0].content.parts[0].text.trim()
+          .replace(/^```html\s*/i, '')
+          .replace(/^```\s*/i, '')
+          .replace(/\s*```$/, '')
+          .trim();
 
-        statusEl.innerText = "2. 同步至 GitHub...";
+        statusEl.innerText = "2. 正在同步至 GitHub...";
+        
         const fileUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/index.html`;
-        const getFileRes = await fetch(fileUrl, { headers: { 'Authorization': `token ${ghToken}` } });
-        let sha = getFileRes.ok ? (await getFileRes.json()).sha : "";
+        
+        const getFileRes = await fetch(fileUrl, { 
+          headers: { 
+            'Authorization': `Bearer ${ghToken}`,
+            'Accept': 'application/vnd.github+json'
+          } 
+        });
+        
+        let sha = "";
+        if (getFileRes.ok) {
+          const fileData = await getFileRes.json();
+          sha = fileData.sha;
+        }
 
         const updateRes = await fetch(fileUrl, {
           method: 'PUT',
-          headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: `🤖 AI Auto-update: ${promptText}`, content: btoa(unescape(encodeURIComponent(newHtml))), sha: sha })
+          headers: { 
+            'Authorization': `Bearer ${ghToken}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json' 
+          },
+          body: JSON.stringify({ 
+            message: `🤖 AI Auto-update: ${promptText}`, 
+            content: btoa(unescape(encodeURIComponent(newHtml))), 
+            sha: sha 
+          })
         });
 
-        if (!updateRes.ok) throw new Error("GitHub 同步失敗");
-        alert("同步成功！重新整理中...");
+        if (!updateRes.ok) {
+          const errData = await updateRes.json();
+          throw new Error(`GitHub 拒絕寫入 (${updateRes.status}): ${errData.message || '權限不足'}`);
+        }
+
+        alert("同步成功！網頁即將重新整理...");
         document.open(); document.write(newHtml); document.close();
       } catch (err) {
         statusEl.innerText = "更新失敗";
@@ -599,9 +628,17 @@
       };
 
       if (!cloudData.aiSettings) cloudData.aiSettings = {};
-      cloudData.aiSettings.apiKey = document.getElementById('aiApiKey').value;
-      cloudData.aiSettings.repo = document.getElementById('ghRepo').value;
-      cloudData.aiSettings.token = document.getElementById('ghToken').value;
+      const apiKeyVal = document.getElementById('aiApiKey').value;
+      const repoVal = document.getElementById('ghRepo').value;
+      const tokenVal = document.getElementById('ghToken').value;
+
+      cloudData.aiSettings.apiKey = apiKeyVal;
+      cloudData.aiSettings.repo = repoVal;
+      cloudData.aiSettings.token = tokenVal;
+
+      if (apiKeyVal) localStorage.setItem('saved_ai_key', apiKeyVal);
+      if (repoVal) localStorage.setItem('saved_gh_repo', repoVal);
+      if (tokenVal) localStorage.setItem('saved_gh_token', tokenVal);
     }
 
     function loadStockToUI(key) {
@@ -632,11 +669,13 @@
       document.getElementById('us_n2').value = us.n2 || '';
       document.getElementById('us_ptarget').value = us.ptarget || '';
 
-      if (cloudData.aiSettings) {
-        document.getElementById('aiApiKey').value = cloudData.aiSettings.apiKey || 'AIzaSyCQADICgX4_VaOQ2rypCkQBoSJ4gEvWmhw';
-        document.getElementById('ghRepo').value = cloudData.aiSettings.repo || 'gloom-design/COSTCAL';
-        document.getElementById('ghToken').value = cloudData.aiSettings.token || 'sbp_f93d92a86542ee6c2184d4348f2739b18cd0038d';
-      }
+      const cloudKey = cloudData.aiSettings?.apiKey;
+      const cloudRepo = cloudData.aiSettings?.repo;
+      const cloudToken = cloudData.aiSettings?.token;
+
+      document.getElementById('aiApiKey').value = cloudKey || localStorage.getItem('saved_ai_key') || '';
+      document.getElementById('ghRepo').value = cloudRepo || localStorage.getItem('saved_gh_repo') || 'gloom-design/COSTCAL';
+      document.getElementById('ghToken').value = cloudToken || localStorage.getItem('saved_gh_token') || '';
 
       calculateTw(); calculateUs();
     }
