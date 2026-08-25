@@ -3,19 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多組合攤平與損益計算器（穩定修復版）</title>
+  <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 載入穩定版 Supabase SDK -->
-  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <!-- 載入 Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
     
-    <!-- 頂部標題與介面模式切換開關 -->
+    <!-- 頂部標題與版本號 -->
     <header class="bg-white p-2.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
       <div>
-        <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400">雲端同步就緒</div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
+          <!-- 🏷️ 版本號標籤 -->
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.2</span>
+        </div>
+        <!-- 📝 更新內容簡單說明 -->
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復雲端登入與版本號顯示</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端同步就緒</div>
       </div>
       
       <div class="flex items-center gap-2">
@@ -68,7 +74,7 @@
             <label class="text-[10px] text-indigo-700 font-bold block mb-0.5">台股代號 (例: 2330)</label>
             <input id="tw_symbolInput" type="text" placeholder="輸入代號如 2330" class="w-full border rounded p-1.5 text-xs bg-white outline-none font-bold text-indigo-900">
           </div>
-          <button type="button" onclick="fetchMarketPrice('tw')" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow-sm">
+          <button type="button" onclick="fetchMarketPrice('tw')" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow-sm cursor-pointer">
             🔍 代號帶入市價
           </button>
         </div>
@@ -146,7 +152,7 @@
           <div>本次資金: <span id="tw_resAddCost" class="text-white">$0</span></div>
         </div>
         <div class="pt-1.5">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs sm:text-sm shadow transition">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs sm:text-sm shadow transition cursor-pointer">
             💾 即時儲存至雲端
           </button>
         </div>
@@ -172,7 +178,7 @@
             <label class="text-[10px] text-teal-700 font-bold block mb-0.5">美股代號 (例: AAPL / NVDA)</label>
             <input id="us_symbolInput" type="text" placeholder="輸入代號如 AAPL" class="w-full border rounded p-1.5 text-xs bg-white outline-none font-bold text-teal-900 uppercase">
           </div>
-          <button type="button" onclick="fetchMarketPrice('us')" class="mt-4 bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow-sm">
+          <button type="button" onclick="fetchMarketPrice('us')" class="mt-4 bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition shadow-sm cursor-pointer">
             🔍 代號帶入市價
           </button>
         </div>
@@ -244,7 +250,7 @@
           <div>本次資金: <span id="us_resAddCostUSD" class="text-white">$0</span></div>
         </div>
         <div class="pt-1.5">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs sm:text-sm shadow transition">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs sm:text-sm shadow transition cursor-pointer">
             💾 即時儲存至雲端
           </button>
         </div>
@@ -280,7 +286,7 @@
         <label class="text-[10px] text-slate-500 block mb-0.5">想對網頁做什麼修改？</label>
         <textarea id="aiPrompt" rows="2" placeholder="例: 把按鈕改成藍色..." class="w-full border rounded p-1.5 outline-none text-xs resize-none"></textarea>
       </div>
-      <button onclick="askAiAndUpdateGithub()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded shadow transition">
+      <button onclick="askAiAndUpdateGithub()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded shadow transition cursor-pointer">
         🚀 叫 AI 修改並自動同步 GitHub
       </button>
       <div id="aiStatus" class="text-[10px] text-slate-400 text-center">準備就緒</div>
@@ -313,7 +319,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.2）往後加一版，並更新更新說明文字。` }] }]
           })
         });
 
@@ -490,7 +496,7 @@
     }
 
     async function loginWithGoogle() {
-      if (!sbClient) { alert("Supabase 尚未初始化"); return; }
+      if (!sbClient) { alert("Supabase 尚未初始化，請稍候再試"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: window.location.origin + window.location.pathname }
@@ -506,9 +512,9 @@
     }
 
     async function initAuth() {
-      // 確保 window.supabase 載入完成的防呆等待機制
+      // 防呆等待 Supabase 載入完成
       let retries = 0;
-      while (!window.supabase && retries < 10) {
+      while (!window.supabase && retries < 15) {
         await new Promise(r => setTimeout(r, 200));
         retries++;
       }
@@ -854,7 +860,7 @@
         const pct = ((currentPrice - p1) / p1) * 100;
         const el = document.getElementById('us_pnlDisplay');
         el.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        el.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+        el.innerText =`${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
       }
 
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
