@@ -1,17 +1,21 @@
 name: AI Auto-Update Code
+
 on:
   push:
     branches: [ main ]
+
 jobs:
   update-code:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - name: Check commit message for AI prompt
         id: check
         run: |
@@ -24,57 +28,83 @@ jobs:
           else
             echo "is_ai=false" >> $GITHUB_OUTPUT
           fi
+
       - name: Call Gemini API and Update Code
         if: steps.check.outputs.is_ai == 'true'
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: "AQ.Ab8RN6LSt-QX4kKSphuUDs6SkGc6FkCyY5cLv7Ph2-HofJM6Q"
           PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
         run: |
           node -e '
-          import fs from "fs";
+          const fs = require("fs");
+          const https = require("https");
 
           async function run() {
             const apiKey = process.env.GEMINI_API_KEY;
             const promptText = process.env.PROMPT_TEXT;
             const currentHtml = fs.readFileSync("index.html", "utf8");
 
-            const instruction = `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。`;
-
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-            const res = await fetch(url, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: instruction }] }]
-              })
+            const postData = JSON.stringify({
+              contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
             });
 
-            const data = await res.json();
+            const options = {
+              hostname: "generativelanguage.googleapis.com",
+              path: "/v1beta/models/gemini-1.5-flash:generateContent",
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Length": Buffer.byteLength(postData)
+              }
+            };
 
-            if (!res.ok) {
-              console.error("API Error:", JSON.stringify(data));
+            const req = https.request(options, (res) => {
+              let data = "";
+              res.on("data", (chunk) => { data += chunk; });
+              res.on("end", () => {
+                try {
+                  const result = JSON.parse(data);
+                  if (result.error) {
+                    console.error("API Error:", result.error.message);
+                    process.exit(1);
+                  }
+                  if (!result.candidates || result.candidates.length === 0) {
+                    console.error("No candidates returned.");
+                    process.exit(1);
+                  }
+
+                  let newHtml = result.candidates[0].content.parts[0].text.trim()
+                    .replace(/^```html\s*/i, "")
+                    .replace(/^```\s*/i, "")
+                    .replace(/\s*```$/, "")
+                    .trim();
+
+                  if (!newHtml.startsWith("<!DOCTYPE html>") && !newHtml.startsWith("<html")) {
+                    console.error("Invalid HTML output.");
+                    process.exit(1);
+                  }
+
+                  fs.writeFileSync("index.html", newHtml, "utf8");
+                  console.log("Updated index.html successfully with Bound AQ Key");
+                } catch (e) {
+                  console.error("Parse Error:", e);
+                  process.exit(1);
+                }
+              });
+            });
+
+            req.on("error", (e) => {
+              console.error("Request Error:", e);
               process.exit(1);
-            }
+            });
 
-            let newHtml = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || "";
-            newHtml = newHtml
-              .replace(/^```html\s*/i, "")
-              .replace(/^```\s*/i, "")
-              .replace(/\s*```$/, "")
-              .trim();
-
-            if (!newHtml.startsWith("<!DOCTYPE html>") && !newHtml.startsWith("<html")) {
-              console.error("Invalid HTML output:", newHtml.slice(0, 200));
-              process.exit(1);
-            }
-
-            fs.writeFileSync("index.html", newHtml, "utf8");
-            console.log("Updated index.html successfully via REST API");
+            req.write(postData);
+            req.end();
           }
-
-          run().catch(err => { console.error("Error:", err); process.exit(1); });
+          run();
           '
+
       - name: Commit and Push changes
         if: steps.check.outputs.is_ai == 'true'
         env:
@@ -82,7 +112,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
+          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@[github.com/$](https://github.com/$){{ github.repository }}.git
           git add index.html
           git commit -m "🤖 AI Auto-update completed" || exit 0
           git push origin main
