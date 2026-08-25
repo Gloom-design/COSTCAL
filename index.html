@@ -15,10 +15,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.3</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：增強 AI JSON 解析防護與 GitHub 錯誤攔截</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：強制鎖定 GitHub 倉庫路徑，修復 404 變數解析錯誤</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -297,7 +297,7 @@
     </div>
   </div>
 
-  <!-- 防禦與強固版 ESM 模組 -->
+  <!-- 終極修復版 ESM 模組 -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -491,16 +491,17 @@
       document.getElementById('aiWindow').classList.toggle('hidden');
     };
 
-    // 🌟 強化防禦版的 AI 呼叫與 GitHub 同步核心
+    // 🌟 強固版 GitHub 同步（強制鎖定正確的 repo 路徑，避免 404）
     window.askAiAndUpdateGithub = async function() {
       const apiKey = document.getElementById('aiApiKey').value.trim();
-      const repo = document.getElementById('ghRepo').value.trim();
+      // 強制讀取並確保預設值，避免變數解析異常
+      const repo = document.getElementById('ghRepo').value.trim() || "gloom-design/COSTCAL";
       const ghToken = document.getElementById('ghToken').value.trim();
       const promptText = document.getElementById('aiPrompt').value.trim();
       const statusEl = document.getElementById('aiStatus');
 
       if (!apiKey) { alert("請先輸入 Gemini API Key！"); return; }
-      if (!repo || !ghToken) { alert("請輸入 GitHub 倉庫名稱與 Token！"); return; }
+      if (!ghToken) { alert("請輸入 GitHub Personal Access Token！"); return; }
       if (!promptText) { alert("請輸入修改指令！"); return; }
 
       saveUIToCurrentStock();
@@ -646,7 +647,7 @@
 
       if (!cloudData.aiSettings) cloudData.aiSettings = {};
       const apiKeyVal = document.getElementById('aiApiKey').value;
-      const repoVal = document.getElementById('ghRepo').value;
+      const repoVal = document.getElementById('ghRepo').value || "gloom-design/COSTCAL";
       const tokenVal = document.getElementById('ghToken').value;
 
       cloudData.aiSettings.apiKey = apiKeyVal;
