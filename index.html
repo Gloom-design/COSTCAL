@@ -15,10 +15,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.5</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級 AI 模型相容性與錯誤詳細除錯提示</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修正 AI 模型為 gemini-2.5-flash，解決 404 找不到模型錯誤</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -491,7 +491,7 @@
       document.getElementById('aiWindow').classList.toggle('hidden');
     };
 
-    // 🌟 更新為更穩定的 gemini-1.5-flash 模型與完整除錯回報
+    // 🌟 更新為 gemini-2.5-flash 模型端點
     window.askAiAndUpdateGithub = async function() {
       const apiKey = document.getElementById('aiApiKey').value.trim();
       const repo = document.getElementById('ghRepo').value.trim() || "gloom-design/COSTCAL";
@@ -509,7 +509,7 @@
       const currentHtml = document.documentElement.outerHTML;
 
       try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -888,8 +888,8 @@
         if (currentUser.email === 'ihmfeporsky@gmail.com') aiContainer.classList.remove('hidden');
       } else {
         userInfoEl.innerText = '未登入';
-        loginBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
         aiContainer.classList.add('hidden');
       }
     }
