@@ -16,6 +16,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install Google Gen AI SDK
+        run: npm install @google/genai
+
       - name: Check commit message for AI prompt
         id: check
         run: |
@@ -36,73 +39,36 @@ jobs:
           PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
         run: |
           node -e '
-          const fs = require("fs");
-          const https = require("https");
+          import { GoogleGenAI } from "@google/genai";
+          import fs from "fs";
 
           async function run() {
-            const apiKey = process.env.GEMINI_API_KEY;
+            const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
             const promptText = process.env.PROMPT_TEXT;
             const currentHtml = fs.readFileSync("index.html", "utf8");
 
-            const postData = JSON.stringify({
-              contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
+            const response = await ai.models.generateContent({
+              model: "gemini-2.5-flash",
+              contents: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。`,
             });
 
-            const options = {
-              hostname: "generativelanguage.googleapis.com",
-              path: "/v1beta/models/gemini-1.5-flash:generateContent",
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`,
-                "Content-Length": Buffer.byteLength(postData)
-              }
-            };
+            let newHtml = response.text ? response.text.trim() : "";
+            
+            newHtml = newHtml
+              .replace(/^```html\s*/i, "")
+              .replace(/^```\s*/i, "")
+              .replace(/\s*```$/, "")
+              .trim();
 
-            const req = https.request(options, (res) => {
-              let data = "";
-              res.on("data", (chunk) => { data += chunk; });
-              res.on("end", () => {
-                try {
-                  const result = JSON.parse(data);
-                  if (result.error) {
-                    console.error("API Error:", result.error.message);
-                    process.exit(1);
-                  }
-                  if (!result.candidates || result.candidates.length === 0) {
-                    console.error("No candidates returned.");
-                    process.exit(1);
-                  }
-
-                  let newHtml = result.candidates[0].content.parts[0].text.trim()
-                    .replace(/^```html\s*/i, "")
-                    .replace(/^```\s*/i, "")
-                    .replace(/\s*```$/, "")
-                    .trim();
-
-                  if (!newHtml.startsWith("<!DOCTYPE html>") && !newHtml.startsWith("<html")) {
-                    console.error("Invalid HTML output.");
-                    process.exit(1);
-                  }
-
-                  fs.writeFileSync("index.html", newHtml, "utf8");
-                  console.log("Updated index.html successfully");
-                } catch (e) {
-                  console.error("Parse Error:", e);
-                  process.exit(1);
-                }
-              });
-            });
-
-            req.on("error", (e) => {
-              console.error("Request Error:", e);
+            if (!newHtml.startsWith("<!DOCTYPE html>") && !newHtml.startsWith("<html")) {
+              console.error("Invalid HTML output."); 
               process.exit(1);
-            });
+            }
 
-            req.write(postData);
-            req.end();
+            fs.writeFileSync("index.html", newHtml, "utf8");
+            console.log("Updated index.html successfully via official SDK");
           }
-          run();
+          run().catch(err => { console.error("SDK Error:", err); process.exit(1); });
           '
 
       - name: Commit and Push changes
