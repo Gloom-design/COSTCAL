@@ -1,116 +1,58 @@
-name: AI Auto-Update Code
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台美股多組合攤平與損益計算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
+  <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
+    
+    <!-- 頂部標題與版本號 -->
+    <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.0.0</span>
+        </div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">系統運作中...</div>
+      </div>
+      
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
+          📱 緊湊模式
+        </button>
+      </div>
+    </header>
 
-on:
-  push:
-    branches: [ main ]
+    <!-- 這裡保留原本計算器的基本介面架構，確保網頁能正常顯示 -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
+      <h2 class="text-lg font-bold text-slate-700 mb-2">✅ 網頁已成功修復</h2>
+      <p class="text-sm text-slate-500">現在這是一個乾淨的前端網頁。您可以隨時透過 GitHub 推送更新。</p>
+    </div>
 
-jobs:
-  update-code:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+  </div>
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+  <script>
+    let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
+    
+    window.toggleUIMode = function() {
+      isCompactMode = !isCompactMode;
+      localStorage.setItem('calc_compact_mode', isCompactMode);
+      applyUIMode();
+    };
 
-      - name: Install Google Auth Library
-        run: npm install google-auth-library
-
-      - name: Check commit message for AI prompt
-        id: check
-        run: |
-          MSG="${{ github.event.head_commit.message }}"
-          echo "commit_msg=$MSG"
-          if [[ "$MSG" == AI:* ]]; then
-            echo "is_ai=true" >> $GITHUB_OUTPUT
-            PROMPT="${MSG#AI: }"
-            echo "prompt_text=$PROMPT" >> $GITHUB_OUTPUT
-          else
-            echo "is_ai=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Call Gemini API with OAuth2
-        if: steps.check.outputs.is_ai == 'true'
-        env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
-          PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
-        run: |
-          node -e '
-          const { GoogleAuth } = require("google-auth-library");
-          const fs = require("fs");
-          const https = require("https");
-
-          async function run() {
-            // 1. 自動讀取 JSON 金鑰並產生 Google 要求的 OAuth2 Token
-            const auth = new GoogleAuth({
-              credentials: JSON.parse(process.env.GCP_SA_KEY),
-              scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-            });
-            const client = await auth.getClient();
-            const accessToken = await client.getAccessToken();
-
-            const promptText = process.env.PROMPT_TEXT;
-            const currentHtml = fs.readFileSync("index.html", "utf8");
-
-            const postData = JSON.stringify({
-              contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
-            });
-
-            const options = {
-              hostname: "generativelanguage.googleapis.com",
-              path: "/v1beta/models/gemini-1.5-flash:generateContent",
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                // 2. 將產生的合法 Token 放入標頭，完美破解 401 錯誤
-                "Authorization": `Bearer ${accessToken.token}`,
-                "Content-Length": Buffer.byteLength(postData)
-              }
-            };
-
-            const req = https.request(options, (res) => {
-              let data = "";
-              res.on("data", (chunk) => { data += chunk; });
-              res.on("end", () => {
-                const result = JSON.parse(data);
-                if (result.error) {
-                  console.error("API Error:", result.error.message);
-                  process.exit(1);
-                }
-                
-                let newHtml = result.candidates[0].content.parts[0].text.trim()
-                  .replace(/^```html\s*/i, "")
-                  .replace(/^```\s*/i, "")
-                  .replace(/\s*```$/, "")
-                  .trim();
-
-                fs.writeFileSync("index.html", newHtml, "utf8");
-                console.log("✅ 成功透過 OAuth2 更新 index.html");
-              });
-            });
-
-            req.on("error", (e) => {
-              console.error("Request Error:", e);
-              process.exit(1);
-            });
-
-            req.write(postData);
-            req.end();
-          }
-          run();
-          '
-
-      - name: Commit and Push changes
-        if: steps.check.outputs.is_ai == 'true'
-        env:
-          GH_PAT: ${{ secrets.GH_PAT }}
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@[github.com/$](https://github.com/$){{ github.repository }}.git
-          git add index.html
-          git commit -m "🤖 AI Auto-update completed" || exit 0
-          git push origin main
+    function applyUIMode() {
+      const btn = document.getElementById('modeToggleBtn');
+      if (isCompactMode) {
+        btn.innerText = "📱 緊湊模式";
+      } else {
+        btn.innerText = "💻 標準模式";
+      }
+    }
+    
+    applyUIMode();
+  </script>
+</body>
+</html>
