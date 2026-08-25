@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多組合攤平與損益計算器（修復點擊版）</title>
+  <title>台美股多組合攤平與損益計算器（穩定修復版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 載入 Supabase SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 載入穩定版 Supabase SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -24,7 +24,7 @@
           📱 緊湊模式
         </button>
 
-        <!-- 登入資訊 (確保按鈕在最上層且絕對可以點擊) -->
+        <!-- 登入資訊 -->
         <div class="flex items-center gap-1 relative z-30">
           <span id="userInfo" class="text-[10px] text-slate-500 max-w-[80px] sm:max-w-[120px] truncate hidden sm:inline">未登入</span>
           <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
@@ -376,12 +376,6 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     let sbClient = null;
 
-    try {
-      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } catch (e) {
-      console.error("Supabase 初始化失敗", e);
-    }
-
     let currentUser = null;
     let saveTimeout = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
@@ -512,8 +506,20 @@
     }
 
     async function initAuth() {
-      if (!sbClient) return;
-      
+      // 確保 window.supabase 載入完成的防呆等待機制
+      let retries = 0;
+      while (!window.supabase && retries < 10) {
+        await new Promise(r => setTimeout(r, 200));
+        retries++;
+      }
+
+      if (!window.supabase) {
+        document.getElementById('syncStatus').innerText = '雲端模組載入失敗';
+        return;
+      }
+
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
