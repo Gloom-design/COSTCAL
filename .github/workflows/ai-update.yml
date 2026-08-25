@@ -32,7 +32,7 @@ jobs:
       - name: Call Gemini API and Update Code
         if: steps.check.outputs.is_ai == 'true'
         env:
-          GEMINI_API_KEY: "在這裡貼上你真正的Gemini_API_Key"
+          GEMINI_API_KEY: "AQ.Ab8RN6K1t1Id2rZFEfHEkxRkyjW62BZWMx15pqczoYYHC1gg3w"
           PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
         run: |
           node -e '
