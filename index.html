@@ -15,10 +15,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.6</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.8</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級 PKCE 登入流，完美解決重複登入登出掛掉問題</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：新增密碼顯示切換與預設金鑰同步帶入</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -270,15 +270,21 @@
       </div>
       <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">Gemini API Key</label>
-        <input id="aiApiKey" type="password" placeholder="貼上你的 Gemini API Key..." class="ai-setting w-full border rounded p-1.5 outline-none text-xs">
+        <div class="relative flex items-center">
+          <input id="aiApiKey" type="password" placeholder="貼上你的 Gemini API Key..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
+          <button type="button" onclick="togglePasswordVisibility('aiApiKey', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
+        </div>
       </div>
       <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">GitHub 資訊 (格式: 帳號/倉庫名)</label>
-        <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="ai-setting w-full border rounded p-1.5 outline-none text-xs">
+        <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="ai-setting save-ai-trigger w-full border rounded p-1.5 outline-none text-xs">
       </div>
       <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">GitHub Personal Access Token</label>
-        <input id="ghToken" type="password" placeholder="貼上你的 ghp_..." class="ai-setting w-full border rounded p-1.5 outline-none text-xs">
+        <div class="relative flex items-center">
+          <input id="ghToken" type="password" placeholder="貼上你的 sbp_..." class="ai-setting save-ai-trigger w-full border rounded p-1.5 pr-7 outline-none text-xs">
+          <button type="button" onclick="togglePasswordVisibility('ghToken', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
+        </div>
       </div>
       <div>
         <label class="text-[10px] text-slate-500 block mb-0.5">想對網頁做什麼修改？</label>
@@ -291,7 +297,7 @@
     </div>
   </div>
 
-  <!-- 使用 PKCE 驗證流的 ESM 模組 -->
+  <!-- 具備預設金鑰注入與顯示密碼功能的 ESM 模組 -->
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
@@ -303,6 +309,7 @@
     let saveTimeout = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     
+    // 預設為 ihmfeporsky@gmail.com 預先寫入你的 API Key 與 Token
     let cloudData = { 
       stocks: { 
         "2330 台積電 (主組合)": { 
@@ -310,7 +317,11 @@
           us: { symbol: "AAPL", rate: "32.5", fee: "15", n1: "100", p1: "150", prevClose: "220", currentPrice: "225", p2: "210", n2: "20" } 
         }
       },
-      aiSettings: { apiKey: "", repo: "gloom-design/COSTCAL", token: "" }
+      aiSettings: { 
+        apiKey: "AIzaSyCQADICgX4_VaOQ2rypCkQBoSJ4gEvWmhw", 
+        repo: "gloom-design/COSTCAL", 
+        token: "sbp_f93d92a86542ee6c2184d4348f2739b18cd0038d" 
+      }
     };
     let currentStockKey = "2330 台積電 (主組合)";
 
@@ -327,11 +338,9 @@
 
     window.logout = async function() {
       if (!sbClient) return;
-      // 徹底清除 Supabase 工作階段與本機暫存
       await sbClient.auth.signOut({ scope: 'local' });
       localStorage.clear();
       sessionStorage.clear();
-      // 使用絕對乾淨的網址重新導向
       window.location.href = window.location.origin + window.location.pathname;
     };
 
@@ -339,6 +348,18 @@
       isCompactMode = !isCompactMode;
       localStorage.setItem('calc_compact_mode', isCompactMode);
       applyUIMode();
+    };
+
+    // 🌟 顯示/隱藏密碼切換功能
+    window.togglePasswordVisibility = function(fieldId, btnEl) {
+      const inputEl = document.getElementById(fieldId);
+      if (inputEl.type === "password") {
+        inputEl.type = "text";
+        btnEl.innerText = "🙈";
+      } else {
+        inputEl.type = "password";
+        btnEl.innerText = "👁️";
+      }
     };
 
     window.switchTab = function(type) {
@@ -483,6 +504,8 @@
       if (!repo || !ghToken) { alert("請輸入 GitHub 倉庫名稱與 Token！"); return; }
       if (!promptText) { alert("請輸入修改指令！"); return; }
 
+      saveUIToCurrentStock();
+
       statusEl.innerText = "1. 思考與修改中...";
       const currentHtml = document.documentElement.outerHTML;
 
@@ -574,6 +597,11 @@
         n2: document.getElementById('us_n2').value,
         ptarget: document.getElementById('us_ptarget').value
       };
+
+      if (!cloudData.aiSettings) cloudData.aiSettings = {};
+      cloudData.aiSettings.apiKey = document.getElementById('aiApiKey').value;
+      cloudData.aiSettings.repo = document.getElementById('ghRepo').value;
+      cloudData.aiSettings.token = document.getElementById('ghToken').value;
     }
 
     function loadStockToUI(key) {
@@ -603,6 +631,12 @@
       document.getElementById('us_p2').value = us.p2 || '';
       document.getElementById('us_n2').value = us.n2 || '';
       document.getElementById('us_ptarget').value = us.ptarget || '';
+
+      if (cloudData.aiSettings) {
+        document.getElementById('aiApiKey').value = cloudData.aiSettings.apiKey || 'AIzaSyCQADICgX4_VaOQ2rypCkQBoSJ4gEvWmhw';
+        document.getElementById('ghRepo').value = cloudData.aiSettings.repo || 'gloom-design/COSTCAL';
+        document.getElementById('ghToken').value = cloudData.aiSettings.token || 'sbp_f93d92a86542ee6c2184d4348f2739b18cd0038d';
+      }
 
       calculateTw(); calculateUs();
     }
@@ -719,17 +753,19 @@
     document.querySelectorAll('.save-trigger').forEach(el => {
       el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
+    document.querySelectorAll('.save-ai-trigger').forEach(el => {
+      el.addEventListener('input', () => { saveData(); });
+    });
+
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
-    // 初始化應用程式與 PKCE 授權流
     async function init() {
       applyUIMode();
       renderStockSelector();
       loadStockToUI(currentStockKey);
 
       try {
-        // 🌟 啟用 PKCE 模式初始化 Supabase Client，防止 Token 導致重新整理異常
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
           auth: {
             flowType: 'pkce',
