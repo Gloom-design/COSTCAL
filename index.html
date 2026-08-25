@@ -17,10 +17,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.9</span>
         </div>
         <!-- 📝 更新內容簡單說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修正 Supabase 登入、強化緊湊模式與行情查詢穩定度</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修正 Supabase 網址與行情查詢網址格式錯誤，解決登入失敗與查價卡住問題</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">模組準備中...</div>
       </div>
       
@@ -333,7 +333,7 @@
 
         statusEl.innerText = "2. 正在自動同步更新至 GitHub...";
 
-        const fileUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/index.html`;
+        const fileUrl = `https://api.github.com/repos/${repo}/contents/index.html`;
         const getFileRes = await fetch(fileUrl, {
           headers: { 'Authorization': `token ${ghToken}` }
         });
@@ -378,7 +378,7 @@
     }
 
     // ================= 全域變數與 UI 邏輯 =================
-    const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
+    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     let sbClient = null; 
@@ -588,8 +588,8 @@
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        const targetUrl = `[https://query1.finance.yahoo.com/v8/finance/chart/$](https://query1.finance.yahoo.com/v8/finance/chart/$){querySymbol}?interval=1d`;
-        const proxyUrl = `[https://corsproxy.io/?$](https://corsproxy.io/?$){encodeURIComponent(targetUrl)}`;
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
         const res = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
