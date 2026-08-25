@@ -3,183 +3,140 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多組合攤平與損益計算器（雲端會員版）</title>
+  <title>台美股多組合攤平與損益計算器（雙模式版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 載入 Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-100 text-slate-800 p-4 min-h-screen">
-  <div class="max-w-md mx-auto space-y-4">
-    <!-- Header 與 Google 登入區塊 -->
-    <header class="text-center py-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-      <h1 class="text-xl font-bold text-slate-900">台美股多組合攤平計算器</h1>
-      <p class="text-xs text-slate-500">雲端即時同步・多數據組合管理</p>
+<body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
+  <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm">
+    
+    <!-- 頂部標題與介面模式切換開關 -->
+    <header class="bg-white p-2.5 sm:p-4 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
+      <div>
+        <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400">雲端同步就緒</div>
+      </div>
       
-      <div id="authSection" class="pt-2 border-t border-slate-100 flex items-center justify-between">
-        <div id="userInfo" class="text-xs text-slate-600 truncate max-w-[180px]">檢查登入中...</div>
-        <div id="authButtons">
-          <button id="loginBtn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 transition-all shadow-sm">
-            Gmail 登入
-          </button>
-          <button id="logoutBtn" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300 transition-all">
-            登出
-          </button>
+      <div class="flex items-center gap-2">
+        <!-- 📱/💻 介面模式切換按鈕 -->
+        <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm">
+          📱 緊湊模式
+        </button>
+
+        <!-- 登入資訊 -->
+        <div class="flex items-center gap-1">
+          <span id="userInfo" class="text-[10px] text-slate-500 max-w-[80px] sm:max-w-[120px] truncate hidden sm:inline">未登入</span>
+          <button id="loginBtn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 text-white text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">登入</button>
+          <button id="logoutBtn" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2 py-1.5 rounded-lg font-semibold">登出</button>
         </div>
       </div>
-      <div class="text-[10px] text-slate-400 text-right" id="syncStatus">資料未同步</div>
     </header>
 
-    <!-- 🌟 多組數據組合切換選單列 -->
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-2">
-      <div class="flex-1">
-        <label class="block text-[10px] font-medium text-slate-500 mb-1">選擇或切換您的數據組合</label>
-        <select id="stockSelector" onchange="switchStock(this.value)" class="w-full border rounded-lg p-1.5 text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
-          <!-- 動態載入組合 -->
-        </select>
-      </div>
-      <div class="flex items-end gap-1 pt-4">
-        <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 text-xs px-2.5 py-2 rounded-lg font-bold hover:bg-indigo-100">+ 新增組合</button>
-        <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 text-xs px-2 py-2 rounded-lg font-bold hover:bg-rose-100">刪除</button>
-      </div>
+    <!-- 組合管理列 -->
+    <div class="bg-white p-2.5 sm:p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-1.5">
+      <select id="stockSelector" onchange="switchStock(this.value)" class="flex-1 border rounded-lg p-1.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
+        <!-- 動態載入組別 -->
+      </select>
+      <button onclick="renameCurrentStock()" class="bg-amber-50 text-amber-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-amber-100 text-[10px] sm:text-xs">✏️ 改名</button>
+      <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-indigo-100 text-[10px] sm:text-xs">+ 新增</button>
+      <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 px-2.5 py-1.5 rounded-lg font-bold hover:bg-rose-100 text-[10px] sm:text-xs">刪除</button>
     </div>
 
-    <!-- 分頁切換按鈕 -->
-    <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1 rounded-xl">
-      <button id="tabTwBtn" onclick="switchTab('tw')" class="py-2 text-sm font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm">
-        🇹🇼 台股專用
-      </button>
-      <button id="tabUsBtn" onclick="switchTab('us')" class="py-2 text-sm font-semibold rounded-lg transition-all text-slate-600">
-        🇺🇸 美股專用
-      </button>
+    <!-- 分頁切換 -->
+    <div class="grid grid-cols-2 gap-1.5 bg-slate-200 p-1 rounded-xl">
+      <button id="tabTwBtn" onclick="switchTab('tw')" class="py-2 font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm">🇹🇼 台股專用</button>
+      <button id="tabUsBtn" onclick="switchTab('us')" class="py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm">🇺🇸 美股專用</button>
     </div>
 
     <!-- ================= 🇹🇼 台股介面 ================= -->
-    <div id="twView" class="space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-semibold text-sm text-indigo-600">台股交易設定</h2>
-        <div class="grid grid-cols-2 gap-3">
+    <div id="twView" class="space-y-2 sm:space-y-4">
+      
+      <!-- 現有持股與設定 -->
+      <div id="twCard1" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+          <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與現有持股</span>
+          <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600">
+            <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="0.6"></span>
+            <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="20"></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">手續費折數 (例: 0.6)</label>
-            <input id="twDiscount" type="number" step="0.01" placeholder="例如: 0.6" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">現有股數 (N1)</label>
+            <input id="tw_n1" type="number" placeholder="60" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">手續費低消 (元)</label>
-            <input id="twMinFee" type="number" placeholder="例如: 20" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">現有均價 (P1)</label>
+            <input id="tw_p1" type="number" step="0.01" placeholder="2693.82" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 sm:gap-3 pt-1 border-t border-slate-100">
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">前日收盤價</label>
+            <input id="tw_prevClose" type="number" step="0.01" placeholder="前收價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">目前市價</label><label class="text-[9px] text-slate-400"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label></div>
+            <input id="tw_currentPrice" type="number" step="0.01" placeholder="目前市價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 sm:gap-3 pt-1 border-t border-slate-100 items-center">
+          <div>
+            <label class="text-[10px] sm:text-xs text-indigo-600 font-bold block mb-0.5">手動對齊 App 損益率%</label>
+            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm font-bold text-indigo-700 outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">未實現損益 (現有)</label>
+            <div id="tw_pnlDisplay" class="font-bold text-xs sm:text-sm text-slate-400">-%</div>
           </div>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-semibold text-sm text-indigo-600">1. 現有持股狀況 (台股)</h2>
-        <div class="grid grid-cols-2 gap-3">
+      <!-- 補倉規劃 -->
+      <div id="twCard2" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+        <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 補倉規劃</h2>
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">現有股數 (N1)</label>
-            <input id="tw_n1" type="number" placeholder="例如: 60" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <div class="flex justify-between mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 (P2)</label><button type="button" onclick="copyPrice('tw')" class="text-[9px] sm:text-xs text-indigo-600 underline">帶入市價</button></div>
+            <input id="tw_p2" type="number" step="0.01" placeholder="買入價" class="tw-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">現有均價 (P1)</label>
-            <input id="tw_p1" type="number" step="0.01" placeholder="例如: 2693.82" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (模式A)</label>
+            <input id="tw_n2" type="number" placeholder="加碼股數" class="tw-input tw-mode-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
         </div>
-
-        <div class="pt-2 border-t border-slate-100">
-          <label class="block text-xs font-medium text-indigo-600 mb-1 font-semibold">手動對齊 App 未實現損益率 (%)</label>
-          <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24 或 -23.81" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-lg p-2 text-sm font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 outline-none">
-        </div>
-        
-        <div class="pt-2 border-t border-slate-100">
-          <label class="block text-xs font-medium text-slate-600 mb-1">前日收盤價</label>
-          <div class="flex items-center gap-3">
-            <input id="tw_prevClose" type="number" step="0.01" placeholder="輸入前收價" class="tw-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
-            <div class="w-1/2 text-right">
-              <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (依前收)</div>
-              <div id="tw_prevPnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
-            </div>
-          </div>
-        </div>
-        <div class="pt-2">
-          <div class="flex justify-between items-center mb-1">
-            <label class="block text-xs font-medium text-slate-600">目前最新股價</label>
-            <label class="flex items-center text-xs text-slate-500 cursor-pointer select-none">
-              <input id="tw_sameAsPrev" type="checkbox" class="mr-1 rounded text-indigo-600 focus:ring-indigo-500"> 同前收價
-            </label>
-          </div>
-          <div class="flex items-center gap-3">
-            <input id="tw_currentPrice" type="number" step="0.01" placeholder="輸入目前市價" class="tw-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
-            <div class="w-1/2 text-right">
-              <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (現有)</div>
-              <div id="tw_pnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-semibold text-sm text-indigo-600">2. 補倉規劃 (台股)</h2>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">預計買入價格 (P2)</label>
-          <div class="flex gap-2">
-            <input id="tw_p2" type="number" step="0.01" placeholder="例如: 2000" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            <button type="button" onclick="copyPrice('tw')" class="shrink-0 bg-slate-100 text-slate-600 text-xs px-3 rounded-lg border hover:bg-slate-200">帶入市價</button>
-          </div>
-          <div id="tw_p2DiffDisplay" class="text-[10px] text-slate-400 mt-1">與前收漲跌幅：-%</div>
-        </div>
-        <div class="border-t pt-3 space-y-3">
-          <p class="text-xs font-semibold text-slate-500">選擇計算模式 (擇一輸入)：</p>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">模式 A：預計加碼股數 (N2)</label>
-            <input id="tw_n2" type="number" placeholder="例如: 10" class="tw-input tw-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-          </div>
-          <div class="text-center text-xs text-slate-400">或</div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">模式 B：目標攤平至均價 (Target)</label>
-            <input id="tw_ptarget" type="number" step="0.01" placeholder="例如: 2710" class="tw-input tw-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-          </div>
+          <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">或目標攤平均價 (模式B)</label>
+          <input id="tw_ptarget" type="number" step="0.01" placeholder="目標均價" class="tw-input tw-mode-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
         </div>
       </div>
 
-      <!-- 計算結果與下方手動存檔按鈕 -->
-      <div class="bg-slate-900 text-white p-4 rounded-xl shadow-md space-y-3">
-        <h2 class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">台股補倉試算結果</h2>
-        <div class="flex justify-between items-center text-sm">
-          <span class="text-slate-300">需買入股數：</span>
-          <span id="tw_resN2" class="font-bold text-base">0 股</span>
+      <!-- 計算結果 -->
+      <div class="bg-slate-900 text-white p-3 sm:p-4 rounded-xl shadow-md space-y-2">
+        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">台股試算結果</h2>
+        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-1.5">
+          <span class="text-slate-400">需買入 / 總股數：</span>
+          <span><strong id="tw_resN2" class="text-white">0</strong> / <strong id="tw_resTotalN" class="text-cyan-300">0 股</strong></span>
         </div>
-        <div class="flex justify-between items-center text-sm border-b border-slate-700 pb-3">
-          <span class="text-slate-300">攤平後總股數：</span>
-          <span id="tw_resTotalN" class="font-bold text-base text-cyan-300">0 股</span>
+        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
+          <span class="text-slate-400">調整後平均成本：</span>
+          <strong id="tw_resAvgPrice" class="text-yellow-300 text-base sm:text-xl">$0.00</strong>
         </div>
-        <div class="flex justify-between items-center text-sm pt-1">
-          <span class="text-slate-300">調整後平均成本：</span>
-          <div class="text-right">
-            <div id="tw_resAvgPrice" class="font-bold text-xl text-yellow-300">$0.00</div>
-            <div id="tw_resNewPnl" class="text-xs text-slate-400 mt-1">攤平後損益(最新)：-%</div>
-            <div id="tw_resNewPrevPnl" class="text-xs text-slate-400 mt-0.5">攤平後損益(依前收)：-%</div>
-          </div>
+        <div class="text-[10px] sm:text-xs text-slate-400 flex justify-between">
+          <span id="tw_resNewPnl">損益(最新)：-%</span>
+          <span id="tw_resNewPrevPnl">損益(前收)：-%</span>
         </div>
-        <div class="border-t border-slate-700 pt-3 space-y-1">
-          <div class="flex justify-between items-center text-xs text-slate-400">
-            <span>原始成本總額：</span>
-            <span id="tw_resOriginalCost" class="font-semibold text-slate-300">$0</span>
-          </div>
+        <div class="grid grid-cols-2 gap-1 text-[10px] sm:text-xs border-t border-slate-800 pt-1.5 text-slate-300">
+          <div>原總額: <span id="tw_resOriginalCost">$0</span></div>
+          <div>本次資金: <span id="tw_resAddCost" class="text-white">$0</span></div>
         </div>
-        <div class="border-t border-slate-700 pt-2 space-y-1">
-          <div class="flex justify-between items-center text-xs text-slate-300">
-            <span>本次需準備資金 (含手續費)：</span>
-            <span id="tw_resAddCost" class="font-semibold text-white">$0</span>
-          </div>
-        </div>
-        <div class="border-t border-slate-700 pt-2 space-y-1">
-          <div class="flex justify-between items-center text-xs text-slate-300">
-            <span>攤平後總投資額：</span>
-            <span id="tw_resTotalCost" class="font-semibold text-white">$0</span>
-          </div>
-        </div>
-
-        <!-- 手動確認存檔按鈕 -->
-        <div class="pt-3 border-t border-slate-700">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
-            💾 即時更新並儲存至雲端
+        <div class="pt-1.5">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs sm:text-sm shadow transition">
+            💾 即時儲存至雲端
           </button>
         </div>
       </div>
@@ -187,130 +144,86 @@
 
 
     <!-- ================= 🇺🇸 美股介面 ================= -->
-    <div id="usView" class="space-y-4 hidden">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-semibold text-sm text-teal-600">美股交易設定</h2>
-        <div class="grid grid-cols-2 gap-3">
+    <div id="usView" class="space-y-2 sm:space-y-4 hidden">
+      <!-- 美股設定與現有持股 -->
+      <div id="usCard1" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+        <div class="flex justify-between items-center border-b pb-2">
+          <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與現有持股</span>
+          <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600">
+            <span>匯率:<input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="32.5"></span>
+            <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="15"></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">美金匯率 (TWD)</label>
-            <input id="us_exchangeRate" type="number" step="0.01" placeholder="例如: 32.5" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">現有股數 (N1)</label>
+            <input id="us_n1" type="number" placeholder="100" class="us-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">單筆手續費 (USD)</label>
-            <input id="us_fee" type="number" step="0.01" placeholder="例如: 15" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">現有均價 ($ P1)</label>
+            <input id="us_p1" type="number" step="0.01" placeholder="150" class="us-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 sm:gap-3 pt-1 border-t border-slate-100">
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">前日收盤價 ($)</label>
+            <input id="us_prevClose" type="number" step="0.01" placeholder="前收價" class="us-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">目前市價 ($)</label>
+            <input id="us_currentPrice" type="number" step="0.01" placeholder="目前市價" class="us-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+        </div>
+
+        <div class="text-[10px] sm:text-xs text-slate-600 flex justify-between pt-1 border-t border-slate-100">
+          <span>未實現損益(現有): <strong id="us_pnlDisplay" class="text-slate-800">-%</strong></span>
+          <span>未實現損益(前收): <strong id="us_prevPnlDisplay" class="text-slate-800">-%</strong></span>
         </div>
       </div>
 
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-semibold text-sm text-teal-600">1. 現有持股狀況 (美股)</h2>
-        <div class="grid grid-cols-2 gap-3">
+      <!-- 美股補倉規劃 -->
+      <div id="usCard2" class="bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3">
+        <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 補倉規劃</h2>
+        <div class="grid grid-cols-2 gap-2 sm:gap-3">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">現有股數 (N1)</label>
-            <input id="us_n1" type="number" placeholder="例如: 100" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <div class="flex justify-between mb-0.5"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 ($ P2)</label><button type="button" onclick="copyPrice('us')" class="text-[9px] sm:text-xs text-teal-600 underline">帶入市價</button></div>
+            <input id="us_p2" type="number" step="0.01" placeholder="買入價" class="us-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">現有均價 ($ P1)</label>
-            <input id="us_p1" type="number" step="0.01" placeholder="例如: 150" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (模式A)</label>
+            <input id="us_n2" type="number" placeholder="加碼股數" class="us-input us-mode-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
           </div>
         </div>
-        <div class="pt-2 border-t border-slate-100">
-          <label class="block text-xs font-medium text-slate-600 mb-1">前日收盤價 ($)</label>
-          <div class="flex items-center gap-3">
-            <input id="us_prevClose" type="number" step="0.01" placeholder="輸入前收價" class="us-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50">
-            <div class="w-1/2 text-right">
-              <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (依前收)</div>
-              <div id="us_prevPnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
-            </div>
-          </div>
-        </div>
-        <div class="pt-2">
-          <label class="block text-xs font-medium text-slate-600 mb-1">目前最新股價 ($)</label>
-          <div class="flex items-center gap-3">
-            <input id="us_currentPrice" type="number" step="0.01" placeholder="輸入目前市價" class="us-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50">
-            <div class="w-1/2 text-right">
-              <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (現有)</div>
-              <div id="us_pnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
-        <h2 class="font-semibold text-sm text-teal-600">2. 補倉規劃 (美股)</h2>
         <div>
-          <label class="block text-xs font-medium text-slate-600 mb-1">預計買入價格 ($ P2)</label>
-          <div class="flex gap-2">
-            <input id="us_p2" type="number" step="0.01" placeholder="例如: 100" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-            <button type="button" onclick="copyPrice('us')" class="shrink-0 bg-slate-100 text-slate-600 text-xs px-3 rounded-lg border hover:bg-slate-200">帶入市價</button>
-          </div>
-          <div id="us_p2DiffDisplay" class="text-[10px] text-slate-400 mt-1">與前收漲跌幅：-%</div>
-        </div>
-        <div class="border-t pt-3 space-y-3">
-          <p class="text-xs font-semibold text-slate-500">選擇計算模式 (擇一輸入)：</p>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">模式 A：預計加碼股數 (N2)</label>
-            <input id="us_n2" type="number" placeholder="例如: 50" class="us-input us-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-          </div>
-          <div class="text-center text-xs text-slate-400">或</div>
-          <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">模式 B：目標攤平至均價 ($ Target)</label>
-            <input id="us_ptarget" type="number" step="0.01" placeholder="例如: 120" class="us-input us-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-          </div>
+          <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">或目標攤平均價 ($ Target)</label>
+          <input id="us_ptarget" type="number" step="0.01" placeholder="目標均價" class="us-input us-mode-input save-trigger w-full border rounded-lg p-1.5 sm:p-2 text-xs sm:text-sm outline-none">
         </div>
       </div>
 
-      <!-- 計算結果與下方手動存檔按鈕 -->
-      <div class="bg-slate-900 text-white p-4 rounded-xl shadow-md space-y-3">
-        <h2 class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">美股補倉試算結果</h2>
-        <div class="flex justify-between items-center text-sm">
-          <span class="text-slate-300">需買入股數：</span>
-          <span id="us_resN2" class="font-bold text-base">0 股</span>
+      <!-- 美股試算結果 -->
+      <div class="bg-slate-900 text-white p-3 sm:p-4 rounded-xl shadow-md space-y-2">
+        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
+        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-1.5">
+          <span class="text-slate-400">需買入 / 總股數：</span>
+          <span><strong id="us_resN2" class="text-white">0</strong> / <strong id="us_resTotalN" class="text-teal-300">0 股</strong></span>
         </div>
-        <div class="flex justify-between items-center text-sm border-b border-slate-700 pb-3">
-          <span class="text-slate-300">攤平後總股數：</span>
-          <span id="us_resTotalN" class="font-bold text-base text-teal-300">0 股</span>
+        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
+          <span class="text-slate-400">調整後平均成本：</span>
+          <strong id="us_resAvgPrice" class="text-yellow-300 text-base sm:text-xl">$0.00</strong>
         </div>
-        <div class="flex justify-between items-center text-sm pt-1">
-          <span class="text-slate-300">調整後平均成本：</span>
-          <div class="text-right">
-            <div id="us_resAvgPrice" class="font-bold text-xl text-yellow-300">$0.00</div>
-            <div id="us_resNewPnl" class="text-xs text-slate-400 mt-1">攤平後損益(最新)：-%</div>
-            <div id="us_resNewPrevPnl" class="text-xs text-slate-400 mt-0.5">攤平後損益(依前收)：-%</div>
-          </div>
+        <div class="text-[10px] sm:text-xs text-slate-400 flex justify-between">
+          <span id="us_resNewPnl">損益(最新)：-%</span>
+          <span id="us_resNewPrevPnl">損益(前收)：-%</span>
         </div>
-        <div class="border-t border-slate-700 pt-3 space-y-1">
-          <div class="flex justify-between items-center text-xs text-slate-400">
-            <span>原始成本總額：</span>
-            <span id="us_resOriginalCostUSD" class="font-semibold text-slate-300">$0</span>
-          </div>
-          <div class="flex justify-end text-[10px] text-slate-500">
-            <span id="us_resOriginalCostTWD">約 NT$ 0</span>
-          </div>
+        <div class="grid grid-cols-2 gap-1 text-[10px] sm:text-xs border-t border-slate-800 pt-1.5 text-slate-300">
+          <div>原總額: <span id="us_resOriginalCostUSD">$0</span></div>
+          <div>本次資金: <span id="us_resAddCostUSD" class="text-white">$0</span></div>
         </div>
-        <div class="border-t border-slate-700 pt-2 space-y-1">
-          <div class="flex justify-between items-center text-xs text-slate-300">
-            <span>本次需準備資金 (含手續費)：</span>
-            <span id="us_resAddCostUSD" class="font-semibold text-white">$0</span>
-          </div>
-          <div class="flex justify-end text-xs text-yellow-300">
-            <span id="us_resAddCostTWD">約 NT$ 0</span>
-          </div>
-        </div>
-        <div class="border-t border-slate-700 pt-2 space-y-1">
-          <div class="flex justify-between items-center text-xs text-slate-300">
-            <span>攤平後總投資額：</span>
-            <span id="us_resTotalCostUSD" class="font-semibold text-white">$0</span>
-          </div>
-          <div class="flex justify-end text-xs text-yellow-300">
-            <span id="us_resTotalCostTWD">約 NT$ 0</span>
-          </div>
-        </div>
-
-        <!-- 手動確認存檔按鈕 -->
-        <div class="pt-3 border-t border-slate-700">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
-            💾 即時更新並儲存至雲端
+        <div class="pt-1.5">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 rounded-lg text-xs sm:text-sm shadow transition">
+            💾 即時儲存至雲端
           </button>
         </div>
       </div>
@@ -325,28 +238,61 @@
 
     let currentUser = null;
     let saveTimeout = null;
+    let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     
-    // 預設帶入測試參數（包含兩組不同的組合供測試）
     let cloudData = { 
       stocks: { 
         "2330 台積電 (主組合)": { 
           tw: { discount: "0.6", minFee: "20", n1: "60", p1: "2693.82", prevClose: "2000", currentPrice: "2050", p2: "1900", n2: "10" }, 
           us: { rate: "32.5", fee: "15", n1: "100", p1: "150", prevClose: "140", currentPrice: "145", p2: "130", n2: "20" } 
-        },
-        "觀察中短線組合": { 
-          tw: { discount: "0.5", minFee: "20", n1: "10", p1: "500", prevClose: "490", currentPrice: "505", p2: "480", n2: "5" }, 
-          us: { rate: "32.5", fee: "10", n1: "50", p1: "200", prevClose: "195", currentPrice: "205", p2: "190", n2: "10" } 
         }
       } 
     };
     let currentStockKey = "2330 台積電 (主組合)";
 
+    // 切換介面模式 (緊湊 vs 標準)
+    function toggleUIMode() {
+      isCompactMode = !isCompactMode;
+      localStorage.setItem('calc_compact_mode', isCompactMode);
+      applyUIMode();
+    }
+
+    function applyUIMode() {
+      const btn = document.getElementById('modeToggleBtn');
+      const body = document.getElementById('bodyBg');
+      const container = document.getElementById('mainContainer');
+
+      const tw1 = document.getElementById('twCard1');
+      const tw2 = document.getElementById('twCard2');
+      const us1 = document.getElementById('usCard1');
+      const us2 = document.getElementById('usCard2');
+
+      if (isCompactMode) {
+        btn.innerText = "📱 緊湊模式";
+        btn.className = "bg-indigo-50 text-indigo-700 border-indigo-200 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm";
+        body.className = "bg-slate-100 text-slate-800 p-1.5 sm:p-4 min-h-screen transition-all";
+        container.className = "max-w-md mx-auto space-y-1.5 sm:space-y-4 text-xs sm:text-sm";
+        
+        [tw1, tw2, us1, us2].forEach(card => {
+          if(card) card.className = "bg-white p-2 sm:p-4 rounded-lg shadow-sm border border-slate-200 space-y-1.5 sm:space-y-3";
+        });
+      } else {
+        btn.innerText = "💻 標準模式";
+        btn.className = "bg-slate-100 text-slate-700 border-slate-200 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm";
+        body.className = "bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all";
+        container.className = "max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm";
+        
+        [tw1, tw2, us1, us2].forEach(card => {
+          if(card) card.className = "bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3";
+        });
+      }
+    }
+
     async function loginWithGoogle() {
-      const { error } = await sbClient.auth.signInWithOAuth({
+      await sbClient.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: window.location.href }
       });
-      if (error) alert('登入失敗: ' + error.message);
     }
 
     async function logout() {
@@ -359,9 +305,7 @@
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
-        if (currentUser) {
-          await loadUserData();
-        }
+        if (currentUser) await loadUserData();
       });
 
       const { data: { session } } = await sbClient.auth.getSession();
@@ -381,11 +325,11 @@
       const logoutBtn = document.getElementById('logoutBtn');
 
       if (currentUser) {
-        userInfoEl.innerText = currentUser.email;
+        userInfoEl.innerText = currentUser.email.split('@')[0];
         loginBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
       } else {
-        userInfoEl.innerText = '尚未登入 (未同步)';
+        userInfoEl.innerText = '未登入';
         loginBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
         document.getElementById('syncStatus').innerText = '資料未同步';
@@ -394,7 +338,7 @@
 
     async function loadUserData() {
       if (!currentUser) return;
-      const { data, error } = await sbClient
+      const { data } = await sbClient
         .from('user_portfolios')
         .select('portfolio_data')
         .eq('user_id', currentUser.id)
@@ -402,12 +346,10 @@
 
       if (data && data.portfolio_data) {
         cloudData = data.portfolio_data;
-        if (!cloudData.stocks) {
-          cloudData = { stocks: { "我的組合": cloudData } };
-        }
+        if (!cloudData.stocks) cloudData = { stocks: { "我的組合": cloudData } };
         const keys = Object.keys(cloudData.stocks);
         if (keys.length > 0) currentStockKey = keys[0];
-        document.getElementById('syncStatus').innerText = '已從雲端同步';
+        document.getElementById('syncStatus').innerText = '已同步雲端';
       } else {
         await manualSaveDataSilent();
       }
@@ -418,7 +360,7 @@
     function renderStockSelector() {
       const selector = document.getElementById('stockSelector');
       selector.innerHTML = '';
-      const keys = Object.keys(cloudData.stocks || { "2330 台積電 (主組合)": { tw: {}, us: {} } });
+      const keys = Object.keys(cloudData.stocks || {});
       keys.forEach(key => {
         const opt = document.createElement('option');
         opt.value = key;
@@ -429,9 +371,7 @@
     }
 
     function saveUIToCurrentStock() {
-      if (!cloudData.stocks[currentStockKey]) {
-        cloudData.stocks[currentStockKey] = { tw: {}, us: {} };
-      }
+      if (!cloudData.stocks[currentStockKey]) cloudData.stocks[currentStockKey] = { tw: {}, us: {} };
       cloudData.stocks[currentStockKey].tw = {
         discount: document.getElementById('twDiscount').value,
         minFee: document.getElementById('twMinFee').value,
@@ -463,8 +403,8 @@
       const tw = stock.tw || {};
       const us = stock.us || {};
 
-      document.getElementById('twDiscount').value = tw.discount || '';
-      document.getElementById('twMinFee').value = tw.minFee || '';
+      document.getElementById('twDiscount').value = tw.discount || '0.6';
+      document.getElementById('twMinFee').value = tw.minFee || '20';
       document.getElementById('tw_n1').value = tw.n1 || '';
       document.getElementById('tw_p1').value = tw.p1 || '';
       document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
@@ -474,8 +414,8 @@
       document.getElementById('tw_n2').value = tw.n2 || '';
       document.getElementById('tw_ptarget').value = tw.ptarget || '';
 
-      document.getElementById('us_exchangeRate').value = us.rate || '';
-      document.getElementById('us_fee').value = us.fee || '';
+      document.getElementById('us_exchangeRate').value = us.rate || '32.5';
+      document.getElementById('us_fee').value = us.fee || '15';
       document.getElementById('us_n1').value = us.n1 || '';
       document.getElementById('us_p1').value = us.p1 || '';
       document.getElementById('us_prevClose').value = us.prevClose || '';
@@ -493,11 +433,27 @@
       loadStockToUI(key);
     }
 
+    function renameCurrentStock() {
+      const newName = prompt(`請輸入「${currentStockKey}」的新名稱：`, currentStockKey);
+      if (!newName || newName.trim() === "" || newName === currentStockKey) return;
+      if (cloudData.stocks[newName]) {
+        alert("此組別名稱已存在！");
+        return;
+      }
+      saveUIToCurrentStock();
+      cloudData.stocks[newName] = cloudData.stocks[currentStockKey];
+      delete cloudData.stocks[currentStockKey];
+      currentStockKey = newName;
+      renderStockSelector();
+      loadStockToUI(currentStockKey);
+      saveData();
+    }
+
     function addNewStock() {
-      const name = prompt("請輸入新的數據組合名稱 (例如: 2330 主力部位 或 NVDA 美股):");
+      const name = prompt("請輸入新組別名稱 (例如: 長線存股組合):");
       if (!name) return;
       if (cloudData.stocks[name]) {
-        alert("此組合名稱已存在！");
+        alert("此組別名稱已存在！");
         return;
       }
       saveUIToCurrentStock();
@@ -510,62 +466,40 @@
     function deleteCurrentStock() {
       const keys = Object.keys(cloudData.stocks);
       if (keys.length <= 1) {
-        alert("至少需保留一個數據組合！");
+        alert("至少需保留一個組合！");
         return;
       }
-      if (confirm(`確定要刪除組合「${currentStockKey}」嗎？`)) {
+      if (confirm(`確定刪除「${currentStockKey}」嗎？`)) {
         delete cloudData.stocks[currentStockKey];
-        const newKeys = Object.keys(cloudData.stocks);
         renderStockSelector();
-        loadStockToUI(newKeys[0]);
+        loadStockToUI(Object.keys(cloudData.stocks)[0]);
         saveData();
       }
     }
 
-    // 即時背景自動儲存
     function saveData() {
       if (!currentUser) return;
       saveUIToCurrentStock();
-      document.getElementById('syncStatus').innerText = '即時同步中...';
+      document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
-        const { data: existing } = await sbClient
-          .from('user_portfolios')
-          .select('user_id')
-          .eq('user_id', currentUser.id)
-          .maybeSingle();
-
+        const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
         let error;
         if (existing) {
-          const res = await sbClient
-            .from('user_portfolios')
-            .update({ portfolio_data: cloudData, updated_at: new Date().toISOString() })
-            .eq('user_id', currentUser.id);
+          const res = await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
           error = res.error;
         } else {
-          const res = await sbClient
-            .from('user_portfolios')
-            .insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
+          const res = await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
           error = res.error;
         }
-
-        if (!error) {
-          document.getElementById('syncStatus').innerText = '雲端即時同步完成';
-        } else {
-          document.getElementById('syncStatus').innerText = '同步失敗';
-        }
+        document.getElementById('syncStatus').innerText = error ? '同步失敗' : '已同步雲端';
       }, 500);
     }
 
     async function manualSaveDataSilent() {
       if (!currentUser) return;
       saveUIToCurrentStock();
-      const { data: existing } = await sbClient
-        .from('user_portfolios')
-        .select('user_id')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
-
+      const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
       if (existing) {
         await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
       } else {
@@ -575,39 +509,9 @@
 
     async function manualSaveData() {
       saveUIToCurrentStock();
-      if (!currentUser) {
-        alert("請先登入 Google 帳號才能同步至雲端！");
-        return;
-      }
-      document.getElementById('syncStatus').innerText = '儲存中...';
-      
-      const { data: existing } = await sbClient
-        .from('user_portfolios')
-        .select('user_id')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
-
-      let error;
-      if (existing) {
-        const res = await sbClient
-          .from('user_portfolios')
-          .update({ portfolio_data: cloudData, updated_at: new Date().toISOString() })
-          .eq('user_id', currentUser.id);
-        error = res.error;
-      } else {
-        const res = await sbClient
-          .from('user_portfolios')
-          .insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
-        error = res.error;
-      }
-
-      if (!error) {
-        document.getElementById('syncStatus').innerText = '更新儲存成功！';
-        alert("目前所有組合與數據已成功即時更新至雲端！");
-      } else {
-        document.getElementById('syncStatus').innerText = '儲存失敗';
-        alert("儲存失敗: " + error.message);
-      }
+      if (!currentUser) { alert("請先登入！"); return; }
+      await manualSaveDataSilent();
+      alert("儲存成功！");
     }
 
     function switchTab(type) {
@@ -619,13 +523,13 @@
       if (type === 'tw') {
         twView.classList.remove('hidden');
         usView.classList.add('hidden');
-        twBtn.className = "py-2 text-sm font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm";
-        usBtn.className = "py-2 text-sm font-semibold rounded-lg transition-all text-slate-600";
+        twBtn.className = "py-2 font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm";
+        usBtn.className = "py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm";
       } else {
         usView.classList.remove('hidden');
         twView.classList.add('hidden');
-        usBtn.className = "py-2 text-sm font-semibold rounded-lg transition-all bg-white text-teal-600 shadow-sm";
-        twBtn.className = "py-2 text-sm font-semibold rounded-lg transition-all text-slate-600";
+        usBtn.className = "py-2 font-semibold rounded-lg transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm";
+        twBtn.className = "py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm";
       }
     }
 
@@ -633,33 +537,22 @@
       if (isNaN(num) || !isFinite(num)) return '0';
       return Math.round(num).toLocaleString('en-US');
     }
-
     function formatPrice(num) {
       if (isNaN(num) || !isFinite(num)) return '0.00';
       return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     }
-
     function copyPrice(type) {
-      const currentPrice = document.getElementById(`${type}_currentPrice`).value;
-      if (currentPrice) {
-        document.getElementById(`${type}_p2`).value = currentPrice;
-        if (type === 'tw') calculateTw();
-        else calculateUs();
-        saveData();
-      }
+      const cp = document.getElementById(`${type}_currentPrice`).value;
+      if (cp) { document.getElementById(`${type}_p2`).value = cp; type === 'tw' ? calculateTw() : calculateUs(); saveData(); }
     }
-
     function calcTwBuyFee(price, shares, discount, minFee) {
-      const rawFee = price * shares * 0.001425 * discount;
-      return Math.max(rawFee, minFee);
+      return Math.max(price * shares * 0.001425 * discount, minFee);
     }
 
-    // 台股計算核心
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
       const manualPnlPct = parseFloat(document.getElementById('tw_manualPnlPct').value);
-      
       let currentPrice = parseFloat(document.getElementById('tw_currentPrice').value) || 0;
       const prevClose = parseFloat(document.getElementById('tw_prevClose').value) || 0;
       const sameAsPrev = document.getElementById('tw_sameAsPrev').checked;
@@ -669,94 +562,61 @@
       const discount = parseFloat(document.getElementById('twDiscount').value) || 0.6;
       const minFee = parseFloat(document.getElementById('twMinFee').value) || 20;
 
-      const currentPriceEl = document.getElementById('tw_currentPrice');
-      if (sameAsPrev && prevClose > 0) {
-        currentPriceEl.value = prevClose;
-        currentPriceEl.disabled = true;
-        currentPriceEl.classList.add('bg-slate-100', 'text-slate-400');
-        currentPrice = prevClose;
-      } else {
-        currentPriceEl.disabled = false;
-        currentPriceEl.classList.remove('bg-slate-100', 'text-slate-400');
-      }
+      const cpEl = document.getElementById('tw_currentPrice');
+      if (sameAsPrev && prevClose > 0) { cpEl.value = prevClose; cpEl.disabled = true; currentPrice = prevClose; }
+      else { cpEl.disabled = false; }
 
-      let totalOriginalCost = n1 * p1;
-
+      const totalOriginalCost = n1 * p1;
       const displayPnlPct = !isNaN(manualPnlPct) ? manualPnlPct : (p1 > 0 && currentPrice > 0 ? ((currentPrice - p1) / p1) * 100 : null);
-      const pnlDisplayEl = document.getElementById('tw_pnlDisplay');
-      if (displayPnlPct !== null) {
-        pnlDisplayEl.className = `font-bold text-sm ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        pnlDisplayEl.innerText = `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%`;
-      } else {
-        pnlDisplayEl.className = 'font-bold text-sm text-slate-400';
-        pnlDisplayEl.innerText = '-%';
-      }
+      
+      const pnlEl = document.getElementById('tw_pnlDisplay');
+      pnlEl.className = `font-bold text-xs sm:text-sm ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+      pnlEl.innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
 
       if (p1 > 0 && prevClose > 0) {
         const pct = ((prevClose - p1) / p1) * 100;
-        document.getElementById('tw_prevPnlDisplay').className = `font-bold text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        document.getElementById('tw_prevPnlDisplay').innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-      } else {
-        document.getElementById('tw_prevPnlDisplay').className = 'font-bold text-sm text-slate-400';
-        document.getElementById('tw_prevPnlDisplay').innerText = '-%';
-      }
-
-      if (prevClose > 0 && p2 > 0) {
-        const pct = ((p2 - prevClose) / prevClose) * 100;
-        document.getElementById('tw_p2DiffDisplay').className = `text-[10px] mt-1 font-medium ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        document.getElementById('tw_p2DiffDisplay').innerText = `與前收漲跌幅：${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-      } else {
-        document.getElementById('tw_p2DiffDisplay').className = 'text-[10px] text-slate-400 mt-1';
-        document.getElementById('tw_p2DiffDisplay').innerText = '與前收漲跌幅：-%';
+        const prevEl = document.getElementById('tw_prevPnlDisplay');
+        prevEl.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        prevEl.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
       }
 
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
 
-      let calcN2 = 0;
-      let calcAvg = 0;
-
+      let calcN2 = 0, calcAvg = 0;
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
-        if (ptargetIn <= p2) {
-          document.getElementById('tw_resAvgPrice').innerText = '目標價須大於買入價';
-          return;
-        }
+        if (ptargetIn <= p2) return;
         let roughN2 = (n1 * (p1 - ptargetIn)) / (ptargetIn - p2);
         if (roughN2 <= 0) return;
         calcN2 = ((n1 * (p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / (ptargetIn - p2);
         calcAvg = ptargetIn;
       } else if (!isNaN(n2In) && n2In > 0) {
         calcN2 = n2In;
-        const addBuyFee = calcTwBuyFee(p2, calcN2, discount, minFee);
-        calcAvg = (totalOriginalCost + (calcN2 * p2) + addBuyFee) / (n1 + calcN2);
+        const addFee = calcTwBuyFee(p2, calcN2, discount, minFee);
+        calcAvg = (totalOriginalCost + (calcN2 * p2) + addFee) / (n1 + calcN2);
       }
 
       if (calcN2 > 0) {
-        const addBuyFee = calcTwBuyFee(p2, calcN2, discount, minFee);
-        const addCostTotal = (calcN2 * p2) + addBuyFee;
-        const totalCostFinal = totalOriginalCost + addCostTotal;
+        const addFee = calcTwBuyFee(p2, calcN2, discount, minFee);
+        const addCost = (calcN2 * p2) + addFee;
         const totalN = n1 + calcN2;
 
         if (currentPrice > 0) {
           const pct = ((currentPrice - calcAvg) / calcAvg) * 100;
-          document.getElementById('tw_resNewPnl').className = `text-xs mt-1 font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-          document.getElementById('tw_resNewPnl').innerText = `攤平後損益(最新)：${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+          document.getElementById('tw_resNewPnl').innerText = `損益(最新): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
         }
         if (prevClose > 0) {
           const pct = ((prevClose - calcAvg) / calcAvg) * 100;
-          document.getElementById('tw_resNewPrevPnl').className = `text-xs mt-0.5 font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-          document.getElementById('tw_resNewPrevPnl').innerText = `攤平後損益(依前收)：${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+          document.getElementById('tw_resNewPrevPnl').innerText = `損益(前收): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
         }
 
-        document.getElementById('tw_resN2').innerText = `${calcN2.toFixed(2)} 股`;
-        document.getElementById('tw_resTotalN').innerText = `${totalN.toFixed(2)} 股`;
+        document.getElementById('tw_resN2').innerText = `${calcN2.toFixed(1)}股`;
+        document.getElementById('tw_resTotalN').innerText = `${totalN.toFixed(1)}股`;
         document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
-        document.getElementById('tw_resAddCost').innerText = `$${formatMoney(addCostTotal)} (含手續費 $${formatMoney(addBuyFee)})`;
-        document.getElementById('tw_resTotalCost').innerText = `$${formatMoney(totalCostFinal)}`;
+        document.getElementById('tw_resAddCost').innerText = `$${formatMoney(addCost)}`;
       }
     }
 
-    // 美股計算核心
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -770,41 +630,22 @@
 
       if (p1 > 0 && prevClose > 0) {
         const pct = ((prevClose - p1) / p1) * 100;
-        document.getElementById('us_prevPnlDisplay').className = `font-bold text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        document.getElementById('us_prevPnlDisplay').innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-      } else {
-        document.getElementById('us_prevPnlDisplay').className = 'font-bold text-sm text-slate-400';
-        document.getElementById('us_prevPnlDisplay').innerText = '-%';
+        const el = document.getElementById('us_prevPnlDisplay');
+        el.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        el.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
       }
-
       if (p1 > 0 && currentPrice > 0) {
         const pct = ((currentPrice - p1) / p1) * 100;
-        document.getElementById('us_pnlDisplay').className = `font-bold text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        document.getElementById('us_pnlDisplay').innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-      } else {
-        document.getElementById('us_pnlDisplay').className = 'font-bold text-sm text-slate-400';
-        document.getElementById('us_pnlDisplay').innerText = '-%';
-      }
-
-      if (prevClose > 0 && p2 > 0) {
-        const pct = ((p2 - prevClose) / prevClose) * 100;
-        document.getElementById('us_p2DiffDisplay').className = `text-[10px] mt-1 font-medium ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        document.getElementById('us_p2DiffDisplay').innerText = `與前收漲跌幅：${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-      } else {
-        document.getElementById('us_p2DiffDisplay').className = 'text-[10px] text-slate-400 mt-1';
-        document.getElementById('us_p2DiffDisplay').innerText = '與前收漲跌幅：-%';
+        const el = document.getElementById('us_pnlDisplay');
+        el.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        el.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
       }
 
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
 
-      let calcN2 = 0;
-      let calcAvg = 0;
-
+      let calcN2 = 0, calcAvg = 0;
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
-        if (ptargetIn <= p2) {
-          document.getElementById('us_resAvgPrice').innerText = '目標價須大於買入價';
-          return;
-        }
+        if (ptargetIn <= p2) return;
         calcN2 = ((n1 * (p1 - ptargetIn)) + fee) / (ptargetIn - p2);
         calcAvg = ptargetIn;
       } else if (!isNaN(n2In) && n2In > 0) {
@@ -813,48 +654,33 @@
       }
 
       if (calcN2 > 0) {
-        const addCostUSD = (calcN2 * p2) + fee;
-        const totalCostUSD = (n1 * p1) + addCostUSD;
+        const addCost = (calcN2 * p2) + fee;
         const totalN = n1 + calcN2;
 
         if (currentPrice > 0) {
           const pct = ((currentPrice - calcAvg) / calcAvg) * 100;
-          document.getElementById('us_resNewPnl').className = `text-xs mt-1 font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-          document.getElementById('us_resNewPnl').innerText = `攤平後損益(最新)：${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+          document.getElementById('us_resNewPnl').innerText = `損益(最新): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
         }
         if (prevClose > 0) {
           const pct = ((prevClose - calcAvg) / calcAvg) * 100;
-          document.getElementById('us_resNewPrevPnl').className = `text-xs mt-0.5 font-medium ${pct >= 0 ? 'text-emerald-400' : 'text-rose-400'}`;
-          document.getElementById('us_resNewPrevPnl').innerText = `攤平後損益(依前收)：${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
+          document.getElementById('us_resNewPrevPnl').innerText = `損益(前收): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
         }
 
-        document.getElementById('us_resN2').innerText = `${calcN2.toFixed(2)} 股`;
-        document.getElementById('us_resTotalN').innerText = `${totalN.toFixed(2)} 股`;
+        document.getElementById('us_resN2').innerText = `${calcN2.toFixed(1)}股`;
+        document.getElementById('us_resTotalN').innerText = `${totalN.toFixed(1)}股`;
         document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(n1 * p1)}`;
-        document.getElementById('us_resOriginalCostTWD').innerText = `約 NT$ ${formatMoney(n1 * p1 * rate)}`;
-        document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(addCostUSD)}`;
-        document.getElementById('us_resAddCostTWD').innerText = `約 NT$ ${formatMoney(addCostUSD * rate)}`;
-        document.getElementById('us_resTotalCostUSD').innerText = `$${formatMoney(totalCostUSD)}`;
-        document.getElementById('us_resTotalCostTWD').innerText = `約 NT$ ${formatMoney(totalCostUSD * rate)}`;
+        document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(addCost)}`;
       }
     }
 
-    // 事件監聽與即時自動儲存觸發
     document.querySelectorAll('.save-trigger').forEach(el => {
-      el.addEventListener('input', () => {
-        calculateTw();
-        calculateUs();
-        saveData();
-      });
+      el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
-
-    document.getElementById('tw_sameAsPrev').addEventListener('change', () => {
-      calculateTw();
-      saveData();
-    });
+    document.getElementById('tw_sameAsPrev').addEventListener('change', () => { calculateTw(); saveData(); });
 
     window.onload = async () => {
+      applyUIMode();
       await initAuth();
       calculateTw();
       calculateUs();
