@@ -26,10 +26,7 @@
           </button>
         </div>
       </div>
-      <div class="flex justify-between items-center pt-1 text-[10px] text-slate-400">
-        <span id="syncStatus">資料未同步</span>
-        <button onclick="manualSaveData()" class="bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded font-bold hover:bg-emerald-100">💾 手動儲存持倉</button>
-      </div>
+      <div class="text-[10px] text-slate-400 text-right" id="syncStatus">資料未同步</div>
     </header>
 
     <!-- 股票標的切換列 -->
@@ -141,6 +138,7 @@
         </div>
       </div>
 
+      <!-- 計算結果與下方手動存檔按鈕 -->
       <div class="bg-slate-900 text-white p-4 rounded-xl shadow-md space-y-3">
         <h2 class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">台股補倉試算結果</h2>
         <div class="flex justify-between items-center text-sm">
@@ -176,6 +174,13 @@
             <span>攤平後總投資額：</span>
             <span id="tw_resTotalCost" class="font-semibold text-white">$0</span>
           </div>
+        </div>
+
+        <!-- 移至下方的「手動確認存檔按鈕」 -->
+        <div class="pt-3 border-t border-slate-700">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
+            💾 確認儲存目前持倉至雲端
+          </button>
         </div>
       </div>
     </div>
@@ -255,6 +260,7 @@
         </div>
       </div>
 
+      <!-- 計算結果與下方手動存檔按鈕 -->
       <div class="bg-slate-900 text-white p-4 rounded-xl shadow-md space-y-3">
         <h2 class="text-xs text-slate-400 font-semibold uppercase tracking-wider mb-2">美股補倉試算結果</h2>
         <div class="flex justify-between items-center text-sm">
@@ -299,6 +305,13 @@
           <div class="flex justify-end text-xs text-yellow-300">
             <span id="us_resTotalCostTWD">約 NT$ 0</span>
           </div>
+        </div>
+
+        <!-- 移至下方的「手動確認存檔按鈕」 -->
+        <div class="pt-3 border-t border-slate-700">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-lg text-sm shadow transition-all flex items-center justify-center gap-1.5">
+            💾 確認儲存目前持倉至雲端
+          </button>
         </div>
       </div>
     </div>
@@ -494,7 +507,7 @@
       }
     }
 
-    // 自動與手動儲存
+    // 自動背景儲存
     function saveData() {
       if (!currentUser) return;
       saveUIToCurrentStock();
@@ -503,7 +516,7 @@
       saveTimeout = setTimeout(async () => {
         const { error } = await sbClient
           .from('user_portfolios')
-          .upsert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date() }, { onConflict: 'user_id' });
+          .upsert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
 
         if (!error) {
           document.getElementById('syncStatus').innerText = '雲端同步完成';
@@ -513,6 +526,7 @@
       }, 1000);
     }
 
+    // 手動點擊確認存檔（已修正日期格式與防錯）
     async function manualSaveData() {
       saveUIToCurrentStock();
       if (!currentUser) {
@@ -520,16 +534,21 @@
         return;
       }
       document.getElementById('syncStatus').innerText = '手動儲存中...';
+      
       const { error } = await sbClient
         .from('user_portfolios')
-        .upsert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date() }, { onConflict: 'user_id' });
+        .upsert({ 
+          user_id: currentUser.id, 
+          portfolio_data: cloudData, 
+          updated_at: new Date().toISOString() 
+        }, { onConflict: 'user_id' });
 
       if (!error) {
         document.getElementById('syncStatus').innerText = '手動儲存成功！';
         alert("持倉紀錄已成功儲存至雲端！");
       } else {
         document.getElementById('syncStatus').innerText = '儲存失敗';
-        alert("儲存失敗，請稍後再試。");
+        alert("儲存失敗: " + error.message);
       }
     }
 
