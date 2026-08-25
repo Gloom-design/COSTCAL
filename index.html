@@ -4,42 +4,42 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
-  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-6 min-h-screen transition-all">
-  <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-3 sm:space-y-5 text-xs sm:text-sm relative z-10">
+<body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
+  <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
     
     <!-- 頂部標題與版本號 -->
-    <header class="bg-white p-3 sm:p-5 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
+    <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded">v3.7</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v3.7.1</span>
         </div>
-        <div id="updateDesc" class="text-[10px] sm:text-xs text-slate-500 mt-0.5">更新：升級為 GitHub Secrets 雲端安全架構</div>
+        <div id="updateDesc" class="text-[10px] sm:text-xs text-slate-500 mt-1">更新：完整恢復完美排版與 GitHub Secrets 雲端架構</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
-      <div class="flex items-center gap-2 sm:gap-3">
-        <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-bold border transition shadow-sm cursor-pointer">
+      <div class="flex items-center gap-2.5 sm:gap-3">
+        <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
           📱 緊湊模式
         </button>
 
         <div class="flex items-center gap-1.5 relative z-30">
           <span id="userInfo" class="text-[10px] sm:text-xs text-slate-500 max-w-[90px] sm:max-w-[140px] truncate hidden sm:inline">未登入</span>
-          <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
-          <button id="logoutBtn" type="button" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold cursor-pointer shadow">登出</button>
+          <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
+          <button id="logoutBtn" type="button" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
         </div>
       </div>
     </header>
 
     <!-- 組合管理列 -->
-    <div class="bg-white p-3 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2">
-      <select id="stockSelector" onchange="switchStock(this.value)" class="flex-1 border rounded-xl p-2 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
+    <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
+      <select id="stockSelector" onchange="switchStock(this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
       </select>
-      <button onclick="renameCurrentStock()" class="bg-amber-50 text-amber-600 px-3 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
-      <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 px-3 py-2 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
-      <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 px-3 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
+      <button onclick="renameCurrentStock()" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
+      <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
+      <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
     </div>
 
     <!-- 分頁切換 -->
@@ -49,52 +49,52 @@
     </div>
 
     <!-- 台股介面 -->
-    <div id="twView" class="space-y-3 sm:space-y-4">
-      <div id="twCard1" class="card-box bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-        <div class="flex justify-between items-center border-b pb-2.5">
+    <div id="twView" class="space-y-4 sm:space-y-5">
+      <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
+        <div class="flex justify-between items-center border-b pb-3">
           <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與代號查詢</span>
           <div class="flex gap-3 text-[10px] sm:text-xs text-slate-600">
-            <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="0.6"></span>
-            <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded px-1 text-center ml-1" value="20"></span>
+            <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1" value="0.6"></span>
+            <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1" value="20"></span>
           </div>
         </div>
 
-        <div class="bg-indigo-50/60 p-2.5 sm:p-3 rounded-xl border border-indigo-100 flex items-center gap-2">
+        <div class="bg-indigo-50/60 p-3 sm:p-4 rounded-xl border border-indigo-100 flex items-center gap-2.5">
           <div class="flex-1">
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2330)</label>
-            <input id="tw_symbolInput" type="text" placeholder="輸入代號如 2330" class="w-full border rounded-xl p-2 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+            <input id="tw_symbolInput" type="text" placeholder="輸入代號如 2330" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
-          <button type="button" onclick="fetchMarketPrice('tw')" class="mt-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3.5 py-2 rounded-xl font-bold transition shadow-sm cursor-pointer">
+          <button type="button" onclick="fetchMarketPrice('tw')" class="mt-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
             🔍 代號帶入市價
           </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1)</label>
-            <input id="tw_n1" type="number" placeholder="60" class="tw-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="tw_n1" type="number" placeholder="60" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有均價 (P1)</label>
-            <input id="tw_p1" type="number" step="0.01" placeholder="2693.82" class="tw-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="tw_p1" type="number" step="0.01" placeholder="2693.82" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100">
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">前日收盤價</label>
-            <input id="tw_prevClose" type="number" step="0.01" placeholder="前收價" class="tw-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm bg-slate-50 outline-none">
+            <input id="tw_prevClose" type="number" step="0.01" placeholder="前收價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
           <div>
             <div class="flex justify-between items-center mb-1"><label class="text-[10px] sm:text-xs text-slate-600">目前市價</label><label class="text-[10px] text-slate-400 cursor-pointer"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label></div>
-            <input id="tw_currentPrice" type="number" step="0.01" placeholder="目前市價" class="tw-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm bg-slate-50 outline-none">
+            <input id="tw_currentPrice" type="number" step="0.01" placeholder="目前市價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 items-center">
+        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center">
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-600 font-bold block mb-1">手動對齊 App 損益率%</label>
-            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm font-bold text-indigo-700 outline-none">
+            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-indigo-700 outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">未實現損益 (現有)</label>
@@ -103,27 +103,27 @@
         </div>
       </div>
 
-      <div id="twCard2" class="card-box bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+      <div id="twCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 補倉規劃</h2>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3.5">
           <div>
             <div class="flex justify-between mb-1"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 (P2)</label><button type="button" onclick="copyPrice('tw')" class="text-[10px] sm:text-xs text-indigo-600 underline cursor-pointer">帶入市價</button></div>
-            <input id="tw_p2" type="number" step="0.01" placeholder="買入價" class="tw-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="tw_p2" type="number" step="0.01" placeholder="買入價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">加碼股數 (模式A)</label>
-            <input id="tw_n2" type="number" placeholder="加碼股數" class="tw-input tw-mode-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="tw_n2" type="number" placeholder="加碼股數" class="tw-input tw-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
         </div>
         <div>
           <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 (模式B)</label>
-          <input id="tw_ptarget" type="number" step="0.01" placeholder="目標均價" class="tw-input tw-mode-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+          <input id="tw_ptarget" type="number" step="0.01" placeholder="目標均價" class="tw-input tw-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
         </div>
       </div>
 
-      <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl shadow-md space-y-2.5">
+      <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
         <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">台股試算結果</h2>
-        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2">
+        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">需買入 / 總股數：</span>
           <span><strong id="tw_resN2" class="text-white">0</strong> / <strong id="tw_resTotalN" class="text-cyan-300">0 股</strong></span>
         </div>
@@ -135,12 +135,12 @@
           <span id="tw_resNewPnl">損益(最新)：-%</span>
           <span id="tw_resNewPrevPnl">損益(前收)：-%</span>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2 text-slate-300">
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
           <div>原總額: <span id="tw_resOriginalCost">$0</span></div>
           <div>本次資金: <span id="tw_resAddCost" class="text-white">$0</span></div>
         </div>
-        <div class="pt-2">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
+        <div class="pt-2.5">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
             💾 即時儲存至雲端
           </button>
         </div>
@@ -148,75 +148,75 @@
     </div>
 
     <!-- 美股介面 -->
-    <div id="usView" class="space-y-3 sm:space-y-4 hidden">
-      <div id="usCard1" class="card-box bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
-        <div class="flex justify-between items-center border-b pb-2.5">
+    <div id="usView" class="space-y-4 sm:space-y-5 hidden">
+      <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
+        <div class="flex justify-between items-center border-b pb-3">
           <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與代號查詢</span>
           <div class="flex gap-3 text-[10px] sm:text-xs text-slate-600">
-            <span>匯率:<input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded px-1 text-center ml-1" value="32.5"></span>
-            <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-14 border rounded px-1 text-center ml-1" value="15"></span>
+            <span>匯率:<input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-1" value="32.5"></span>
+            <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-1" value="15"></span>
           </div>
         </div>
 
-        <div class="bg-teal-50/60 p-2.5 sm:p-3 rounded-xl border border-teal-100 flex items-center gap-2">
+        <div class="bg-teal-50/60 p-3 sm:p-4 rounded-xl border border-teal-100 flex items-center gap-2.5">
           <div class="flex-1">
             <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AAPL / NVDA)</label>
-            <input id="us_symbolInput" type="text" placeholder="輸入代號如 AAPL" class="w-full border rounded-xl p-2 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
+            <input id="us_symbolInput" type="text" placeholder="輸入代號如 AAPL" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
           </div>
-          <button type="button" onclick="fetchMarketPrice('us')" class="mt-5 bg-teal-600 hover:bg-teal-700 text-white text-xs px-3.5 py-2 rounded-xl font-bold transition shadow-sm cursor-pointer">
+          <button type="button" onclick="fetchMarketPrice('us')" class="mt-5 bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
             🔍 代號帶入市價
           </button>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1)</label>
-            <input id="us_n1" type="number" placeholder="100" class="us-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="us_n1" type="number" placeholder="100" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有均價 ($ P1)</label>
-            <input id="us_p1" type="number" step="0.01" placeholder="150" class="us-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="us_p1" type="number" step="0.01" placeholder="150" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100">
+        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100">
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">前日收盤價 ($)</label>
-            <input id="us_prevClose" type="number" step="0.01" placeholder="前收價" class="us-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm bg-slate-50 outline-none">
+            <input id="us_prevClose" type="number" step="0.01" placeholder="前收價" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">目前市價 ($)</label>
-            <input id="us_currentPrice" type="number" step="0.01" placeholder="目前市價" class="us-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm bg-slate-50 outline-none">
+            <input id="us_currentPrice" type="number" step="0.01" placeholder="目前市價" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
         </div>
 
-        <div class="text-[10px] sm:text-xs text-slate-600 flex justify-between pt-2 border-t border-slate-100">
+        <div class="text-[10px] sm:text-xs text-slate-600 flex justify-between pt-2.5 border-t border-slate-100">
           <span>未實現損益(現有): <strong id="us_pnlDisplay" class="text-slate-800">-%</strong></span>
           <span>未實現損益(前收): <strong id="us_prevPnlDisplay" class="text-slate-800">-%</strong></span>
         </div>
       </div>
 
-      <div id="usCard2" class="card-box bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3">
+      <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 補倉規劃</h2>
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 gap-3.5">
           <div>
             <div class="flex justify-between mb-1"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 ($ P2)</label><button type="button" onclick="copyPrice('us')" class="text-[10px] sm:text-xs text-teal-600 underline cursor-pointer">帶入市價</button></div>
-            <input id="us_p2" type="number" step="0.01" placeholder="買入價" class="us-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="us_p2" type="number" step="0.01" placeholder="買入價" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">加碼股數 (模式A)</label>
-            <input id="us_n2" type="number" placeholder="加碼股數" class="us-input us-mode-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+            <input id="us_n2" type="number" placeholder="加碼股數" class="us-input us-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
         </div>
         <div>
           <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 ($ Target)</label>
-          <input id="us_ptarget" type="number" step="0.01" placeholder="目標均價" class="us-input us-mode-input save-trigger w-full border rounded-xl p-2 sm:p-2.5 text-xs sm:text-sm outline-none">
+          <input id="us_ptarget" type="number" step="0.01" placeholder="目標均價" class="us-input us-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
         </div>
       </div>
 
-      <div class="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl shadow-md space-y-2.5">
+      <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
         <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
-        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2">
+        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">需買入 / 總股數：</span>
           <span><strong id="us_resN2" class="text-white">0</strong> / <strong id="us_resTotalN" class="text-teal-300">0 股</strong></span>
         </div>
@@ -228,12 +228,12 @@
           <span id="us_resNewPnl">損益(最新)：-%</span>
           <span id="us_resNewPrevPnl">損益(前收)：-%</span>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2 text-slate-300">
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
           <div>原總額: <span id="us_resOriginalCostUSD">$0</span></div>
           <div>本次資金: <span id="us_resAddCostUSD" class="text-white">$0</span></div>
         </div>
-        <div class="pt-2">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
+        <div class="pt-2.5">
+          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
             💾 即時儲存至雲端
           </button>
         </div>
@@ -243,25 +243,25 @@
 
   <!-- 🤖 內建 AI 助理面板 (零 Token 輸入，完全透過 GitHub Secrets 保護) -->
   <div id="aiPanelContainer" class="hidden fixed bottom-4 right-4 z-50">
-    <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3.5 rounded-full shadow-lg font-bold text-xs flex items-center gap-2 hover:opacity-90 transition cursor-pointer">
+    <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3.5 sm:p-4 rounded-full shadow-xl font-bold text-xs flex items-center gap-2 hover:opacity-90 transition cursor-pointer">
       🤖 AI & GitHub 助理
     </button>
     
-    <div id="aiWindow" class="hidden absolute bottom-16 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 space-y-3 text-xs">
-      <div class="flex justify-between items-center border-b pb-2">
+    <div id="aiWindow" class="hidden absolute bottom-16 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 sm:p-5 space-y-3.5 text-xs">
+      <div class="flex justify-between items-center border-b pb-2.5">
         <span class="font-bold text-blue-700 text-sm">✨ AI 助手 & GitHub 自動同步</span>
         <button onclick="toggleAiPanel()" class="text-slate-400 hover:text-slate-600 font-bold cursor-pointer text-sm">✕</button>
       </div>
       <div>
         <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">GitHub 倉庫 (帳號/倉庫名)</label>
-        <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="w-full border rounded-xl p-2 outline-none text-xs bg-slate-50" readonly>
+        <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="w-full border rounded-xl p-2.5 outline-none text-xs bg-slate-50 font-bold text-slate-700" readonly>
       </div>
       <div>
         <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">想對網頁做什麼修改？</label>
         <!-- 預設填入測試範例文字 -->
-        <textarea id="aiPrompt" rows="2" placeholder="例: 把按鈕改成藍色..." class="w-full border rounded-xl p-2 outline-none text-xs resize-none">把按鈕改成紅色</textarea>
+        <textarea id="aiPrompt" rows="2.5" placeholder="例: 把按鈕改成藍色..." class="w-full border rounded-xl p-2.5 outline-none text-xs resize-none font-medium">把按鈕改成紅色</textarea>
       </div>
-      <button onclick="askAiAndUpdateGithub()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-xl shadow transition cursor-pointer">
+      <button onclick="askAiAndUpdateGithub()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl shadow transition cursor-pointer text-xs sm:text-sm">
         🚀 叫 AI 修改並自動同步 GitHub
       </button>
       <div id="aiStatus" class="text-[10px] sm:text-xs text-slate-400 text-center">準備就緒 (金鑰已受 Secrets 保護)</div>
@@ -269,9 +269,9 @@
   </div>
 
   <script type="module">
-    import { createClient } from '[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm)';
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
+    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     let sbClient = null; 
@@ -344,8 +344,8 @@
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        const targetUrl = `[https://query1.finance.yahoo.com/v8/finance/chart/$](https://query1.finance.yahoo.com/v8/finance/chart/$){querySymbol}?interval=1d`;
-        const proxyUrl = `[https://corsproxy.io/?$](https://corsproxy.io/?$){encodeURIComponent(targetUrl)}`;
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
         const res = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -443,13 +443,10 @@
       document.getElementById('aiWindow').classList.toggle('hidden');
     };
 
-    // 🌟 透過內建隱藏的 GitHub PAT 觸發 GitHub Actions 執行雲端 AI 修改
     window.askAiAndUpdateGithub = async function() {
       const promptText = document.getElementById('aiPrompt').value.trim();
       const statusEl = document.getElementById('aiStatus');
       const repo = "gloom-design/COSTCAL";
-      
-      // 使用你專屬的 GitHub Token (PAT) 透過前端安全送出 commit (開頭加 AI: 觸發 Actions)
       const ghToken = "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";
 
       if (!promptText) { alert("請輸入修改指令！"); return; }
@@ -458,7 +455,7 @@
       statusEl.innerText = "1. 正在傳送指令至 GitHub 雲端...";
 
       try {
-        const fileUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/index.html`;
+        const fileUrl = `https://api.github.com/repos/${repo}/contents/index.html`;
         
         const getFileRes = await fetch(fileUrl, { 
           headers: { 
@@ -504,14 +501,14 @@
 
       if (isCompactMode) {
         btn.innerText = "📱 緊湊模式";
-        body.className = "bg-slate-100 text-slate-800 p-1 min-h-screen transition-all";
-        container.className = "max-w-md sm:max-w-xl mx-auto space-y-1.5 text-[11px] sm:text-xs";
-        cards.forEach(card => card.className = "card-box bg-white p-2.5 rounded-xl shadow-sm border border-slate-200 space-y-1.5");
+        body.className = "bg-slate-100 text-slate-800 p-1.5 min-h-screen transition-all";
+        container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
+        cards.forEach(card => card.className = "card-box bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2");
       } else {
         btn.innerText = "💻 標準模式";
-        body.className = "bg-slate-100 text-slate-800 p-2 sm:p-6 min-h-screen transition-all";
-        container.className = "max-w-md sm:max-w-xl mx-auto space-y-3 sm:space-y-5 text-xs sm:text-sm";
-        cards.forEach(card => card.className = "card-box bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 space-y-3");
+        body.className = "bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all";
+        container.className = "max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm";
+        cards.forEach(card => card.className = "card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5");
       }
     }
 
