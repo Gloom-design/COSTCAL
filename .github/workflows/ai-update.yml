@@ -40,7 +40,7 @@ jobs:
         run: |
           node -e '
           import { GoogleGenAI } from "@google/genai";
-          const fs = require("fs");
+          import fs from "fs";
 
           async function run() {
             const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
