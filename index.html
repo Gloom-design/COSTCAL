@@ -14,9 +14,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.6</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.6.1</span>
         </div>
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：穩定版恢復正常運作架構</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復登入按鈕顯示與完整功能</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -241,7 +241,7 @@
     </div>
   </div>
 
-  <!-- 🤖 內建 AI 助理面板 (穩定版) -->
+  <!-- 🤖 內建 AI 助理面板 -->
   <div id="aiPanelContainer" class="hidden fixed bottom-4 right-4 z-50">
     <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-full shadow-lg font-bold text-xs flex items-center gap-1.5 hover:opacity-90 transition cursor-pointer">
       🤖 AI & GitHub 助理
@@ -857,7 +857,7 @@
         aiContainer.classList.add('hidden');
       } else {
         userInfoEl.innerText = '未登入';
-        loginBtn.classList.add('hidden');
+        loginBtn.classList.remove('hidden');
         logoutBtn.classList.add('hidden');
         aiContainer.classList.add('hidden');
       }
