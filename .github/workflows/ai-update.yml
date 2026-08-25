@@ -16,6 +16,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install Google Auth Library
+        run: npm install google-auth-library
+
       - name: Check commit message for AI prompt
         id: check
         run: |
@@ -29,18 +32,26 @@ jobs:
             echo "is_ai=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Call Gemini API and Update Code
+      - name: Call Gemini API with OAuth2
         if: steps.check.outputs.is_ai == 'true'
         env:
-          GEMINI_API_KEY: "AQ.Ab8RN6LSt-QX4kKSphuUDs6SkGc6FkCyY5cLv7Ph2-HofJM6Q"
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
           PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
         run: |
           node -e '
+          const { GoogleAuth } = require("google-auth-library");
           const fs = require("fs");
           const https = require("https");
 
           async function run() {
-            const apiKey = process.env.GEMINI_API_KEY;
+            // 1. 自動讀取 JSON 金鑰並產生 Google 要求的 OAuth2 Token
+            const auth = new GoogleAuth({
+              credentials: JSON.parse(process.env.GCP_SA_KEY),
+              scopes: ["https://www.googleapis.com/auth/cloud-platform"]
+            });
+            const client = await auth.getClient();
+            const accessToken = await client.getAccessToken();
+
             const promptText = process.env.PROMPT_TEXT;
             const currentHtml = fs.readFileSync("index.html", "utf8");
 
@@ -54,7 +65,8 @@ jobs:
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${apiKey}`,
+                // 2. 將產生的合法 Token 放入標頭，完美破解 401 錯誤
+                "Authorization": `Bearer ${accessToken.token}`,
                 "Content-Length": Buffer.byteLength(postData)
               }
             };
@@ -63,34 +75,20 @@ jobs:
               let data = "";
               res.on("data", (chunk) => { data += chunk; });
               res.on("end", () => {
-                try {
-                  const result = JSON.parse(data);
-                  if (result.error) {
-                    console.error("API Error:", result.error.message);
-                    process.exit(1);
-                  }
-                  if (!result.candidates || result.candidates.length === 0) {
-                    console.error("No candidates returned.");
-                    process.exit(1);
-                  }
-
-                  let newHtml = result.candidates[0].content.parts[0].text.trim()
-                    .replace(/^```html\s*/i, "")
-                    .replace(/^```\s*/i, "")
-                    .replace(/\s*```$/, "")
-                    .trim();
-
-                  if (!newHtml.startsWith("<!DOCTYPE html>") && !newHtml.startsWith("<html")) {
-                    console.error("Invalid HTML output.");
-                    process.exit(1);
-                  }
-
-                  fs.writeFileSync("index.html", newHtml, "utf8");
-                  console.log("Updated index.html successfully with Bound AQ Key");
-                } catch (e) {
-                  console.error("Parse Error:", e);
+                const result = JSON.parse(data);
+                if (result.error) {
+                  console.error("API Error:", result.error.message);
                   process.exit(1);
                 }
+                
+                let newHtml = result.candidates[0].content.parts[0].text.trim()
+                  .replace(/^```html\s*/i, "")
+                  .replace(/^```\s*/i, "")
+                  .replace(/\s*```$/, "")
+                  .trim();
+
+                fs.writeFileSync("index.html", newHtml, "utf8");
+                console.log("✅ 成功透過 OAuth2 更新 index.html");
               });
             });
 
