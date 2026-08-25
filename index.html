@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 採用最穩定的全域同步載入，確保沒有時間差問題 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- 這是關鍵修復：必須指定 /dist/umd/supabase.js 才能讓瀏覽器正確解析，否則會導致全站腳本當機 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -17,11 +17,11 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.5</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v1.6</span>
         </div>
         <!-- 📝 更新內容簡單說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復初始化時間差與網址參數清理</div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端同步就緒</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復腳本當機問題與 UMD 載入路徑</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">模組準備中...</div>
       </div>
       
       <div class="flex items-center gap-2">
@@ -319,7 +319,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.5）往後加一版，並更新更新說明文字。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記（如 \`\`\`html 或 \`\`\`），直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號（如 v1.6）往後加一版，並更新更新說明文字。` }] }]
           })
         });
 
@@ -378,12 +378,15 @@
     }
 
     // ================= 🔐 Supabase 雲端設定 =================
-    // 確保這裡不會有 duplicate variable declarations (重複宣告) 造成的錯誤
     const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
-    // 初始化確保不會出錯，因為最上方的 script 標籤是同步載入的
-    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    let sbClient = null;
+    if (window.supabase) {
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+      console.error("Supabase CDN 尚未載入，請確認網路或 CDN 狀態");
+    }
 
     let currentUser = null;
     let saveTimeout = null;
@@ -497,21 +500,27 @@
     }
 
     async function loginWithGoogle() {
+      if (!sbClient) { alert("雲端模組初始化失敗，請確認網路連線。"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
-        // 確保跳轉網址嚴格對齊 GitHub Pages (避免大小寫問題)
         options: { redirectTo: window.location.origin + window.location.pathname }
       });
       if (error) alert("登入失敗: " + error.message);
     }
 
     async function logout() {
+      if (!sbClient) return;
       await sbClient.auth.signOut();
       localStorage.clear();
       window.location.href = window.location.pathname;
     }
 
     async function initAuth() {
+      if (!sbClient) {
+        document.getElementById('syncStatus').innerText = '雲端模組載入失敗';
+        return;
+      }
+      
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
@@ -549,7 +558,7 @@
     }
 
     async function loadUserData() {
-      if (!currentUser) return;
+      if (!currentUser || !sbClient) return;
       const { data, error } = await sbClient
         .from('user_portfolios')
         .select('portfolio_data')
@@ -557,7 +566,7 @@
         .maybeSingle();
 
       if (error) {
-        console.warn("載入資料時發生錯誤，可能缺少表格或 RLS 權限問題", error);
+        console.warn("載入資料時發生錯誤", error);
       }
 
       if (data && data.portfolio_data) {
@@ -690,7 +699,7 @@
     }
 
     function saveData() {
-      if (!currentUser) return;
+      if (!currentUser || !sbClient) return;
       saveUIToCurrentStock();
       document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
@@ -709,7 +718,7 @@
     }
 
     async function manualSaveDataSilent() {
-      if (!currentUser) return;
+      if (!currentUser || !sbClient) return;
       saveUIToCurrentStock();
       const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
       if (existing) {
@@ -735,13 +744,13 @@
       if (type === 'tw') {
         twView.classList.remove('hidden');
         usView.classList.add('hidden');
-        twBtn.className = "py-2 font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm";
-        usBtn.className = "py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm";
+        twBtn.className = "py-2 font-semibold rounded-lg transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer";
+        usBtn.className = "py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
       } else {
         usView.classList.remove('hidden');
         twView.classList.add('hidden');
-        usBtn.className = "py-2 font-semibold rounded-lg transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm";
-        twBtn.className = "py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm";
+        usBtn.className = "py-2 font-semibold rounded-lg transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm cursor-pointer";
+        twBtn.className = "py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
       }
     }
 
@@ -892,13 +901,21 @@
     document.getElementById('tw_sameAsPrev').addEventListener('change', () => { calculateTw(); saveData(); });
 
     window.onload = async () => {
-      // 關鍵修復：清除 GitHub Pages 登入後殘留在網址列的冗長 Token，防止干擾後續運作
+      // 清除網址列冗長 token
       if (window.location.hash && window.location.hash.includes('access_token')) {
         window.history.replaceState(null, document.title, window.location.pathname);
       }
 
       applyUIMode();
-      await initAuth();
+      
+      // 確保即使沒登入也能先載入本機預設值，讓計算器可以運作
+      if (sbClient) {
+        await initAuth();
+      } else {
+        renderStockSelector();
+        loadStockToUI(currentStockKey);
+      }
+      
       calculateTw();
       calculateUs();
     };
