@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 載入 Supabase UMD 主程式 -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -17,11 +15,11 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.4</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復登入按鈕與雲端模組初始化語法</div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">模組準備中...</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：改用 ESM 模組引入 Supabase 徹底修復登入</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
       <div class="flex items-center gap-2">
@@ -293,92 +291,11 @@
     </div>
   </div>
 
-  <script>
-    // ================= 🤖 Gemini AI 修改 + GitHub 自動同步邏輯 =================
-    function toggleAiPanel() {
-      const win = document.getElementById('aiWindow');
-      win.classList.toggle('hidden');
-    }
+  <!-- 使用 ESM 模組引入 Supabase，並將所有應用程式邏輯包在裡面 -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    async function askAiAndUpdateGithub() {
-      const apiKey = document.getElementById('aiApiKey').value.trim();
-      const repo = document.getElementById('ghRepo').value.trim();
-      const ghToken = document.getElementById('ghToken').value.trim();
-      const promptText = document.getElementById('aiPrompt').value.trim();
-      const statusEl = document.getElementById('aiStatus');
-
-      if (!apiKey) { alert("請先輸入 Gemini API Key！"); return; }
-      if (!repo || !ghToken) { alert("請輸入 GitHub 倉庫名稱與 Token 才能進行自動同步！"); return; }
-      if (!promptText) { alert("請輸入修改指令！"); return; }
-
-      statusEl.innerText = "1. Gemini 思考與修改中...";
-      const currentHtml = document.documentElement.outerHTML;
-
-      try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記，直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號往後加一版並更新說明。` }] }]
-          })
-        });
-
-        const data = await response.json();
-        if (!data.candidates || !data.candidates[0].content.parts[0].text) {
-          throw new Error("Gemini 回應格式錯誤");
-        }
-
-        let newHtml = data.candidates[0].content.parts[0].text.trim();
-        newHtml = newHtml.replace(/^```html/, '').replace(/^```/, '').replace(/```$/, '').trim();
-
-        statusEl.innerText = "2. 正在自動同步更新至 GitHub...";
-
-        const fileUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/index.html`;
-        const getFileRes = await fetch(fileUrl, {
-          headers: { 'Authorization': `token ${ghToken}` }
-        });
-        
-        let sha = "";
-        if (getFileRes.ok) {
-          const fileData = await getFileRes.json();
-          sha = fileData.sha;
-        }
-
-        const encodedContent = btoa(unescape(encodeURIComponent(newHtml)));
-
-        const updateRes = await fetch(fileUrl, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${ghToken}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: `🤖 AI Auto-update: ${promptText}`,
-            content: encodedContent,
-            sha: sha
-          })
-        });
-
-        if (!updateRes.ok) {
-          const errJson = await updateRes.json();
-          throw new Error("GitHub 同步失敗: " + (errJson.message || "未知錯誤"));
-        }
-
-        statusEl.innerText = "同步成功！重新整理中...";
-        alert("✨ AI 修改成功，且 GitHub 原檔已自動同步更新完成！\n網頁將立刻重新整理以套用新版本。");
-
-        document.open();
-        document.write(newHtml);
-        document.close();
-
-      } catch (err) {
-        statusEl.innerText = "更新失敗";
-        alert("執行失敗：" + err.message);
-      }
-    }
-
-    // ================= 全域變數與 UI 邏輯 =================
-    const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
+    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     let sbClient = null; 
@@ -397,36 +314,27 @@
     };
     let currentStockKey = "2330 台積電 (主組合)";
 
-    function toggleUIMode() {
+    // 將登入與登出等互動函數綁定到全域 window，確保 HTML 上的 onclick 找得到
+    window.loginWithGoogle = async function() {
+      if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
+      const { error } = await sbClient.auth.signInWithOAuth({ provider: 'google' });
+      if (error) alert("登入失敗: " + error.message);
+    };
+
+    window.logout = async function() {
+      if (!sbClient) return;
+      await sbClient.auth.signOut();
+      localStorage.clear();
+      window.location.href = window.location.pathname;
+    };
+
+    window.toggleUIMode = function() {
       isCompactMode = !isCompactMode;
       localStorage.setItem('calc_compact_mode', isCompactMode);
       applyUIMode();
-    }
+    };
 
-    function applyUIMode() {
-      const btn = document.getElementById('modeToggleBtn');
-      const body = document.getElementById('bodyBg');
-      const container = document.getElementById('mainContainer');
-      const cards = document.querySelectorAll('.card-box');
-
-      if (isCompactMode) {
-        btn.innerText = "📱 緊湊模式";
-        body.className = "bg-slate-100 text-slate-800 p-1 min-h-screen transition-all";
-        container.className = "max-w-md mx-auto space-y-1.5 text-[11px] sm:text-xs";
-        cards.forEach(card => {
-          card.className = "card-box bg-white p-2 rounded-lg shadow-sm border border-slate-200 space-y-1";
-        });
-      } else {
-        btn.innerText = "💻 標準模式";
-        body.className = "bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all";
-        container.className = "max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm";
-        cards.forEach(card => {
-          card.className = "card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3";
-        });
-      }
-    }
-
-    function switchTab(type) {
+    window.switchTab = function(type) {
       const twView = document.getElementById('twView');
       const usView = document.getElementById('usView');
       const twBtn = document.getElementById('tabTwBtn');
@@ -443,139 +351,9 @@
         usBtn.className = "py-2 font-semibold rounded-lg transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm cursor-pointer";
         twBtn.className = "py-2 font-semibold rounded-lg transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
       }
-    }
+    };
 
-    // ================= 🔐 Supabase 安全初始化與 Google 登入 =================
-    async function initAuth() {
-      // 確保 Supabase UMD 載入完成
-      let retries = 0;
-      while ((!window.supabase || !window.supabase.createClient) && retries < 30) {
-        await new Promise(r => setTimeout(r, 100));
-        retries++;
-      }
-
-      if (!window.supabase || !window.supabase.createClient) {
-        document.getElementById('syncStatus').innerText = '無雲端連線，啟用單機模式';
-        return;
-      }
-
-      try {
-        // 使用標準 createClient 建立實例
-        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-      } catch (err) {
-        document.getElementById('syncStatus').innerText = '初始化異常';
-        return;
-      }
-
-      // 監聽並自動處理登入狀態
-      sbClient.auth.onAuthStateChange(async (event, session) => {
-        currentUser = session?.user || null;
-        updateAuthUI();
-        checkAdminPermission(currentUser);
-        if (currentUser) await loadUserData();
-      });
-
-      const { data: { session } } = await sbClient.auth.getSession();
-      currentUser = session?.user || null;
-      updateAuthUI();
-      checkAdminPermission(currentUser);
-      
-      if (currentUser) {
-        await loadUserData();
-      } else {
-        renderStockSelector();
-        loadStockToUI(currentStockKey);
-        document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
-      }
-    }
-
-    async function loginWithGoogle() {
-      if (!sbClient) { 
-        alert("雲端模組尚未準備好，請稍候再試！"); 
-        return; 
-      }
-      const { error } = await sbClient.auth.signInWithOAuth({
-        provider: 'google'
-      });
-      if (error) alert("登入失敗: " + error.message);
-    }
-
-    async function logout() {
-      if (!sbClient) return;
-      await sbClient.auth.signOut();
-      localStorage.clear();
-      window.location.href = window.location.pathname;
-    }
-
-    function updateAuthUI() {
-      const userInfoEl = document.getElementById('userInfo');
-      const loginBtn = document.getElementById('loginBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
-
-      if (currentUser) {
-        userInfoEl.innerText = currentUser.email.split('@')[0];
-        loginBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
-      } else {
-        userInfoEl.innerText = '未登入';
-        loginBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
-        document.getElementById('syncStatus').innerText = '資料未同步';
-      }
-    }
-
-    function checkAdminPermission(user) {
-      const aiContainer = document.getElementById('aiPanelContainer');
-      if (user && user.email === 'ihmfeporsky@gmail.com') {
-        aiContainer.classList.remove('hidden');
-      } else {
-        aiContainer.classList.add('hidden');
-      }
-    }
-
-    function loadAiSettingsToUI() {
-      const settings = cloudData.aiSettings || {};
-      if (settings.apiKey) document.getElementById('aiApiKey').value = settings.apiKey;
-      if (settings.repo) document.getElementById('ghRepo').value = settings.repo;
-      if (settings.token) document.getElementById('ghToken').value = settings.token;
-    }
-
-    document.querySelectorAll('.ai-setting').forEach(el => {
-      el.addEventListener('input', () => {
-        if (!cloudData.aiSettings) cloudData.aiSettings = {};
-        cloudData.aiSettings.apiKey = document.getElementById('aiApiKey').value.trim();
-        cloudData.aiSettings.repo = document.getElementById('ghRepo').value.trim();
-        cloudData.aiSettings.token = document.getElementById('ghToken').value.trim();
-        saveData();
-      });
-    });
-
-    async function loadUserData() {
-      if (!currentUser || !sbClient) return;
-      const { data, error } = await sbClient
-        .from('user_portfolios')
-        .select('portfolio_data')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
-
-      if (error) console.warn("載入資料時發生錯誤", error);
-
-      if (data && data.portfolio_data) {
-        cloudData = data.portfolio_data;
-        if (!cloudData.stocks) cloudData = { stocks: { "我的組合": cloudData } };
-        const keys = Object.keys(cloudData.stocks);
-        if (keys.length > 0) currentStockKey = keys[0];
-        loadAiSettingsToUI();
-        document.getElementById('syncStatus').innerText = '已同步雲端';
-      } else {
-        await manualSaveDataSilent();
-      }
-      renderStockSelector();
-      loadStockToUI(currentStockKey);
-    }
-
-    // ================= 💡 行情查詢 (具備 5 秒防卡死機制) =================
-    async function fetchMarketPrice(type) {
+    window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
 
@@ -588,8 +366,8 @@
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        const targetUrl = `[https://query1.finance.yahoo.com/v8/finance/chart/$](https://query1.finance.yahoo.com/v8/finance/chart/$){querySymbol}?interval=1d`;
-        const proxyUrl = `[https://corsproxy.io/?$](https://corsproxy.io/?$){encodeURIComponent(targetUrl)}`;
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
         const res = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -624,18 +402,139 @@
         if (type === 'tw') calculateTw(); else calculateUs();
         saveData();
         document.getElementById('syncStatus').innerText = '行情查詢逾時，已套用參考行情';
-        alert(`提示：線上即時查詢受阻，已自動安全帶入 [${querySymbol}] 之參考行情！`);
+      }
+    };
+
+    window.switchStock = function(key) {
+      saveUIToCurrentStock();
+      loadStockToUI(key);
+    };
+
+    window.renameCurrentStock = function() {
+      const newName = prompt(`請輸入「${currentStockKey}」的新名稱：`, currentStockKey);
+      if (!newName || newName.trim() === "" || newName === currentStockKey) return;
+      if (cloudData.stocks[newName]) { alert("此組別名稱已存在！"); return; }
+      saveUIToCurrentStock();
+      cloudData.stocks[newName] = cloudData.stocks[currentStockKey];
+      delete cloudData.stocks[currentStockKey];
+      currentStockKey = newName;
+      renderStockSelector();
+      loadStockToUI(currentStockKey);
+      saveData();
+    };
+
+    window.addNewStock = function() {
+      const name = prompt("請輸入新組別名稱 (例如: 長線存股組合):");
+      if (!name) return;
+      if (cloudData.stocks[name]) { alert("此組別名稱已存在！"); return; }
+      saveUIToCurrentStock();
+      cloudData.stocks[name] = { tw: {}, us: {} };
+      renderStockSelector();
+      loadStockToUI(name);
+      saveData();
+    };
+
+    window.deleteCurrentStock = function() {
+      const keys = Object.keys(cloudData.stocks);
+      if (keys.length <= 1) { alert("至少需保留一個組合！"); return; }
+      if (confirm(`確定刪除「${currentStockKey}」嗎？`)) {
+        delete cloudData.stocks[currentStockKey];
+        renderStockSelector();
+        loadStockToUI(Object.keys(cloudData.stocks)[0]);
+        saveData();
+      }
+    };
+
+    window.manualSaveData = async function() {
+      saveUIToCurrentStock();
+      if (!currentUser) { alert("請先登入！"); return; }
+      await manualSaveDataSilent();
+      alert("儲存成功！");
+    };
+
+    window.copyPrice = function(type) {
+      const cp = document.getElementById(`${type}_currentPrice`).value;
+      if (cp) { 
+        document.getElementById(`${type}_p2`).value = cp; 
+        type === 'tw' ? calculateTw() : calculateUs(); 
+        saveData(); 
+      }
+    };
+
+    window.toggleAiPanel = function() {
+      document.getElementById('aiWindow').classList.toggle('hidden');
+    };
+
+    window.askAiAndUpdateGithub = async function() {
+      const apiKey = document.getElementById('aiApiKey').value.trim();
+      const repo = document.getElementById('ghRepo').value.trim();
+      const ghToken = document.getElementById('ghToken').value.trim();
+      const promptText = document.getElementById('aiPrompt').value.trim();
+      const statusEl = document.getElementById('aiStatus');
+
+      if (!apiKey) { alert("請先輸入 Gemini API Key！"); return; }
+      if (!repo || !ghToken) { alert("請輸入 GitHub 倉庫名稱與 Token！"); return; }
+      if (!promptText) { alert("請輸入修改指令！"); return; }
+
+      statusEl.innerText = "1. 思考與修改中...";
+      const currentHtml = document.documentElement.outerHTML;
+
+      try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `你是一個專業前端工程師。目前程式碼：\n${currentHtml}\n\n需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼，不要有 markdown 標記。` }] }]
+          })
+        });
+        const data = await response.json();
+        let newHtml = data.candidates[0].content.parts[0].text.trim().replace(/^```html/, '').replace(/^```/, '').replace(/```$/, '').trim();
+
+        statusEl.innerText = "2. 同步至 GitHub...";
+        const fileUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/contents/index.html`;
+        const getFileRes = await fetch(fileUrl, { headers: { 'Authorization': `token ${ghToken}` } });
+        let sha = getFileRes.ok ? (await getFileRes.json()).sha : "";
+
+        const updateRes = await fetch(fileUrl, {
+          method: 'PUT',
+          headers: { 'Authorization': `token ${ghToken}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message: `🤖 AI Auto-update: ${promptText}`, content: btoa(unescape(encodeURIComponent(newHtml))), sha: sha })
+        });
+
+        if (!updateRes.ok) throw new Error("GitHub 同步失敗");
+        alert("同步成功！重新整理中...");
+        document.open(); document.write(newHtml); document.close();
+      } catch (err) {
+        statusEl.innerText = "更新失敗";
+        alert("錯誤：" + err.message);
+      }
+    };
+
+    function applyUIMode() {
+      const btn = document.getElementById('modeToggleBtn');
+      const body = document.getElementById('bodyBg');
+      const container = document.getElementById('mainContainer');
+      const cards = document.querySelectorAll('.card-box');
+
+      if (isCompactMode) {
+        btn.innerText = "📱 緊湊模式";
+        body.className = "bg-slate-100 text-slate-800 p-1 min-h-screen transition-all";
+        container.className = "max-w-md mx-auto space-y-1.5 text-[11px] sm:text-xs";
+        cards.forEach(card => card.className = "card-box bg-white p-2 rounded-lg shadow-sm border border-slate-200 space-y-1");
+      } else {
+        btn.innerText = "💻 標準模式";
+        body.className = "bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all";
+        container.className = "max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm";
+        cards.forEach(card => card.className = "card-box bg-white p-3 sm:p-4 rounded-xl shadow-sm border border-slate-200 space-y-2 sm:space-y-3");
       }
     }
 
     function renderStockSelector() {
       const selector = document.getElementById('stockSelector');
       selector.innerHTML = '';
-      const keys = Object.keys(cloudData.stocks || {});
-      keys.forEach(key => {
+      Object.keys(cloudData.stocks || {}).forEach(key => {
         const opt = document.createElement('option');
-        opt.value = key;
-        opt.innerText = key;
+        opt.value = key; opt.innerText = key;
         if (key === currentStockKey) opt.selected = true;
         selector.appendChild(opt);
       });
@@ -673,8 +572,7 @@
     function loadStockToUI(key) {
       currentStockKey = key;
       const stock = cloudData.stocks[key] || { tw: {}, us: {} };
-      const tw = stock.tw || {};
-      const us = stock.us || {};
+      const tw = stock.tw || {}; const us = stock.us || {};
 
       document.getElementById('tw_symbolInput').value = tw.symbol || '2330';
       document.getElementById('twDiscount').value = tw.discount || '0.6';
@@ -699,48 +597,7 @@
       document.getElementById('us_n2').value = us.n2 || '';
       document.getElementById('us_ptarget').value = us.ptarget || '';
 
-      calculateTw();
-      calculateUs();
-    }
-
-    function switchStock(key) {
-      saveUIToCurrentStock();
-      loadStockToUI(key);
-    }
-
-    function renameCurrentStock() {
-      const newName = prompt(`請輸入「${currentStockKey}」的新名稱：`, currentStockKey);
-      if (!newName || newName.trim() === "" || newName === currentStockKey) return;
-      if (cloudData.stocks[newName]) { alert("此組別名稱已存在！"); return; }
-      saveUIToCurrentStock();
-      cloudData.stocks[newName] = cloudData.stocks[currentStockKey];
-      delete cloudData.stocks[currentStockKey];
-      currentStockKey = newName;
-      renderStockSelector();
-      loadStockToUI(currentStockKey);
-      saveData();
-    }
-
-    function addNewStock() {
-      const name = prompt("請輸入新組別名稱 (例如: 長線存股組合):");
-      if (!name) return;
-      if (cloudData.stocks[name]) { alert("此組別名稱已存在！"); return; }
-      saveUIToCurrentStock();
-      cloudData.stocks[name] = { tw: {}, us: {} };
-      renderStockSelector();
-      loadStockToUI(name);
-      saveData();
-    }
-
-    function deleteCurrentStock() {
-      const keys = Object.keys(cloudData.stocks);
-      if (keys.length <= 1) { alert("至少需保留一個組合！"); return; }
-      if (confirm(`確定刪除「${currentStockKey}」嗎？`)) {
-        delete cloudData.stocks[currentStockKey];
-        renderStockSelector();
-        loadStockToUI(Object.keys(cloudData.stocks)[0]);
-        saveData();
-      }
+      calculateTw(); calculateUs();
     }
 
     function saveData() {
@@ -750,14 +607,9 @@
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
-        let error;
-        if (existing) {
-          const res = await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
-          error = res.error;
-        } else {
-          const res = await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
-          error = res.error;
-        }
+        let error = existing ? 
+          (await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id)).error :
+          (await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() })).error;
         document.getElementById('syncStatus').innerText = error ? '同步失敗' : '已同步雲端';
       }, 500);
     }
@@ -773,28 +625,9 @@
       }
     }
 
-    async function manualSaveData() {
-      saveUIToCurrentStock();
-      if (!currentUser) { alert("請先登入！"); return; }
-      await manualSaveDataSilent();
-      alert("儲存成功！");
-    }
-
-    function formatMoney(num) {
-      if (isNaN(num) || !isFinite(num)) return '0';
-      return Math.round(num).toLocaleString('en-US');
-    }
-    function formatPrice(num) {
-      if (isNaN(num) || !isFinite(num)) return '0.00';
-      return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    }
-    function copyPrice(type) {
-      const cp = document.getElementById(`${type}_currentPrice`).value;
-      if (cp) { document.getElementById(`${type}_p2`).value = cp; type === 'tw' ? calculateTw() : calculateUs(); saveData(); }
-    }
-    function calcTwBuyFee(price, shares, discount, minFee) {
-      return Math.max(price * shares * 0.001425 * discount, minFee);
-    }
+    function formatMoney(num) { return isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('en-US'); }
+    function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
@@ -820,15 +653,6 @@
       pnlEl.className = `font-bold text-xs sm:text-sm ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
       pnlEl.innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
 
-      if (p1 > 0 && prevClose > 0) {
-        const pct = ((prevClose - p1) / p1) * 100;
-        const prevEl = document.getElementById('tw_prevPnlDisplay');
-        if (prevEl) {
-          prevEl.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-          prevEl.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-        }
-      }
-
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
 
       let calcN2 = 0, calcAvg = 0;
@@ -846,23 +670,11 @@
 
       if (calcN2 > 0) {
         const addFee = calcTwBuyFee(p2, calcN2, discount, minFee);
-        const addCost = (calcN2 * p2) + addFee;
-        const totalN = n1 + calcN2;
-
-        if (currentPrice > 0) {
-          const pct = ((currentPrice - calcAvg) / calcAvg) * 100;
-          document.getElementById('tw_resNewPnl').innerText = `損益(最新): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-        }
-        if (prevClose > 0) {
-          const pct = ((prevClose - calcAvg) / calcAvg) * 100;
-          document.getElementById('tw_resNewPrevPnl').innerText = `損益(前收): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-        }
-
         document.getElementById('tw_resN2').innerText = `${calcN2.toFixed(1)}股`;
-        document.getElementById('tw_resTotalN').innerText = `${totalN.toFixed(1)}股`;
+        document.getElementById('tw_resTotalN').innerText = `${(n1 + calcN2).toFixed(1)}股`;
         document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
-        document.getElementById('tw_resAddCost').innerText = `$${formatMoney(addCost)}`;
+        document.getElementById('tw_resAddCost').innerText = `$${formatMoney((calcN2 * p2) + addFee)}`;
       }
     }
 
@@ -874,21 +686,7 @@
       const prevClose = parseFloat(document.getElementById('us_prevClose').value) || 0;
       const n2In = parseFloat(document.getElementById('us_n2').value);
       const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
-      const rate = parseFloat(document.getElementById('us_exchangeRate').value) || 32.5;
       const fee = parseFloat(document.getElementById('us_fee').value) || 0;
-
-      if (p1 > 0 && prevClose > 0) {
-        const pct = ((prevClose - p1) / p1) * 100;
-        const el = document.getElementById('us_prevPnlDisplay');
-        el.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        el.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-      }
-      if (p1 > 0 && currentPrice > 0) {
-        const pct = ((currentPrice - p1) / p1) * 100;
-        const el = document.getElementById('us_pnlDisplay');
-        el.className = `font-bold text-xs sm:text-sm ${pct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        el.innerText = `${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-      }
 
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
 
@@ -903,23 +701,11 @@
       }
 
       if (calcN2 > 0) {
-        const addCost = (calcN2 * p2) + fee;
-        const totalN = n1 + calcN2;
-
-        if (currentPrice > 0) {
-          const pct = ((currentPrice - calcAvg) / calcAvg) * 100;
-          document.getElementById('us_resNewPnl').innerText = `損益(最新): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-        }
-        if (prevClose > 0) {
-          const pct = ((prevClose - calcAvg) / calcAvg) * 100;
-          document.getElementById('us_resNewPrevPnl').innerText = `損益(前收): ${pct > 0 ? '+' : ''}${pct.toFixed(2)}%`;
-        }
-
         document.getElementById('us_resN2').innerText = `${calcN2.toFixed(1)}股`;
-        document.getElementById('us_resTotalN').innerText = `${totalN.toFixed(1)}股`;
+        document.getElementById('us_resTotalN').innerText = `${(n1 + calcN2).toFixed(1)}股`;
         document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(n1 * p1)}`;
-        document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(addCost)}`;
+        document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney((calcN2 * p2) + fee)}`;
       }
     }
 
@@ -929,14 +715,73 @@
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
-    // 網頁載入後啟動
-    window.onload = async () => {
+    // 初始化應用程式與 Supabase ESM
+    async function init() {
       applyUIMode();
       renderStockSelector();
       loadStockToUI(currentStockKey);
-      
-      await initAuth();
-    };
+
+      try {
+        sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        sbClient.auth.onAuthStateChange(async (event, session) => {
+          currentUser = session?.user || null;
+          updateAuthUI();
+          if (currentUser) {
+            const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
+            if (data && data.portfolio_data) {
+              cloudData = data.portfolio_data;
+              if (!cloudData.stocks) cloudData = { stocks: { "我的組合": cloudData } };
+              currentStockKey = Object.keys(cloudData.stocks)[0];
+              renderStockSelector();
+              loadStockToUI(currentStockKey);
+            }
+            document.getElementById('syncStatus').innerText = '已同步雲端';
+          }
+        });
+
+        const { data: { session } } = await sbClient.auth.getSession();
+        currentUser = session?.user || null;
+        updateAuthUI();
+
+        if (currentUser) {
+          const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
+          if (data && data.portfolio_data) {
+            cloudData = data.portfolio_data;
+            if (!cloudData.stocks) cloudData = { stocks: { "我的組合": cloudData } };
+            currentStockKey = Object.keys(cloudData.stocks)[0];
+            renderStockSelector();
+            loadStockToUI(currentStockKey);
+          }
+          document.getElementById('syncStatus').innerText = '已同步雲端';
+        } else {
+          document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
+        }
+      } catch (err) {
+        document.getElementById('syncStatus').innerText = '單機離線模式';
+      }
+    }
+
+    function updateAuthUI() {
+      const userInfoEl = document.getElementById('userInfo');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+      const aiContainer = document.getElementById('aiPanelContainer');
+
+      if (currentUser) {
+        userInfoEl.innerText = currentUser.email.split('@')[0];
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        if (currentUser.email === 'ihmfeporsky@gmail.com') aiContainer.classList.remove('hidden');
+      } else {
+        userInfoEl.innerText = '未登入';
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+        aiContainer.classList.add('hidden');
+      }
+    }
+
+    init();
   </script>
 </body>
 </html>
