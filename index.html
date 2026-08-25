@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
-  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+  <!-- 🛡️ 改用完整的 Tailwind CSS 官方正式版 CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -14,9 +15,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v3.9</span>
         </div>
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級 GitHub Actions 安全呼叫架構</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復 Tailwind CSS 樣式載入與排版配置</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
@@ -270,14 +271,14 @@
       <button onclick="askAiAndUpdateGithub()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-1.5 rounded shadow transition cursor-pointer">
         🚀 觸發 GitHub Actions 雲端修改
       </button>
-      <div id="aiStatus" class="text-[10px] text-slate-400 text-center">準備就緒 (金鑰已受 Actions 保護)</div>
+      <div id="aiStatus" class="text-[10px] text-slate-400 text-center">準備就緒</div>
     </div>
   </div>
 
   <script type="module">
-    import { createClient } from '[https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm](https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm)';
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    const SUPABASE_URL = '[https://yzkgacyaoebdiwbsdmmn.supabase.co](https://yzkgacyaoebdiwbsdmmn.supabase.co)';
+    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     let sbClient = null; 
@@ -367,8 +368,8 @@
       const timeoutId = setTimeout(() => controller.abort(), 5000);
 
       try {
-        const targetUrl = `[https://query1.finance.yahoo.com/v8/finance/chart/$](https://query1.finance.yahoo.com/v8/finance/chart/$){querySymbol}?interval=1d`;
-        const proxyUrl = `[https://corsproxy.io/?$](https://corsproxy.io/?$){encodeURIComponent(targetUrl)}`;
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
         const res = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -466,7 +467,6 @@
       document.getElementById('aiWindow').classList.toggle('hidden');
     };
 
-    // 🌟 透過 GitHub Actions API 觸發雲端安全修改
     window.askAiAndUpdateGithub = async function() {
       const repo = document.getElementById('ghRepo').value.trim() || "gloom-design/COSTCAL";
       const ghToken = document.getElementById('ghToken').value.trim();
@@ -480,7 +480,7 @@
       statusEl.innerText = "1. 正在觸發 GitHub Actions 雲端工作流程...";
 
       try {
-        const dispatchUrl = `[https://api.github.com/repos/$](https://api.github.com/repos/$){repo}/actions/workflows/ai-update.yml/dispatches`;
+        const dispatchUrl = `https://api.github.com/repos/${repo}/actions/workflows/ai-update.yml/dispatches`;
         
         const res = await fetch(dispatchUrl, {
           method: 'POST',
@@ -798,7 +798,7 @@
         userInfoEl.innerText = currentUser.email.split('@')[0];
         loginBtn.classList.add('hidden');
         logoutBtn.classList.remove('hidden');
-        aiContainer.classList.remove('hidden'); // 只有登入 ihmfeporsky@gmail.com 才會顯示 AI 助理面板
+        aiContainer.classList.remove('hidden');
       } else if (currentUser) {
         userInfoEl.innerText = currentUser.email.split('@')[0];
         loginBtn.classList.add('hidden');
