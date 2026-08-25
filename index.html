@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多組合攤平與損益計算器（代號查詢修正版）</title>
+  <title>台美股多組合攤平與損益計算器（網址自動清爽版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 載入 Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -28,7 +28,7 @@
         <div class="flex items-center gap-1">
           <span id="userInfo" class="text-[10px] text-slate-500 max-w-[80px] sm:max-w-[120px] truncate hidden sm:inline">未登入</span>
           <button id="loginBtn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 text-white text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">登入</button>
-          <button id="logoutBtn" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 py-1.5 rounded-lg font-semibold">登出</button>
+          <button id="logoutBtn" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2 py-1.5 rounded-lg font-semibold">登出</button>
         </div>
       </div>
     </header>
@@ -289,7 +289,6 @@
 
       try {
         const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
-        // 使用公開的 proxy 繞過瀏覽器 CORS 限制
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
         
         const res = await fetch(proxyUrl);
@@ -313,7 +312,6 @@
           throw new Error("無行情資料");
         }
       } catch (e) {
-        // 若代理失敗，提供安全的預設行情代入
         if (type === 'tw') {
           document.getElementById('tw_currentPrice').value = "2380";
           document.getElementById('tw_prevClose').value = "2375";
@@ -763,6 +761,11 @@
     document.getElementById('tw_sameAsPrev').addEventListener('change', () => { calculateTw(); saveData(); });
 
     window.onload = async () => {
+      // 1. 先把網址清乾淨（Token 已經被 Supabase SDK 自動抓走了，所以直接清掉沒問題）
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        window.history.replaceState(null, document.title, window.location.pathname);
+      }
+
       applyUIMode();
       await initAuth();
       calculateTw();
