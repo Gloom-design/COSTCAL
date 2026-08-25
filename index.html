@@ -298,16 +298,17 @@
 
   <script>
     // ================= 🔐 Supabase 雲端設定 =================
-    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co'; // 已填入您的 Project URL
-    const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj'; // 請填入您從 Supabase API Keys 複製的 Publishable key
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
+    // 使用 sbClient 避開任何全域變數宣告衝突
+    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
     let saveTimeout = null;
 
     // Google 登入
     async function loginWithGoogle() {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
         options: { redirectTo: window.location.href }
       });
@@ -316,13 +317,13 @@
 
     // 登出
     async function logout() {
-      await supabase.auth.signOut();
+      await sbClient.auth.signOut();
       window.location.reload();
     }
 
     // 初始化檢查登入狀態與載入雲端資料
     async function initAuth() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await sbClient.auth.getSession();
       currentUser = session?.user || null;
 
       const userInfoEl = document.getElementById('userInfo');
@@ -344,7 +345,7 @@
     // 從雲端載入資料
     async function loadUserData() {
       if (!currentUser) return;
-      const { data, error } = await supabase
+      const { data, error } = await sbClient
         .from('user_portfolios')
         .select('portfolio_data')
         .eq('user_id', currentUser.id)
@@ -352,7 +353,6 @@
 
       if (data && data.portfolio_data) {
         const d = data.portfolio_data;
-        // 帶入台股
         if (d.tw) {
           document.getElementById('twDiscount').value = d.tw.discount || '';
           document.getElementById('twMinFee').value = d.tw.minFee || '';
@@ -365,7 +365,6 @@
           document.getElementById('tw_n2').value = d.tw.n2 || '';
           document.getElementById('tw_ptarget').value = d.tw.ptarget || '';
         }
-        // 帶入美股
         if (d.us) {
           document.getElementById('us_exchangeRate').value = d.us.rate || '';
           document.getElementById('us_fee').value = d.us.fee || '';
@@ -383,7 +382,7 @@
       }
     }
 
-    // 自動儲存至雲端 (防抖動機制)
+    // 自動儲存至雲端
     function saveData() {
       if (!currentUser) return;
       document.getElementById('syncStatus').innerText = '同步中...';
@@ -415,7 +414,7 @@
           }
         };
 
-        const { error } = await supabase
+        const { error } = await sbClient
           .from('user_portfolios')
           .upsert({ user_id: currentUser.id, portfolio_data: portfolioData, updated_at: new Date() }, { onConflict: 'user_id' });
 
@@ -471,7 +470,7 @@
       return Math.max(rawFee, minFee);
     }
 
-    // ---------------- 台股計算核心 ----------------
+    // 台股計算核心
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -573,8 +572,7 @@
       }
     }
 
-
-    // ---------------- 美股計算核心 ----------------
+    // 美股計算核心
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -658,7 +656,7 @@
       }
     }
 
-    // 模式互斥與計算觸發
+    // 事件監聽與觸發
     document.querySelectorAll('.tw-input').forEach(el => {
       el.addEventListener('input', (e) => {
         if (e.target.id === 'tw_n2' && e.target.value) document.getElementById('tw_ptarget').value = '';
