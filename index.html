@@ -29,7 +29,7 @@
       <div class="text-[10px] text-slate-400 text-right" id="syncStatus">資料未同步</div>
     </header>
 
-    <!-- 多組數據組合切換列 -->
+    <!-- 🌟 多組數據組合切換選單列 -->
     <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-2">
       <div class="flex-1">
         <label class="block text-[10px] font-medium text-slate-500 mb-1">選擇或切換您的數據組合</label>
@@ -409,7 +409,6 @@
         if (keys.length > 0) currentStockKey = keys[0];
         document.getElementById('syncStatus').innerText = '已從雲端同步';
       } else {
-        // 若雲端尚無資料，把預設組合寫入雲端
         await manualSaveDataSilent();
       }
       renderStockSelector();
@@ -558,7 +557,6 @@
       }, 500);
     }
 
-    // 靜默儲存（初次無資料時自動建立）
     async function manualSaveDataSilent() {
       if (!currentUser) return;
       saveUIToCurrentStock();
@@ -575,7 +573,6 @@
       }
     }
 
-    // 手動點擊確認存檔
     async function manualSaveData() {
       saveUIToCurrentStock();
       if (!currentUser) {
