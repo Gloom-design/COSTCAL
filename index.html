@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 載入穩定版 Supabase UMD -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <!-- 載入 Supabase UMD 主程式 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-2 sm:p-4 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md mx-auto space-y-2 sm:space-y-4 text-xs sm:text-sm relative z-10">
@@ -17,10 +17,10 @@
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-base text-slate-900 leading-tight">台美股攤平計算器</h1>
           <!-- 🏷️ 版本號標籤 -->
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] font-bold px-1.5 py-0.5 rounded" id="appVersion">v2.3</span>
         </div>
         <!-- 📝 更新說明 -->
-        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：升級 Supabase PKCE 登入驗證流程與行情防卡死機制</div>
+        <div id="updateDesc" class="text-[10px] text-slate-500 mt-0.5">更新：修復登入按鈕與雲端模組初始化語法</div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">模組準備中...</div>
       </div>
       
@@ -319,7 +319,7 @@
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記，直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號往後加一版，並更新更新說明文字。` }] }]
+            contents: [{ parts: [{ text: `你是一個專業的前端工程師。以下是使用者目前的整份 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求是：${promptText}\n\n請直接回傳「修改後完整且可執行的 HTML 程式碼」。絕對不要包含任何 markdown 程式碼區塊標記，直接輸出純 HTML 字串內容就好。如果修改了功能，請記得同時將網頁上方的版本號往後加一版並更新說明。` }] }]
           })
         });
 
@@ -445,11 +445,12 @@
       }
     }
 
-    // ================= 🔐 Supabase PKCE 登入驗證（徹底解決登入失敗） =================
+    // ================= 🔐 Supabase 安全初始化與 Google 登入 =================
     async function initAuth() {
+      // 確保 Supabase UMD 載入完成
       let retries = 0;
       while ((!window.supabase || !window.supabase.createClient) && retries < 30) {
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 100));
         retries++;
       }
 
@@ -459,20 +460,14 @@
       }
 
       try {
-        // 使用 PKCE 驗證流程初始化 Supabase Client
-        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-          auth: {
-            flowType: 'pkce',
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-          }
-        });
+        // 使用標準 createClient 建立實例
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
       } catch (err) {
         document.getElementById('syncStatus').innerText = '初始化異常';
         return;
       }
 
+      // 監聽並自動處理登入狀態
       sbClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session?.user || null;
         updateAuthUI();
@@ -490,20 +485,17 @@
       } else {
         renderStockSelector();
         loadStockToUI(currentStockKey);
+        document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
       }
     }
 
     async function loginWithGoogle() {
       if (!sbClient) { 
-        alert("雲端模組初始化失敗，請檢查網路連線或重新整理頁面！"); 
+        alert("雲端模組尚未準備好，請稍候再試！"); 
         return; 
       }
       const { error } = await sbClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: { 
-          redirectTo: window.location.origin + window.location.pathname,
-          queryParams: { prompt: 'consent', access_type: 'offline' }
-        }
+        provider: 'google'
       });
       if (error) alert("登入失敗: " + error.message);
     }
@@ -582,7 +574,7 @@
       loadStockToUI(currentStockKey);
     }
 
-    // ================= 💡 查詢股票市價 (5秒逾時保護) =================
+    // ================= 💡 行情查詢 (具備 5 秒防卡死機制) =================
     async function fetchMarketPrice(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
