@@ -3,15 +3,30 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股攤平與損益計算器</title>
+  <title>台美股攤平與損益計算器（雲端會員版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 載入 Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 p-4 min-h-screen">
   <div class="max-w-md mx-auto space-y-4">
-    <!-- Header -->
-    <header class="text-center py-2">
+    <!-- Header 與 Google 登入區塊 -->
+    <header class="text-center py-2 bg-white p-4 rounded-xl shadow-sm border border-slate-200 space-y-3">
       <h1 class="text-xl font-bold text-slate-900">台美股攤平與損益計算器</h1>
-      <p class="text-xs text-slate-500">雲端隨時操作版</p>
+      <p class="text-xs text-slate-500">雲端同步・持倉自動記憶版</p>
+      
+      <div id="authSection" class="pt-2 border-t border-slate-100 flex items-center justify-between">
+        <div id="userInfo" class="text-xs text-slate-600 truncate max-w-[200px]">檢查登入中...</div>
+        <div id="authButtons">
+          <button id="loginBtn" onclick="loginWithGoogle()" class="hidden bg-indigo-600 text-white text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 transition-all shadow-sm">
+            Gmail 登入
+          </button>
+          <button id="logoutBtn" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-semibold hover:bg-slate-300 transition-all">
+            登出
+          </button>
+        </div>
+      </div>
+      <div id="syncStatus" class="text-[10px] text-slate-400 text-right">資料未同步</div>
     </header>
 
     <!-- 分頁切換按鈕 -->
@@ -32,11 +47,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">手續費折數 (例: 0.6)</label>
-            <input id="twDiscount" type="number" step="0.01" placeholder="例如: 0.6" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="twDiscount" type="number" step="0.01" placeholder="例如: 0.6" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">手續費低消 (元)</label>
-            <input id="twMinFee" type="number" placeholder="例如: 20" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="twMinFee" type="number" placeholder="例如: 20" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
         </div>
       </div>
@@ -47,24 +62,24 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">現有股數 (N1)</label>
-            <input id="tw_n1" type="number" placeholder="例如: 60" class="tw-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="tw_n1" type="number" placeholder="例如: 60" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">現有均價 (P1)</label>
-            <input id="tw_p1" type="number" step="0.01" placeholder="例如: 2693.82" class="tw-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="tw_p1" type="number" step="0.01" placeholder="例如: 2693.82" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
         </div>
 
         <!-- 手動對齊損益率欄位 -->
         <div class="pt-2 border-t border-slate-100">
           <label class="block text-xs font-medium text-indigo-600 mb-1 font-semibold">手動對齊 App 未實現損益率 (%)</label>
-          <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24 或 -23.81" class="tw-input w-full border border-indigo-200 bg-indigo-50/50 rounded-lg p-2 text-sm font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 outline-none">
+          <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24 或 -23.81" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-lg p-2 text-sm font-bold text-indigo-700 focus:ring-2 focus:ring-indigo-500 outline-none">
         </div>
         
         <div class="pt-2 border-t border-slate-100">
           <label class="block text-xs font-medium text-slate-600 mb-1">前日收盤價</label>
           <div class="flex items-center gap-3">
-            <input id="tw_prevClose" type="number" step="0.01" placeholder="輸入前收價" class="tw-input w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
+            <input id="tw_prevClose" type="number" step="0.01" placeholder="輸入前收價" class="tw-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
             <div class="w-1/2 text-right">
               <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (依前收)</div>
               <div id="tw_prevPnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
@@ -79,7 +94,7 @@
             </label>
           </div>
           <div class="flex items-center gap-3">
-            <input id="tw_currentPrice" type="number" step="0.01" placeholder="輸入目前市價" class="tw-input w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
+            <input id="tw_currentPrice" type="number" step="0.01" placeholder="輸入目前市價" class="tw-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50">
             <div class="w-1/2 text-right">
               <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (現有)</div>
               <div id="tw_pnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
@@ -94,8 +109,8 @@
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">預計買入價格 (P2)</label>
           <div class="flex gap-2">
-            <input id="tw_p2" type="number" step="0.01" placeholder="例如: 2000" class="tw-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-            <button onclick="copyPrice('tw')" class="shrink-0 bg-slate-100 text-slate-600 text-xs px-3 rounded-lg border hover:bg-slate-200">帶入市價</button>
+            <input id="tw_p2" type="number" step="0.01" placeholder="例如: 2000" class="tw-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <button type="button" onclick="copyPrice('tw')" class="shrink-0 bg-slate-100 text-slate-600 text-xs px-3 rounded-lg border hover:bg-slate-200">帶入市價</button>
           </div>
           <div id="tw_p2DiffDisplay" class="text-[10px] text-slate-400 mt-1">與前收漲跌幅：-%</div>
         </div>
@@ -103,12 +118,12 @@
           <p class="text-xs font-semibold text-slate-500">選擇計算模式 (擇一輸入)：</p>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">模式 A：預計加碼股數 (N2)</label>
-            <input id="tw_n2" type="number" placeholder="例如: 10" class="tw-input tw-mode-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="tw_n2" type="number" placeholder="例如: 10" class="tw-input tw-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
           <div class="text-center text-xs text-slate-400">或</div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">模式 B：目標攤平至均價 (Target)</label>
-            <input id="tw_ptarget" type="number" step="0.01" placeholder="例如: 2710" class="tw-input tw-mode-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
+            <input id="tw_ptarget" type="number" step="0.01" placeholder="例如: 2710" class="tw-input tw-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
           </div>
         </div>
       </div>
@@ -162,11 +177,11 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">美金匯率 (TWD)</label>
-            <input id="us_exchangeRate" type="number" step="0.01" placeholder="例如: 32.5" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_exchangeRate" type="number" step="0.01" placeholder="例如: 32.5" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">單筆手續費 (USD)</label>
-            <input id="us_fee" type="number" step="0.01" placeholder="例如: 15" class="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_fee" type="number" step="0.01" placeholder="例如: 15" class="save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
         </div>
       </div>
@@ -177,17 +192,17 @@
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">現有股數 (N1)</label>
-            <input id="us_n1" type="number" placeholder="例如: 100" class="us-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_n1" type="number" placeholder="例如: 100" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">現有均價 ($ P1)</label>
-            <input id="us_p1" type="number" step="0.01" placeholder="例如: 150" class="us-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_p1" type="number" step="0.01" placeholder="例如: 150" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
         </div>
         <div class="pt-2 border-t border-slate-100">
           <label class="block text-xs font-medium text-slate-600 mb-1">前日收盤價 ($)</label>
           <div class="flex items-center gap-3">
-            <input id="us_prevClose" type="number" step="0.01" placeholder="輸入前收價" class="us-input w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50">
+            <input id="us_prevClose" type="number" step="0.01" placeholder="輸入前收價" class="us-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50">
             <div class="w-1/2 text-right">
               <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (依前收)</div>
               <div id="us_prevPnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
@@ -197,7 +212,7 @@
         <div class="pt-2">
           <label class="block text-xs font-medium text-slate-600 mb-1">目前最新股價 ($)</label>
           <div class="flex items-center gap-3">
-            <input id="us_currentPrice" type="number" step="0.01" placeholder="輸入目前市價" class="us-input w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50">
+            <input id="us_currentPrice" type="number" step="0.01" placeholder="輸入目前市價" class="us-input save-trigger w-1/2 border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none bg-slate-50">
             <div class="w-1/2 text-right">
               <div class="text-[10px] text-slate-500 mb-0.5">未實現損益 (現有)</div>
               <div id="us_pnlDisplay" class="font-bold text-sm text-slate-400">-%</div>
@@ -212,8 +227,8 @@
         <div>
           <label class="block text-xs font-medium text-slate-600 mb-1">預計買入價格 ($ P2)</label>
           <div class="flex gap-2">
-            <input id="us_p2" type="number" step="0.01" placeholder="例如: 100" class="us-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
-            <button onclick="copyPrice('us')" class="shrink-0 bg-slate-100 text-slate-600 text-xs px-3 rounded-lg border hover:bg-slate-200">帶入市價</button>
+            <input id="us_p2" type="number" step="0.01" placeholder="例如: 100" class="us-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <button type="button" onclick="copyPrice('us')" class="shrink-0 bg-slate-100 text-slate-600 text-xs px-3 rounded-lg border hover:bg-slate-200">帶入市價</button>
           </div>
           <div id="us_p2DiffDisplay" class="text-[10px] text-slate-400 mt-1">與前收漲跌幅：-%</div>
         </div>
@@ -221,12 +236,12 @@
           <p class="text-xs font-semibold text-slate-500">選擇計算模式 (擇一輸入)：</p>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">模式 A：預計加碼股數 (N2)</label>
-            <input id="us_n2" type="number" placeholder="例如: 50" class="us-input us-mode-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_n2" type="number" placeholder="例如: 50" class="us-input us-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
           <div class="text-center text-xs text-slate-400">或</div>
           <div>
             <label class="block text-xs font-medium text-slate-600 mb-1">模式 B：目標攤平至均價 ($ Target)</label>
-            <input id="us_ptarget" type="number" step="0.01" placeholder="例如: 120" class="us-input us-mode-input w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
+            <input id="us_ptarget" type="number" step="0.01" placeholder="例如: 120" class="us-input us-mode-input save-trigger w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-teal-500 outline-none">
           </div>
         </div>
       </div>
@@ -282,6 +297,136 @@
   </div>
 
   <script>
+    // ================= 🔐 Supabase 雲端設定 =================
+    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co'; // 已填入您的 Project URL
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // 請填入您從 Supabase API Keys 複製的 Publishable key
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    let currentUser = null;
+    let saveTimeout = null;
+
+    // Google 登入
+    async function loginWithGoogle() {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
+      });
+      if (error) alert('登入失敗: ' + error.message);
+    }
+
+    // 登出
+    async function logout() {
+      await supabase.auth.signOut();
+      window.location.reload();
+    }
+
+    // 初始化檢查登入狀態與載入雲端資料
+    async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      currentUser = session?.user || null;
+
+      const userInfoEl = document.getElementById('userInfo');
+      const loginBtn = document.getElementById('loginBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      if (currentUser) {
+        userInfoEl.innerText = currentUser.email;
+        loginBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+        await loadUserData();
+      } else {
+        userInfoEl.innerText = '尚未登入 (未同步)';
+        loginBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+      }
+    }
+
+    // 從雲端載入資料
+    async function loadUserData() {
+      if (!currentUser) return;
+      const { data, error } = await supabase
+        .from('user_portfolios')
+        .select('portfolio_data')
+        .eq('user_id', currentUser.id)
+        .single();
+
+      if (data && data.portfolio_data) {
+        const d = data.portfolio_data;
+        // 帶入台股
+        if (d.tw) {
+          document.getElementById('twDiscount').value = d.tw.discount || '';
+          document.getElementById('twMinFee').value = d.tw.minFee || '';
+          document.getElementById('tw_n1').value = d.tw.n1 || '';
+          document.getElementById('tw_p1').value = d.tw.p1 || '';
+          document.getElementById('tw_manualPnlPct').value = d.tw.manualPnlPct || '';
+          document.getElementById('tw_prevClose').value = d.tw.prevClose || '';
+          document.getElementById('tw_currentPrice').value = d.tw.currentPrice || '';
+          document.getElementById('tw_p2').value = d.tw.p2 || '';
+          document.getElementById('tw_n2').value = d.tw.n2 || '';
+          document.getElementById('tw_ptarget').value = d.tw.ptarget || '';
+        }
+        // 帶入美股
+        if (d.us) {
+          document.getElementById('us_exchangeRate').value = d.us.rate || '';
+          document.getElementById('us_fee').value = d.us.fee || '';
+          document.getElementById('us_n1').value = d.us.n1 || '';
+          document.getElementById('us_p1').value = d.us.p1 || '';
+          document.getElementById('us_prevClose').value = d.us.prevClose || '';
+          document.getElementById('us_currentPrice').value = d.us.currentPrice || '';
+          document.getElementById('us_p2').value = d.us.p2 || '';
+          document.getElementById('us_n2').value = d.us.n2 || '';
+          document.getElementById('us_ptarget').value = d.us.ptarget || '';
+        }
+        document.getElementById('syncStatus').innerText = '已從雲端同步';
+        calculateTw();
+        calculateUs();
+      }
+    }
+
+    // 自動儲存至雲端 (防抖動機制)
+    function saveData() {
+      if (!currentUser) return;
+      document.getElementById('syncStatus').innerText = '同步中...';
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        const portfolioData = {
+          tw: {
+            discount: document.getElementById('twDiscount').value,
+            minFee: document.getElementById('twMinFee').value,
+            n1: document.getElementById('tw_n1').value,
+            p1: document.getElementById('tw_p1').value,
+            manualPnlPct: document.getElementById('tw_manualPnlPct').value,
+            prevClose: document.getElementById('tw_prevClose').value,
+            currentPrice: document.getElementById('tw_currentPrice').value,
+            p2: document.getElementById('tw_p2').value,
+            n2: document.getElementById('tw_n2').value,
+            ptarget: document.getElementById('tw_ptarget').value
+          },
+          us: {
+            rate: document.getElementById('us_exchangeRate').value,
+            fee: document.getElementById('us_fee').value,
+            n1: document.getElementById('us_n1').value,
+            p1: document.getElementById('us_p1').value,
+            prevClose: document.getElementById('us_prevClose').value,
+            currentPrice: document.getElementById('us_currentPrice').value,
+            p2: document.getElementById('us_p2').value,
+            n2: document.getElementById('us_n2').value,
+            ptarget: document.getElementById('us_ptarget').value
+          }
+        };
+
+        const { error } = await supabase
+          .from('user_portfolios')
+          .upsert({ user_id: currentUser.id, portfolio_data: portfolioData, updated_at: new Date() }, { onConflict: 'user_id' });
+
+        if (!error) {
+          document.getElementById('syncStatus').innerText = '雲端同步完成';
+        } else {
+          document.getElementById('syncStatus').innerText = '同步失敗';
+        }
+      }, 1000);
+    }
+
     function switchTab(type) {
       const twView = document.getElementById('twView');
       const usView = document.getElementById('usView');
@@ -301,13 +446,11 @@
       }
     }
 
-    // 金額四捨五入取整數並加上千分位
     function formatMoney(num) {
       if (isNaN(num) || !isFinite(num)) return '0';
       return Math.round(num).toLocaleString('en-US');
     }
 
-    // 平均成本保留兩位小數
     function formatPrice(num) {
       if (isNaN(num) || !isFinite(num)) return '0.00';
       return num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -319,6 +462,7 @@
         document.getElementById(`${type}_p2`).value = currentPrice;
         if (type === 'tw') calculateTw();
         else calculateUs();
+        saveData();
       }
     }
 
@@ -514,22 +658,31 @@
       }
     }
 
+    // 模式互斥與計算觸發
     document.querySelectorAll('.tw-input').forEach(el => {
       el.addEventListener('input', (e) => {
         if (e.target.id === 'tw_n2' && e.target.value) document.getElementById('tw_ptarget').value = '';
         if (e.target.id === 'tw_ptarget' && e.target.value) document.getElementById('tw_n2').value = '';
         calculateTw();
+        saveData();
       });
     });
 
-    document.getElementById('tw_sameAsPrev').addEventListener('change', calculateTw);
-    document.getElementById('tw_prevClose').addEventListener('input', calculateTw);
+    document.getElementById('tw_sameAsPrev').addEventListener('change', () => {
+      calculateTw();
+      saveData();
+    });
+    document.getElementById('tw_prevClose').addEventListener('input', () => {
+      calculateTw();
+      saveData();
+    });
 
     document.querySelectorAll('.us-input').forEach(el => {
       el.addEventListener('input', (e) => {
         if (e.target.id === 'us_n2' && e.target.value) document.getElementById('us_ptarget').value = '';
         if (e.target.id === 'us_ptarget' && e.target.value) document.getElementById('us_n2').value = '';
         calculateUs();
+        saveData();
       });
     });
 
@@ -537,8 +690,16 @@
       document.getElementById(id).addEventListener('input', () => {
         calculateTw();
         calculateUs();
+        saveData();
       });
     });
+
+    // 頁面載入時初始化身分與數據
+    window.onload = async () => {
+      await initAuth();
+      calculateTw();
+      calculateUs();
+    };
   </script>
 </body>
 </html>
