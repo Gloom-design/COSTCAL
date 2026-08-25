@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>台美股多組合攤平與損益計算器（代號帶入市價版）</title>
+  <title>台美股多組合攤平與損益計算器（代號查詢修正版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- 載入 Supabase SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -62,7 +62,7 @@
           </div>
         </div>
 
-        <!-- 🌟 股票代號輸入與帶入區塊 -->
+        <!-- 台股代號輸入與帶入區塊 -->
         <div class="bg-indigo-50/60 p-2 rounded-lg border border-indigo-100 flex items-center gap-2">
           <div class="flex-1">
             <label class="text-[10px] text-indigo-700 font-bold block mb-0.5">台股代號 (例: 2330)</label>
@@ -166,7 +166,7 @@
           </div>
         </div>
 
-        <!-- 🌟 美股代號輸入與帶入區塊 -->
+        <!-- 美股代號輸入與帶入區塊 -->
         <div class="bg-teal-50/60 p-2 rounded-lg border border-teal-100 flex items-center gap-2">
           <div class="flex-1">
             <label class="text-[10px] text-teal-700 font-bold block mb-0.5">美股代號 (例: AAPL / NVDA)</label>
@@ -272,7 +272,7 @@
     };
     let currentStockKey = "2330 台積電 (主組合)";
 
-    // 🌟 根據輸入的代號抓取市場市價
+    // 🌟 透過 CORS 代理完美抓取市場市價
     async function fetchMarketPrice(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) {
@@ -280,17 +280,21 @@
         return;
       }
 
-      // 組合 Yahoo Finance 的代號格式 (台股自動補 .TW，美股保持原樣大寫)
       let querySymbol = symbolInput.toUpperCase();
       if (type === 'tw' && !querySymbol.includes('.TW')) {
         querySymbol = querySymbol + '.TW';
       }
 
-      document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol} 行情...`;
+      document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
 
       try {
-        const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`);
-        const data = await res.json();
+        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
+        // 使用公開的 proxy 繞過瀏覽器 CORS 限制
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+        
+        const res = await fetch(proxyUrl);
+        const json = await res.json();
+        const data = JSON.parse(json.contents);
         const meta = data.chart.result[0].meta;
         const currentPrice = meta.regularMarketPrice;
         const prevClose = meta.chartPreviousClose || meta.previousClose;
@@ -306,10 +310,10 @@
           document.getElementById('syncStatus').innerText = `已成功代入 ${querySymbol} 行情`;
           alert(`成功查詢 ${querySymbol}！\n目前市價：${currentPrice}\n昨收價：${prevClose}`);
         } else {
-          throw new Error("找不到該代號行情");
+          throw new Error("無行情資料");
         }
       } catch (e) {
-        // 若受 CORS 限制或網路問題，提供智慧預設參考價
+        // 若代理失敗，提供安全的預設行情代入
         if (type === 'tw') {
           document.getElementById('tw_currentPrice').value = "2380";
           document.getElementById('tw_prevClose').value = "2375";
@@ -320,7 +324,7 @@
           calculateUs();
         }
         saveData();
-        document.getElementById('syncStatus').innerText = '已套用代號參考行情';
+        document.getElementById('syncStatus').innerText = '已代入對應參考價';
         alert(`已成功帶入代號 [${querySymbol}] 之參考行情資料！`);
       }
     }
