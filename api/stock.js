@@ -9,12 +9,31 @@ export default async function handler(req, res) {
 
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.9.1' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.9.2' });
   }
 
-  let finalSymbol = symbol.trim().toUpperCase();
+  let queryTerm = symbol.trim();
+  let finalSymbol = queryTerm.toUpperCase();
+  let resolvedName = queryTerm;
 
-  // 台股 4 碼自動補 .TW
+  // 如果輸入包含中文字，動態向證交所公開 API 查詢對應代號（完全零查表）
+  if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
+    try {
+      const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { 
+        headers: { 'User-Agent': 'Mozilla/5.0' } 
+      });
+      if (listRes.ok) {
+        const stockList = await listRes.json();
+        const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
+        if (found && found.Code) {
+          finalSymbol = found.Code + '.TW';
+          resolvedName = found.Name.trim();
+        }
+      }
+    } catch (e) {}
+  }
+
+  // 若為台股 4 碼純數字自動補 .TW
   if (/^\d{4}$/.test(finalSymbol)) {
     finalSymbol += '.TW';
   }
@@ -51,12 +70,13 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       symbol: meta.symbol || finalSymbol,
+      name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v4.9.1'
+      apiVersion: 'v4.9.2'
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v4.9.1' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v4.9.2' });
   }
 }
