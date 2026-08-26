@@ -15,31 +15,22 @@ export default async function handler(req, res) {
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
 
-  // 1. 台股 4 碼純數字自動補 .TW
+  // 1. 如果是台股 4 碼純數字，自動補上 .TW
   if (/^\d{4}$/.test(finalSymbol)) {
     finalSymbol += '.TW';
   } 
-  // 2. 如果包含中文，為了防止 Vercel 呼叫外部搜尋 API 發生 500 崩潰，我們加入防呆保護
+  // 2. 如果包含中文字，為了避免硬編碼對應表，我們嘗試透過證交所抓取台股；若非台股中文則提示需輸入英文代號
   else if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
-    // 針對常見美股中文的智慧直覺代號對應（這不是對應表，而是防止伺服器崩潰的動態關鍵字對照運算）
-    const lower = queryTerm;
-    if (lower.includes('美光')) finalSymbol = 'MU';
-    else if (lower.includes('蘋果')) finalSymbol = 'AAPL';
-    else if (lower.includes('輝達') || lower.includes('英偉達')) finalSymbol = 'NVDA';
-    else if (lower.includes('特斯拉')) finalSymbol = 'TSLA';
-    else if (lower.includes('微軟')) finalSymbol = 'MSFT';
-    else if (lower.includes('谷歌') || lower.includes('亞特')) finalSymbol = 'GOOGL';
-    else {
-      // 若為其他台股中文名稱，嘗試透過證交所公開清單抓取
-      try {
-        const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        if (listRes.ok) {
-          const stockList = await listRes.json();
-          const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
-          if (found && found.Code) finalSymbol = found.Code + '.TW';
+    try {
+      const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      if (listRes.ok) {
+        const stockList = await listRes.json();
+        const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
+        if (found && found.Code) {
+          finalSymbol = found.Code + '.TW';
         }
-      } catch (e) {}
-    }
+      }
+    } catch (e) {}
   }
 
   try {
@@ -51,6 +42,7 @@ export default async function handler(req, res) {
       }
     });
     
+    // 若 .TW 失敗自動嘗試 .TWO
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
       url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
@@ -58,7 +50,7 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      throw new Error(`找不到代號 ${finalSymbol} 的行情資料`);
+      throw new Error(`找不到代號 ${finalSymbol}，美股請直接輸入英文代號（如 SKHY）`);
     }
     
     const data = await response.json();
