@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.9.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -176,11 +176,11 @@
         <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股名稱</label>
-            <input id="us_nameInput" type="text" placeholder="例: 美光" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
+            <input id="us_nameInput" type="text" placeholder="例: 昂跑" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
           </div>
           <div>
-            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AAPL)</label>
-            <input id="us_symbolInput" type="text" placeholder="輸入代號或名稱" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
+            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: ONON)</label>
+            <input id="us_symbolInput" type="text" placeholder="例: ONON" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
           </div>
         </div>
 
@@ -280,12 +280,12 @@
         "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20" } 
       },
       usStocks: {
-        "美光": { name: "美光", symbol: "MU", rate: "32", fee: "0" }
+        "昂跑": { name: "昂跑", symbol: "ONON", rate: "32", fee: "0" }
       }
     };
     
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
-    let currentUsKey = localStorage.getItem('calc_current_us_key') || "美光";
+    let currentUsKey = localStorage.getItem('calc_current_us_key') || "昂跑";
 
     window.loginWithGoogle = async function() {
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
@@ -348,28 +348,24 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 取得即時行情（支援新增組別輸入中文名稱自動轉代號）
+    // 取得即時行情（完全由前端/使用者輸入標準代號查詢，後端絕無查表）
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       
       let symbolVal = targetSymbol || symbolInput.value.trim();
-      let nameVal = nameInput ? nameInput.value.trim() : '';
-
-      // 若代號欄位空白但名稱有填，優先以名稱查詢
-      let querySymbol = symbolVal || nameVal;
-      if (!querySymbol) {
-        document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
+      if (!symbolVal) {
+        document.getElementById('syncStatus').innerText = '請先輸入股票代號';
         return;
       }
 
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
 
-      document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
+      document.getElementById('syncStatus').innerText = `正在查詢 ${symbolVal}...`;
 
       try {
-        let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(querySymbol)}`, { signal: fetchController.signal });
+        let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(symbolVal)}`, { signal: fetchController.signal });
         
         if (!apiRes.ok) throw new Error("後端查詢失敗");
 
@@ -377,7 +373,7 @@
         
         if (result.currentPrice) {
           if (result.symbol) {
-            symbolInput.value = result.symbol; // 將後端解析出的標準代號填入代號欄位
+            symbolInput.value = result.symbol;
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
@@ -390,11 +386,11 @@
             document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
           }
 
-          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || querySymbol} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || symbolVal} 行情 (${result.currentPrice})`;
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
-        document.getElementById('syncStatus').innerText = `查詢失敗，請檢查代號或名稱是否正確`;
+        document.getElementById('syncStatus').innerText = `查詢失敗，請檢查代號是否正確（美股請輸入代號如 ONON, MU）`;
       }
     };
 
@@ -410,7 +406,7 @@
       loadStockToUI(type, key);
       
       const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const targetSymbol = store[key]?.symbol || store[key]?.name;
+      const targetSymbol = store[key]?.symbol;
       if (targetSymbol) {
         await fetchMarketPrice(type, targetSymbol);
       }
@@ -449,36 +445,31 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2383 或 台光電):" : "請輸入美股代號或名稱 (例如: MU 或 美光):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號 (例如: 2383):" : "請輸入美股代號 (例如: ONON 或 MU):");
       if (!inputVal || !inputVal.trim()) return;
 
-      const trimmed = inputVal.trim();
+      const trimmed = inputVal.trim().toUpperCase();
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       
-      let assignedKey = trimmed;
-      let assignedName = trimmed;
-      let assignedSymbol = trimmed;
-
-      if (targetStore[assignedKey]) { alert("此組別已存在！"); return; }
+      if (targetStore[trimmed]) { alert("此組別已存在！"); return; }
 
       saveUIToCurrentStock(type);
 
       if (type === 'tw') {
-        targetStore[assignedKey] = { name: assignedName, symbol: assignedSymbol, discount: "0.6", minFee: "20" };
-        currentTwKey = assignedKey;
-        localStorage.setItem('calc_current_tw_key', assignedKey);
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed, discount: "0.6", minFee: "20" };
+        currentTwKey = trimmed;
+        localStorage.setItem('calc_current_tw_key', trimmed);
       } else {
-        targetStore[assignedKey] = { name: assignedName, symbol: assignedSymbol, rate: "32", fee: "0" };
-        currentUsKey = assignedKey;
-        localStorage.setItem('calc_current_us_key', assignedKey);
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed, rate: "32", fee: "0" };
+        currentUsKey = trimmed;
+        localStorage.setItem('calc_current_us_key', trimmed);
       }
 
       renderStockSelector(type);
-      loadStockToUI(type, assignedKey);
+      loadStockToUI(type, trimmed);
       saveData();
 
-      // 新增後立刻自動呼叫即時行情，讓後端將中文轉換成標準代號並填入
-      await fetchMarketPrice(type, assignedSymbol);
+      await fetchMarketPrice(type, trimmed);
     };
 
     window.deleteStock = function(type) {
@@ -595,7 +586,7 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = tw.symbol || '';
+        document.getElementById('tw_symbolInput').value = tw.symbol || key;
 
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
@@ -612,7 +603,7 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_nameInput').value = us.name || key;
-        document.getElementById('us_symbolInput').value = us.symbol || '';
+        document.getElementById('us_symbolInput').value = us.symbol || key;
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 || '';
@@ -837,13 +828,13 @@
         cloudData = { 
           twStocks: {}, 
           usStocks: { 
-            "美光": { name: "美光", symbol: "MU", rate: "32", fee: "0" }
+            "ONON": { name: "ONON", symbol: "ONON", rate: "32", fee: "0" }
           } 
         };
         Object.keys(fetchedData.stocks).forEach(k => {
           if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
         });
-        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383" } };
+        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "2383": { name: "2383", symbol: "2383" } };
       }
 
       if (!cloudData.twStocks[currentTwKey]) {
