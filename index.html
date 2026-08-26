@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.5</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.7</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -169,8 +169,8 @@
 
         <div class="bg-teal-50/60 p-3 sm:p-4 rounded-xl border border-teal-100 flex items-center gap-2.5">
           <div class="flex-1">
-            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AAPL / NVDA)</label>
-            <input id="us_symbolInput" type="text" placeholder="輸入代號如 AAPL" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
+            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: NOK / AAPL)</label>
+            <input id="us_symbolInput" type="text" placeholder="輸入代號如 NOK" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
           </div>
           <button type="button" onclick="fetchMarketPrice('us')" class="mt-5 bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
             🔍 即時行情
@@ -317,92 +317,76 @@
       }
     };
 
-    // 穩定即時匯率抓取
     window.fetchExchangeRate = async function() {
       document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
       try {
-        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/TWD=X?interval=1d`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
-        const res = await fetch(proxyUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
         if (res.ok) {
           const data = await res.json();
-          const meta = data?.chart?.result?.[0]?.meta;
-          const rate = meta?.regularMarketPrice || meta?.chartPreviousClose;
-          if (rate) { applyRate(rate); return; }
+          const rate = data?.rates?.TWD;
+          if (rate) {
+            document.getElementById('us_exchangeRate').value = rate.toFixed(2);
+            calculateUs();
+            saveData();
+            document.getElementById('syncStatus').innerText = `已更新即時匯率: ${rate.toFixed(2)}`;
+            return;
+          }
         }
-      } catch (e) {}
-
-      try {
-        const res2 = await fetch('https://open.er-api.com/v6/latest/USD');
-        if (res2.ok) {
-          const data2 = await res2.json();
-          const rate2 = data2?.rates?.TWD;
-          if (rate2) { applyRate(rate2); return; }
-        }
-      } catch (err) {
-        document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
-      }
+      } catch (err) {}
+      document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    function applyRate(rate) {
-      document.getElementById('us_exchangeRate').value = rate.toFixed(2);
-      calculateUs();
-      saveData();
-      document.getElementById('syncStatus').innerText = `已更新即時匯率: ${rate.toFixed(2)}`;
-    }
-
-    // 穩定即時行情抓取 (同時支援台股與美股代號)
+    // 使用 Stooq 免跨域穩定公開 API 抓取台美股最新收盤/即時價
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
 
       let querySymbol = symbolInput.toUpperCase();
-      if (type === 'tw' && !querySymbol.includes('.TW')) {
-        querySymbol = querySymbol + '.TW';
+      if (type === 'tw') {
+        if (!querySymbol.endsWith('.TW')) querySymbol = querySymbol + '.TW';
+      } else {
+        // 美股在 Stooq 格式為小寫如 nok.us 或 aapl.us
+        querySymbol = querySymbol + '.us';
       }
 
-      document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
+      document.getElementById('syncStatus').innerText = `正在查詢 ${symbolInput.toUpperCase()} 行情...`;
 
       try {
-        const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${querySymbol}?interval=1d`;
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+        // 透過 Stooq 提供之公開 CSV 格式抓取即時數據，完全不需要複雜 CORS Proxy
+        const csvUrl = `https://stooq.com/q/l/?s=${querySymbol}&f=sd2t2ohlcv&h&e=csv`;
+        const res = await fetch(csvUrl);
+        if (!res.ok) throw new Error("網路請求失敗");
         
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
-        const res = await fetch(proxyUrl, { signal: controller.signal });
-        clearTimeout(timeoutId);
+        const csvText = await res.text();
+        const lines = csvText.trim().split('\n');
+        if (lines.length < 2) throw new Error("無效的資料格式");
 
-        if (!res.ok) throw new Error("網路請求狀態異常");
-        
-        const data = await res.json();
-        const meta = data?.chart?.result?.[0]?.meta;
-        if (!meta) throw new Error("查無此代號資料");
+        const headers = lines[0].toLowerCase().split(',');
+        const values = lines[1].split(',');
 
-        const currentPrice = meta.regularMarketPrice;
-        const prevClose = meta.chartPreviousClose || meta.previousClose;
+        const closeIdx = headers.indexOf('close');
+        const openIdx = headers.indexOf('open');
 
-        if (currentPrice) {
+        if (closeIdx === -1 || values[closeIdx] === 'N/D') {
+          throw new Error("查無此代號行情");
+        }
+
+        const currentPrice = parseFloat(values[closeIdx]);
+        const prevClose = openIdx !== -1 && values[openIdx] !== 'N/D' ? parseFloat(values[openIdx]) : currentPrice;
+
+        if (!isNaN(currentPrice)) {
           document.getElementById(`${type}_currentPrice`).value = currentPrice;
-          if (prevClose) document.getElementById(`${type}_prevClose`).value = prevClose;
+          document.getElementById(`${type}_prevClose`).value = !isNaN(prevClose) ? prevClose : currentPrice;
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
-          document.getElementById('syncStatus').innerText = `已成功代入 ${querySymbol} 行情`;
+          document.getElementById('syncStatus').innerText = `已成功代入 ${symbolInput.toUpperCase()} 行情 (${currentPrice})`;
           return;
         } else {
-          throw new Error("無行情數值");
+          throw new Error("數值解析錯誤");
         }
       } catch (e) {
-        // 備用模擬數值，避免網路受阻時當機
-        let mockPrice = type === 'tw' ? 146.5 : 225;
-        let mockClose = type === 'tw' ? 145.0 : 220;
-        document.getElementById(`${type}_currentPrice`).value = mockPrice;
-        document.getElementById(`${type}_prevClose`).value = mockClose;
-        if (type === 'tw') calculateTw(); else calculateUs();
-        saveData();
-        document.getElementById('syncStatus').innerText = '行情查詢逾時，已套用參考行情';
+        document.getElementById('syncStatus').innerText = `無法取得 ${symbolInput.toUpperCase()} 即時行情`;
+        alert(`無法取得代號「${symbolInput.toUpperCase()}」的行情，請確認代號是否正確（例如台股輸入 6239、美股輸入 NOK 或 AAPL）。`);
       }
     };
 
