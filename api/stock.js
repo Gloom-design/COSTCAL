@@ -15,34 +15,41 @@ export default async function handler(req, res) {
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
 
-  // 1. 如果輸入的不是標準代號格式（夾帶中文或純文字），透過公開網路搜尋端點動態找出正確代號
-  if (/[\u4e00-\u9fa5]/.test(queryTerm) || !/^[A-Z0-9.]+$/i.test(queryTerm)) {
+  // 如果包含中文，透過公開的台灣股市代號開放資料庫進行即時動態比對檢索
+  if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
     try {
-      // 串接公開財經搜尋網路資源以動態取得代號
-      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=5&newsCount=0`;
-      const searchRes = await fetch(searchUrl, { 
-        headers: { 
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' 
-        } 
+      // 抓取證交所與櫃買中心公開的即時證券代號對照 JSON
+      const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
       });
-      const searchData = await searchRes.json();
-      
-      // 從網路搜尋結果中挑選最適合的台股代號 (.TW 或 .TWO)
-      const quotes = searchData.quotes || [];
-      const twMatch = quotes.find(q => q.symbol && (q.symbol.endsWith('.TW') || q.symbol.endsWith('.TWO')));
-      const anyMatch = quotes[0];
+      if (listRes.ok) {
+        const stockList = await listRes.json();
+        // 動態從全國上市股票中尋找名稱包含或符合該中文的項目
+        const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
+        if (found && found.Code) {
+          finalSymbol = found.Code + '.TW';
+        }
+      }
 
-      if (twMatch) {
-        finalSymbol = twMatch.symbol;
-      } else if (anyMatch && anyMatch.symbol) {
-        finalSymbol = anyMatch.symbol;
+      // 如果上市找不到，到櫃買中心 (OTC) 開放資料尋找
+      if (!finalSymbol.includes('.TW') && !finalSymbol.includes('.TWO')) {
+        const otcRes = await fetch('https://www.tpex.org.tw/openapi/v1/mopsfin_t187ap03_O', {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (otcRes.ok) {
+          const otcList = await otcRes.json();
+          const foundOtc = otcList.find(item => item.CompanyName && item.CompanyName.includes(queryTerm));
+          if (foundOtc && foundOtc.CompanyCode) {
+            finalSymbol = foundOtc.CompanyCode + '.TWO';
+          }
+        }
       }
     } catch (e) {
-      // 網路搜尋若遇阻礙，則退回純代號拼貼邏輯
+      // 網路動態檢索若有狀況則嘗試直接組裝
     }
   }
 
-  // 2. 如果是純 4 碼數字，自動嘗試標準台股後綴網路結點
+  // 若仍只是純 4 碼，預設補上 .TW
   if (/^\d{4}$/.test(finalSymbol)) {
     finalSymbol += '.TW';
   }
@@ -56,7 +63,7 @@ export default async function handler(req, res) {
       }
     });
     
-    // 如果 .TW 網路節點失敗，動態切換嘗試 .TWO 櫃買中心網路節點
+    // 若 .TW 失敗，自動切換至 .TWO 櫃買中心結點
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
       url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
@@ -64,7 +71,7 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      throw new Error(`找不到該代號或網路行情取得失敗`);
+      throw new Error(`找不到該代號或行情取得失敗`);
     }
     
     const data = await response.json();
