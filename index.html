@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.7</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.8</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -336,7 +336,6 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 使用 Stooq 免跨域穩定公開 API 抓取台美股最新收盤/即時價
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
@@ -345,14 +344,12 @@
       if (type === 'tw') {
         if (!querySymbol.endsWith('.TW')) querySymbol = querySymbol + '.TW';
       } else {
-        // 美股在 Stooq 格式為小寫如 nok.us 或 aapl.us
         querySymbol = querySymbol + '.us';
       }
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${symbolInput.toUpperCase()} 行情...`;
 
       try {
-        // 透過 Stooq 提供之公開 CSV 格式抓取即時數據，完全不需要複雜 CORS Proxy
         const csvUrl = `https://stooq.com/q/l/?s=${querySymbol}&f=sd2t2ohlcv&h&e=csv`;
         const res = await fetch(csvUrl);
         if (!res.ok) throw new Error("網路請求失敗");
@@ -386,7 +383,7 @@
         }
       } catch (e) {
         document.getElementById('syncStatus').innerText = `無法取得 ${symbolInput.toUpperCase()} 即時行情`;
-        alert(`無法取得代號「${symbolInput.toUpperCase()}」的行情，請確認代號是否正確（例如台股輸入 6239、美股輸入 NOK 或 AAPL）。`);
+        alert(`無法取得代號「${symbolInput.toUpperCase()}」的行情，請確認代號是否正確。`);
       }
     };
 
@@ -547,7 +544,7 @@
         document.getElementById('tw_p2').value = tw.p2 || '';
         document.getElementById('tw_n2').value = tw.n2 || '';
         document.getElementById('tw_ptarget').value = tw.ptarget || '';
-        calculateTw();
+        calculateTw(); // 確保切換後立即重新計算台股結果
       } else {
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
@@ -561,7 +558,7 @@
         document.getElementById('us_p2').value = us.p2 || '';
         document.getElementById('us_n2').value = us.n2 || '';
         document.getElementById('us_ptarget').value = us.ptarget || '';
-        calculateUs();
+        calculateUs(); // 確保切換後立即重新計算美股結果
       }
     }
 
@@ -620,7 +617,14 @@
       pnlEl.className = `font-bold text-xs sm:text-base ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
       pnlEl.innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
 
-      if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
+      if (n1 <= 0 || p1 <= 0 || p2 <= 0) {
+        document.getElementById('tw_resN2').innerText = '0';
+        document.getElementById('tw_resTotalN').innerText = '0 股';
+        document.getElementById('tw_resAvgPrice').innerText = '$0.00';
+        document.getElementById('tw_resOriginalCost').innerText = '$0';
+        document.getElementById('tw_resAddCost').innerText = '$0';
+        return;
+      }
 
       let calcN2 = 0, calcAvg = 0;
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
@@ -642,6 +646,12 @@
         document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
         document.getElementById('tw_resAddCost').innerText = `$${formatMoney((calcN2 * p2) + addFee)}`;
+      } else {
+        document.getElementById('tw_resN2').innerText = '0';
+        document.getElementById('tw_resTotalN').innerText = `${n1} 股`;
+        document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(p1)}`;
+        document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
+        document.getElementById('tw_resAddCost').innerText = '$0';
       }
     }
 
@@ -649,13 +659,18 @@
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
       const p2 = parseFloat(document.getElementById('us_p2').value) || 0;
-      const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
-      const prevClose = parseFloat(document.getElementById('us_prevClose').value) || 0;
       const n2In = parseFloat(document.getElementById('us_n2').value);
       const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
       const fee = parseFloat(document.getElementById('us_fee').value) || 0;
 
-      if (n1 <= 0 || p1 <= 0 || p2 <= 0) return;
+      if (n1 <= 0 || p1 <= 0 || p2 <= 0) {
+        document.getElementById('us_resN2').innerText = '0';
+        document.getElementById('us_resTotalN').innerText = '0 股';
+        document.getElementById('us_resAvgPrice').innerText = '$0.00';
+        document.getElementById('us_resOriginalCostUSD').innerText = '$0';
+        document.getElementById('us_resAddCostUSD').innerText = '$0';
+        return;
+      }
 
       let calcN2 = 0, calcAvg = 0;
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
@@ -673,6 +688,12 @@
         document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
         document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(n1 * p1)}`;
         document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney((calcN2 * p2) + fee)}`;
+      } else {
+        document.getElementById('us_resN2').innerText = '0';
+        document.getElementById('us_resTotalN').innerText = `${n1} 股`;
+        document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(p1)}`;
+        document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(n1 * p1)}`;
+        document.getElementById('us_resAddCostUSD').innerText = '$0';
       }
     }
 
