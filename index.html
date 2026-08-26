@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.3</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -32,15 +32,6 @@
       </div>
     </header>
 
-    <!-- 組合管理列 -->
-    <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
-      <select id="stockSelector" onchange="switchStock(this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
-      </select>
-      <button onclick="renameCurrentStock()" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
-      <button onclick="addNewStock()" class="bg-indigo-50 text-indigo-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
-      <button onclick="deleteCurrentStock()" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
-    </div>
-
     <!-- 分頁切換 -->
     <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl">
       <button id="tabTwBtn" onclick="switchTab('tw')" class="py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer">🇹🇼 台股專用</button>
@@ -49,6 +40,15 @@
 
     <!-- 台股介面 -->
     <div id="twView" class="space-y-4 sm:space-y-5">
+      <!-- 台股獨立組合管理列 -->
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
+        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
+        </select>
+        <button onclick="renameStock('tw')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
+        <button onclick="addStock('tw')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
+        <button onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
+      </div>
+
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <div class="flex justify-between items-center border-b pb-3">
           <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與代號查詢</span>
@@ -148,6 +148,15 @@
 
     <!-- 美股介面 -->
     <div id="usView" class="space-y-4 sm:space-y-5 hidden">
+      <!-- 美股獨立組合管理列 (內建預設3個美股組合) -->
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
+        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
+        </select>
+        <button onclick="renameStock('us')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
+        <button onclick="addStock('us')" class="bg-teal-50 text-teal-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
+        <button onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
+      </div>
+
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <div class="flex justify-between items-center border-b pb-3">
           <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與代號查詢</span>
@@ -252,15 +261,20 @@
     let saveTimeout = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     
+    // 獨立分開的雲端/本機資料結構 (台股與美股各自擁有獨立的組合清單)
     let cloudData = { 
-      stocks: { 
-        "力成 (台股組合)": { 
-          tw: { symbol: "6239", discount: "0.6", minFee: "20" }, 
-          us: { symbol: "AAPL", rate: "32.5", fee: "0" } 
-        }
+      twStocks: { 
+        "力成 (台股組合)": { symbol: "6239", discount: "0.6", minFee: "20", fee: "0" } 
+      },
+      usStocks: {
+        "美股組合 1": { symbol: "AAPL", rate: "32.5", fee: "0" },
+        "美股組合 2": { symbol: "NVDA", rate: "32.5", fee: "0" },
+        "美股組合 3": { symbol: "TSLA", rate: "32.5", fee: "0" }
       }
     };
-    let currentStockKey = "力成 (台股組合)";
+    
+    let currentTwKey = "力成 (台股組合)";
+    let currentUsKey = "美股組合 1";
 
     window.loginWithGoogle = async function() {
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
@@ -304,7 +318,6 @@
       }
     };
 
-    // 即時抓取美元匯率 (USD/TWD=X)
     window.fetchExchangeRate = async function() {
       document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
       const controller = new AbortController();
@@ -393,48 +406,67 @@
       }
     };
 
-    window.switchStock = function(key) {
-      saveUIToCurrentStock();
-      loadStockToUI(key);
+    window.switchStock = function(type, key) {
+      saveUIToCurrentStock(type);
+      loadStockToUI(type, key);
     };
 
-    window.renameCurrentStock = function() {
-      const newName = prompt(`請輸入「${currentStockKey}」的新名稱：`, currentStockKey);
-      if (!newName || newName.trim() === "" || newName === currentStockKey) return;
-      if (cloudData.stocks[newName]) { alert("此組別名稱已存在！"); return; }
-      saveUIToCurrentStock();
-      cloudData.stocks[newName] = cloudData.stocks[currentStockKey];
-      delete cloudData.stocks[currentStockKey];
-      currentStockKey = newName;
-      renderStockSelector();
-      loadStockToUI(currentStockKey);
+    window.renameStock = function(type) {
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      const newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
+      if (!newName || newName.trim() === "" || newName === currentKey) return;
+      
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      if (targetStore[newName]) { alert("此組別名稱已存在！"); return; }
+      
+      saveUIToCurrentStock(type);
+      targetStore[newName] = targetStore[currentKey];
+      delete targetStore[currentKey];
+      
+      if (type === 'tw') currentTwKey = newName; else currentUsKey = newName;
+      
+      renderStockSelector(type);
+      loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
       saveData();
     };
 
-    window.addNewStock = function() {
-      const name = prompt("請輸入新組別名稱 (例如: 長線存股組合):");
+    window.addStock = function(type) {
+      const name = prompt("請輸入新組別名稱 (例如: 美國科技股):");
       if (!name) return;
-      if (cloudData.stocks[name]) { alert("此組別名稱已存在！"); return; }
-      saveUIToCurrentStock();
-      cloudData.stocks[name] = { tw: {}, us: { rate: "32.5", fee: "0" } };
-      renderStockSelector();
-      loadStockToUI(name);
+      
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      if (targetStore[name]) { alert("此組別名稱已存在！"); return; }
+      
+      saveUIToCurrentStock(type);
+      targetStore[name] = type === 'tw' ? { symbol: "2330", discount: "0.6", minFee: "20" } : { symbol: "AAPL", rate: "32.5", fee: "0" };
+      
+      if (type === 'tw') currentTwKey = name; else currentUsKey = name;
+      
+      renderStockSelector(type);
+      loadStockToUI(type, name);
       saveData();
     };
 
-    window.deleteCurrentStock = function() {
-      const keys = Object.keys(cloudData.stocks);
+    window.deleteStock = function(type) {
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const keys = Object.keys(targetStore);
       if (keys.length <= 1) { alert("至少需保留一個組合！"); return; }
-      if (confirm(`確定刪除「${currentStockKey}」嗎？`)) {
-        delete cloudData.stocks[currentStockKey];
-        renderStockSelector();
-        loadStockToUI(Object.keys(cloudData.stocks)[0]);
+      
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      if (confirm(`確定刪除「${currentKey}」嗎？`)) {
+        delete targetStore[currentKey];
+        const nextKey = Object.keys(targetStore)[0];
+        if (type === 'tw') currentTwKey = nextKey; else currentUsKey = nextKey;
+        
+        renderStockSelector(type);
+        loadStockToUI(type, nextKey);
         saveData();
       }
     };
 
     window.manualSaveData = async function() {
-      saveUIToCurrentStock();
+      saveUIToCurrentStock('tw');
+      saveUIToCurrentStock('us');
       if (!currentUser) { alert("請先登入！"); return; }
       await manualSaveDataSilent();
       alert("儲存成功！");
@@ -468,82 +500,91 @@
       }
     }
 
-    function renderStockSelector() {
-      const selector = document.getElementById('stockSelector');
+    function renderStockSelector(type) {
+      const selector = document.getElementById(`${type}StockSelector`);
       if (!selector) return;
       selector.innerHTML = '';
-      Object.keys(cloudData.stocks || {}).forEach(key => {
+      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+
+      Object.keys(store || {}).forEach(key => {
         const opt = document.createElement('option');
         opt.value = key; opt.innerText = key;
-        if (key === currentStockKey) opt.selected = true;
+        if (key === currentKey) opt.selected = true;
         selector.appendChild(opt);
       });
     }
 
-    function saveUIToCurrentStock() {
-      if (!cloudData.stocks[currentStockKey]) cloudData.stocks[currentStockKey] = { tw: {}, us: {} };
-      cloudData.stocks[currentStockKey].tw = {
-        symbol: document.getElementById('tw_symbolInput').value,
-        discount: document.getElementById('twDiscount').value,
-        minFee: document.getElementById('twMinFee').value,
-        n1: document.getElementById('tw_n1').value,
-        p1: document.getElementById('tw_p1').value,
-        manualPnlPct: document.getElementById('tw_manualPnlPct').value,
-        prevClose: document.getElementById('tw_prevClose').value,
-        currentPrice: document.getElementById('tw_currentPrice').value,
-        p2: document.getElementById('tw_p2').value,
-        n2: document.getElementById('tw_n2').value,
-        ptarget: document.getElementById('tw_ptarget').value
-      };
-      cloudData.stocks[currentStockKey].us = {
-        symbol: document.getElementById('us_symbolInput').value,
-        rate: document.getElementById('us_exchangeRate').value,
-        fee: document.getElementById('us_fee').value,
-        n1: document.getElementById('us_n1').value,
-        p1: document.getElementById('us_p1').value,
-        prevClose: document.getElementById('us_prevClose').value,
-        currentPrice: document.getElementById('us_currentPrice').value,
-        p2: document.getElementById('us_p2').value,
-        n2: document.getElementById('us_n2').value,
-        ptarget: document.getElementById('us_ptarget').value
-      };
+    function saveUIToCurrentStock(type) {
+      if (type === 'tw') {
+        if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
+        cloudData.twStocks[currentTwKey] = {
+          symbol: document.getElementById('tw_symbolInput').value,
+          discount: document.getElementById('twDiscount').value,
+          minFee: document.getElementById('twMinFee').value,
+          n1: document.getElementById('tw_n1').value,
+          p1: document.getElementById('tw_p1').value,
+          manualPnlPct: document.getElementById('tw_manualPnlPct').value,
+          prevClose: document.getElementById('tw_prevClose').value,
+          currentPrice: document.getElementById('tw_currentPrice').value,
+          p2: document.getElementById('tw_p2').value,
+          n2: document.getElementById('tw_n2').value,
+          ptarget: document.getElementById('tw_ptarget').value
+        };
+      } else {
+        if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
+        cloudData.usStocks[currentUsKey] = {
+          symbol: document.getElementById('us_symbolInput').value,
+          rate: document.getElementById('us_exchangeRate').value,
+          fee: document.getElementById('us_fee').value,
+          n1: document.getElementById('us_n1').value,
+          p1: document.getElementById('us_p1').value,
+          prevClose: document.getElementById('us_prevClose').value,
+          currentPrice: document.getElementById('us_currentPrice').value,
+          p2: document.getElementById('us_p2').value,
+          n2: document.getElementById('us_n2').value,
+          ptarget: document.getElementById('us_ptarget').value
+        };
+      }
     }
 
-    function loadStockToUI(key) {
-      currentStockKey = key;
-      const stock = cloudData.stocks[key] || { tw: {}, us: {} };
-      const tw = stock.tw || {}; const us = stock.us || {};
-
-      document.getElementById('tw_symbolInput').value = tw.symbol || '';
-      document.getElementById('twDiscount').value = tw.discount || '0.6';
-      document.getElementById('twMinFee').value = tw.minFee || '20';
-      document.getElementById('tw_n1').value = tw.n1 || '';
-      document.getElementById('tw_p1').value = tw.p1 || '';
-      document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
-      document.getElementById('tw_prevClose').value = tw.prevClose || '';
-      document.getElementById('tw_currentPrice').value = tw.currentPrice || '';
-      document.getElementById('tw_p2').value = tw.p2 || '';
-      document.getElementById('tw_n2').value = tw.n2 || '';
-      document.getElementById('tw_ptarget').value = tw.ptarget || '';
-
-      document.getElementById('us_symbolInput').value = us.symbol || '';
-      document.getElementById('us_exchangeRate').value = us.rate || '32.5';
-      document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
-      document.getElementById('us_n1').value = us.n1 || '';
-      document.getElementById('us_p1').value = us.p1 || '';
-      document.getElementById('us_prevClose').value = us.prevClose || '';
-      document.getElementById('us_currentPrice').value = us.currentPrice || '';
-      document.getElementById('us_p2').value = us.p2 || '';
-      document.getElementById('us_n2').value = us.n2 || '';
-      document.getElementById('us_ptarget').value = us.ptarget || '';
-
-      calculateTw(); 
-      calculateUs();
+    function loadStockToUI(type, key) {
+      if (type === 'tw') {
+        currentTwKey = key;
+        const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
+        document.getElementById('tw_symbolInput').value = tw.symbol || '';
+        document.getElementById('twDiscount').value = tw.discount || '0.6';
+        document.getElementById('twMinFee').value = tw.minFee || '20';
+        document.getElementById('tw_n1').value = tw.n1 || '';
+        document.getElementById('tw_p1').value = tw.p1 || '';
+        document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
+        document.getElementById('tw_prevClose').value = tw.prevClose || '';
+        document.getElementById('tw_currentPrice').value = tw.currentPrice || '';
+        document.getElementById('tw_p2').value = tw.p2 || '';
+        document.getElementById('tw_n2').value = tw.n2 || '';
+        document.getElementById('tw_ptarget').value = tw.ptarget || '';
+        calculateTw();
+      } else {
+        currentUsKey = key;
+        const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
+        document.getElementById('us_symbolInput').value = us.symbol || '';
+        document.getElementById('us_exchangeRate').value = us.rate || '32.5';
+        document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
+        document.getElementById('us_n1').value = us.n1 || '';
+        document.getElementById('us_p1').value = us.p1 || '';
+        document.getElementById('us_prevClose').value = us.prevClose || '';
+        document.getElementById('us_currentPrice').value = us.currentPrice || '';
+        document.getElementById('us_p2').value = us.p2 || '';
+        document.getElementById('us_n2').value = us.n2 || '';
+        document.getElementById('us_ptarget').value = us.ptarget || '';
+        calculateUs();
+      }
     }
 
     function saveData() {
       if (!currentUser || !sbClient) return;
-      saveUIToCurrentStock();
+      saveUIToCurrentStock('tw');
+      saveUIToCurrentStock('us');
       document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
@@ -557,7 +598,8 @@
 
     async function manualSaveDataSilent() {
       if (!currentUser || !sbClient) return;
-      saveUIToCurrentStock();
+      saveUIToCurrentStock('tw');
+      saveUIToCurrentStock('us');
       const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
       if (existing) {
         await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
@@ -660,10 +702,11 @@
     async function init() {
       applyUIMode();
 
-      renderStockSelector();
-      loadStockToUI(currentStockKey);
+      renderStockSelector('tw');
+      renderStockSelector('us');
+      loadStockToUI('tw', currentTwKey);
+      loadStockToUI('us', currentUsKey);
 
-      // 自動抓取即時匯率
       fetchExchangeRate();
 
       try {
@@ -682,11 +725,7 @@
           if (currentUser) {
             const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (data && data.portfolio_data) {
-              cloudData = data.portfolio_data;
-              if (!cloudData.stocks) cloudData = { stocks: { "我的組合": cloudData } };
-              currentStockKey = Object.keys(cloudData.stocks)[0];
-              renderStockSelector();
-              loadStockToUI(currentStockKey);
+              parseCloudData(data.portfolio_data);
             }
             document.getElementById('syncStatus').innerText = '已同步雲端';
           }
@@ -699,11 +738,7 @@
         if (currentUser) {
           const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           if (data && data.portfolio_data) {
-            cloudData = data.portfolio_data;
-            if (!cloudData.stocks) cloudData = { stocks: { "我的組合": cloudData } };
-            currentStockKey = Object.keys(cloudData.stocks)[0];
-            renderStockSelector();
-            loadStockToUI(currentStockKey);
+            parseCloudData(data.portfolio_data);
           }
           document.getElementById('syncStatus').innerText = '已同步雲端';
         } else {
@@ -712,6 +747,25 @@
       } catch (err) {
         document.getElementById('syncStatus').innerText = '單機離線模式';
       }
+    }
+
+    function parseCloudData(fetchedData) {
+      if (fetchedData.twStocks && fetchedData.usStocks) {
+        cloudData = fetchedData;
+      } else if (fetchedData.stocks) {
+        // 相容舊版資料結構轉換
+        cloudData = { twStocks: {}, usStocks: { "美股組合 1": { symbol: "AAPL", rate: "32.5", fee: "0" }, "美股組合 2": { symbol: "NVDA", rate: "32.5", fee: "0" }, "美股組合 3": { symbol: "TSLA", rate: "32.5", fee: "0" } } };
+        Object.keys(fetchedData.stocks).forEach(k => {
+          if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
+        });
+        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "台股預設": {} };
+      }
+      currentTwKey = Object.keys(cloudData.twStocks)[0];
+      currentUsKey = Object.keys(cloudData.usStocks)[0];
+      renderStockSelector('tw');
+      renderStockSelector('us');
+      loadStockToUI('tw', currentTwKey);
+      loadStockToUI('us', currentUsKey);
     }
 
     function updateAuthUI() {
