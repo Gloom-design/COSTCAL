@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.2</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -275,6 +275,28 @@
     let saveTimeout = null;
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
+
+    // 完整的台股代號與名稱雙向對照表
+    const twStockDictionary = {
+      "2330": "台積電", "台積電": "2330",
+      "2345": "智邦", "智邦": "2345",
+      "2308": "台達電", "台達電": "2308",
+      "6239": "力成", "力成": "6239",
+      "3105": "穩懋", "穩懋": "3105",
+      "3665": "貿聯-KY", "貿聯-KY": "3665", "貿聯": "3665",
+      "2317": "鴻海", "鴻海": "2317",
+      "2454": "聯發科", "聯發科": "2454"
+    };
+
+    // 常見美股代號與名稱對照表
+    const usStockDictionary = {
+      "AAPL": "蘋果", "蘋果": "AAPL",
+      "NVDA": "輝達", "輝達": "NVDA",
+      "TSLA": "特斯拉", "特斯拉": "TSLA",
+      "MSFT": "微軟", "微軟": "MSFT",
+      "GOOGL": "谷歌", "谷歌": "GOOGL",
+      "META": "Meta", "美達": "META"
+    };
     
     let cloudData = { 
       twStocks: { 
@@ -355,7 +377,12 @@
       if (!symbolInput) return;
 
       let querySymbol = symbolInput.toUpperCase();
-      if (type === 'tw' && !querySymbol.endsWith('.TW')) querySymbol += '.TW';
+      if (type === 'tw') {
+        if (twStockDictionary[symbolInput]) {
+          querySymbol = twStockDictionary[symbolInput];
+        }
+        if (!querySymbol.endsWith('.TW')) querySymbol += '.TW';
+      }
 
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
@@ -398,41 +425,77 @@
     window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       const newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
-      if (!newName || newName.trim() === "" || newName === currentKey) return;
+      if (!newName || !newName.trim() || newName === currentKey) return;
       
+      const trimmedName = newName.trim();
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      if (targetStore[newName]) { alert("此組別名稱已存在！"); return; }
+      if (targetStore[trimmedName]) { alert("此組別名稱已存在！"); return; }
       
       saveUIToCurrentStock(type);
-      targetStore[newName] = targetStore[currentKey];
+      targetStore[trimmedName] = targetStore[currentKey];
       delete targetStore[currentKey];
       
       if (type === 'tw') {
-        currentTwKey = newName;
-        targetStore[newName].name = newName;
-        document.getElementById('tw_nameInput').value = newName;
+        currentTwKey = trimmedName;
+        targetStore[trimmedName].name = trimmedName;
+        if (twStockDictionary[trimmedName]) {
+          targetStore[trimmedName].symbol = twStockDictionary[trimmedName];
+        }
+        document.getElementById('tw_nameInput').value = trimmedName;
+        document.getElementById('tw_symbolInput').value = targetStore[trimmedName].symbol;
       } else {
-        currentUsKey = newName;
-        targetStore[newName].name = newName;
-        document.getElementById('us_nameInput').value = newName;
+        currentUsKey = trimmedName;
+        targetStore[trimmedName].name = trimmedName;
+        if (usStockDictionary[trimmedName]) {
+          targetStore[trimmedName].symbol = usStockDictionary[trimmedName];
+        }
+        document.getElementById('us_nameInput').value = trimmedName;
+        document.getElementById('us_symbolInput').value = targetStore[trimmedName].symbol;
       }
       
       renderStockSelector(type);
       loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
       saveData();
+
+      await fetchMarketPrice(type, targetStore[trimmedName].symbol);
     };
 
-    // 新增組別：智慧識別輸入（代號或名稱），自動帶入並立即抓取股價
+    // 智慧新增組別：自動對應名稱與代號，並抓取股價
     window.addStock = async function(type) {
       const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2345 或 智邦):" : "請輸入美股代號或名稱 (例如: AAPL 或 蘋果):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
       let assignedKey = trimmed;
-      let assignedSymbol = trimmed;
       let assignedName = trimmed;
+      let assignedSymbol = trimmed;
 
-      // 如果輸入的是純數字或英文代號，嘗試智慧帶入
+      if (type === 'tw') {
+        if (twStockDictionary[trimmed]) {
+          if (/^\d+$/.test(trimmed)) {
+            assignedSymbol = trimmed;
+            assignedName = twStockDictionary[trimmed];
+            assignedKey = twStockDictionary[trimmed]; // 讓選單顯示中文名稱
+          } else {
+            assignedName = trimmed;
+            assignedSymbol = twStockDictionary[trimmed];
+            assignedKey = trimmed;
+          }
+        }
+      } else {
+        if (usStockDictionary[trimmed]) {
+          if (/^[a-zA-Z]+$/.test(trimmed)) {
+            assignedSymbol = trimmed.toUpperCase();
+            assignedName = usStockDictionary[trimmed];
+            assignedKey = trimmed.toUpperCase();
+          } else {
+            assignedName = trimmed;
+            assignedSymbol = usStockDictionary[trimmed];
+            assignedKey = usStockDictionary[trimmed];
+          }
+        }
+      }
+
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       if (targetStore[assignedKey]) { alert("此組別已存在！"); return; }
 
@@ -450,7 +513,6 @@
       loadStockToUI(type, assignedKey);
       saveData();
 
-      // 自動觸發即時行情更新
       await fetchMarketPrice(type, assignedSymbol);
     };
 
@@ -562,7 +624,7 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = tw.symbol || key;
+        document.getElementById('tw_symbolInput').value = tw.symbol || (twStockDictionary[key] || key);
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
         document.getElementById('tw_n1').value = tw.n1 || '';
@@ -578,7 +640,7 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_nameInput').value = us.name || key;
-        document.getElementById('us_symbolInput').value = us.symbol || key;
+        document.getElementById('us_symbolInput').value = us.symbol || (usStockDictionary[key] || key);
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 || '';
@@ -797,7 +859,7 @@
         Object.keys(fetchedData.stocks).forEach(k => {
           if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
         });
-        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "6239": { name: "力成", symbol: "6239" } };
+        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "力成": { name: "力成", symbol: "6239" } };
       }
       currentTwKey = Object.keys(cloudData.twStocks)[0];
       currentUsKey = Object.keys(cloudData.usStocks)[0];
