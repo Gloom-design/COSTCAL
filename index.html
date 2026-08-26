@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.3.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.3.2</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -337,9 +337,9 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 透過 Vercel 後端 API 抓取行情，並支援切換組合時自動更新
-    window.fetchMarketPrice = async function(type) {
-      const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
+    // 支援指定代號查詢，避免非同步競態條件
+    window.fetchMarketPrice = async function(type, targetSymbol = null) {
+      const symbolInput = targetSymbol || document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) return;
 
       let querySymbol = symbolInput.toUpperCase();
@@ -370,14 +370,16 @@
       }
     };
 
-    // 切換組合時，自動載入該組合並直接更新最新股價
+    // 修復切換組合時的股價自動更新邏輯
     window.switchStock = async function(type, key) {
       saveUIToCurrentStock(type);
       loadStockToUI(type, key);
       
-      const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
-      if (symbolInput) {
-        await fetchMarketPrice(type);
+      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const targetSymbol = store[key]?.symbol;
+      
+      if (targetSymbol) {
+        await fetchMarketPrice(type, targetSymbol);
       }
     };
 
