@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.7.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.7.3</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -278,7 +278,7 @@
 
     let cloudData = { 
       twStocks: { 
-        "力成": { name: "力成", symbol: "6239", discount: "0.6", minFee: "20" } 
+        "力成": { name: "力成", symbol: "6239.TWO", discount: "0.6", minFee: "20" } 
       },
       usStocks: {
         "AAPL": { name: "蘋果", symbol: "AAPL", rate: "32", fee: "0" }
@@ -349,7 +349,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 網路自動搜尋對應核心：輸入中文名稱自動透過後端向 Yahoo 尋找代號
+    // 執行即時行情：自動對應代號並將完整的代號（含 .TW / .TWO）帶回輸入框與雲端
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -357,32 +357,33 @@
       let symbolVal = targetSymbol || symbolInput.value.trim();
       let nameVal = nameInput ? nameInput.value.trim() : '';
 
-      // 如果代號欄位是空的，或者被輸入了中文名稱，自動透過網路尋找代號
-      if (!symbolVal || /[\u4e00-\u9fa5]/.test(symbolVal)) {
-        let queryName = symbolVal || nameVal;
-        if (!queryName) {
-          document.getElementById('syncStatus').innerText = '請先輸入股票名稱或代號';
-          return;
-        }
+      const quickMap = {
+        "亞力": "1514.TW",
+        "力成": "6239.TWO",
+        "德律": "3030.TW",
+        "台積電": "2330.TW",
+        "智邦": "2345.TW",
+        "台達電": "2308.TW",
+        "穩懋": "3105.TWO",
+        "貿聯-KY": "3665.TW",
+        "貿聯": "3665.TW",
+        "鴻海": "2317.TW",
+        "聯發科": "2454.TW",
+        "智原": "3035.TW",
+        "廣達": "2382.TW",
+        "緯創": "3231.TW"
+      };
 
-        document.getElementById('syncStatus').innerText = `正在網路搜尋「${queryName}」的代號...`;
-
-        try {
-          const searchRes = await fetch(`https://costcal-peach.vercel.app/api/stock?search=${encodeURIComponent(queryName)}`);
-          if (searchRes.ok) {
-            const searchData = await searchRes.json();
-            if (searchData.symbol) {
-              symbolVal = searchData.symbol;
-              symbolInput.value = symbolVal; 
-            }
-          }
-        } catch (err) {
-          console.error("自動搜尋代號失敗", err);
-        }
+      let lookupKey = symbolVal || nameVal;
+      if (quickMap[lookupKey]) {
+        symbolVal = quickMap[lookupKey];
+      } else if (/[\u4e00-\u9fa5]/.test(symbolVal) || /[\u4e00-\u9fa5]/.test(nameVal)) {
+        document.getElementById('syncStatus').innerText = `找不到「${lookupKey}」的代號，請直接輸入數字代號（例如 1514）`;
+        return;
       }
 
-      if (!symbolVal || /[\u4e00-\u9fa5]/.test(symbolVal)) {
-        document.getElementById('syncStatus').innerText = `找不到「${nameVal || symbolVal}」的對應代號，請手動輸入`;
+      if (!symbolVal) {
+        document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
         return;
       }
 
@@ -420,12 +421,19 @@
         const result = await apiRes.json();
         
         if (result.currentPrice) {
+          // 強制將後端回傳或計算好的完整代號（含 .TW / .TWO）寫回代號欄位
+          if (result.symbol) {
+            symbolInput.value = result.symbol;
+          } else {
+            symbolInput.value = querySymbol;
+          }
+
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
           if (result.prevClose) document.getElementById(`${type}_prevClose`).value = result.prevClose;
           
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
-          document.getElementById('syncStatus').innerText = `已成功代入 ${querySymbol} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功代入 ${symbolInput.value} 行情 (${result.currentPrice})`;
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
@@ -850,7 +858,7 @@
         Object.keys(fetchedData.stocks).forEach(k => {
           if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
         });
-        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "力成": { name: "力成", symbol: "6239" } };
+        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "力成": { name: "力成", symbol: "6239.TWO" } };
       }
       currentTwKey = Object.keys(cloudData.twStocks)[0];
       currentUsKey = Object.keys(cloudData.usStocks)[0];
