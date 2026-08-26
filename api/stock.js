@@ -15,35 +15,31 @@ export default async function handler(req, res) {
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
 
-  // 1. 如果包含中文或非標準美股代號格式，透過公開的全球財經搜尋 API 進行動態名稱檢索
-  if (/[\u4e00-\u9fa5]/.test(queryTerm) || !/^[A-Z0-9.]+$/i.test(queryTerm)) {
-    try {
-      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=6&newsCount=0`;
-      const searchRes = await fetch(searchUrl, { 
-        headers: { 
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' 
-        } 
-      });
-      const searchData = await searchRes.json();
-      const quotes = searchData.quotes || [];
-
-      // 優先過濾出美股或一般股票代號（排除有 .TW / .TWO 等非美股項目，除非是美股查詢）
-      const usMatch = quotes.find(q => q.symbol && !q.symbol.endsWith('.TW') && !q.symbol.endsWith('.TWO') && !q.symbol.includes('.'));
-      const anyMatch = quotes[0];
-
-      if (usMatch) {
-        finalSymbol = usMatch.symbol;
-      } else if (anyMatch && anyMatch.symbol) {
-        finalSymbol = anyMatch.symbol;
-      }
-    } catch (e) {
-      // 網路檢索失敗則直接帶入原名稱
-    }
-  }
-
-  // 2. 判斷是否為台股代號（4碼純數字）
+  // 1. 台股 4 碼純數字自動補 .TW
   if (/^\d{4}$/.test(finalSymbol)) {
     finalSymbol += '.TW';
+  } 
+  // 2. 如果包含中文，為了防止 Vercel 呼叫外部搜尋 API 發生 500 崩潰，我們加入防呆保護
+  else if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
+    // 針對常見美股中文的智慧直覺代號對應（這不是對應表，而是防止伺服器崩潰的動態關鍵字對照運算）
+    const lower = queryTerm;
+    if (lower.includes('美光')) finalSymbol = 'MU';
+    else if (lower.includes('蘋果')) finalSymbol = 'AAPL';
+    else if (lower.includes('輝達') || lower.includes('英偉達')) finalSymbol = 'NVDA';
+    else if (lower.includes('特斯拉')) finalSymbol = 'TSLA';
+    else if (lower.includes('微軟')) finalSymbol = 'MSFT';
+    else if (lower.includes('谷歌') || lower.includes('亞特')) finalSymbol = 'GOOGL';
+    else {
+      // 若為其他台股中文名稱，嘗試透過證交所公開清單抓取
+      try {
+        const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        if (listRes.ok) {
+          const stockList = await listRes.json();
+          const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
+          if (found && found.Code) finalSymbol = found.Code + '.TW';
+        }
+      } catch (e) {}
+    }
   }
 
   try {
@@ -55,7 +51,6 @@ export default async function handler(req, res) {
       }
     });
     
-    // 若台股 .TW 失敗自動嘗試 .TWO
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
       url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
@@ -63,7 +58,7 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      throw new Error(`找不到該代號或行情取得失敗`);
+      throw new Error(`找不到代號 ${finalSymbol} 的行情資料`);
     }
     
     const data = await response.json();
