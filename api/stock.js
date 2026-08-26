@@ -15,22 +15,36 @@ export default async function handler(req, res) {
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
 
-  // 1. 如果是台股 4 碼純數字，自動補上 .TW
-  if (/^\d{4}$/.test(finalSymbol)) {
-    finalSymbol += '.TW';
-  } 
-  // 2. 如果包含中文字，為了避免硬編碼對應表，我們嘗試透過證交所抓取台股；若非台股中文則提示需輸入英文代號
-  else if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
+  // 1. 如果包含中文字或不是標準代號格式，透過 Yahoo 全球動態搜尋 API 即時檢索代號
+  if (/[\u4e00-\u9fa5]/.test(queryTerm) || !/^[A-Z0-9.]+$/i.test(queryTerm)) {
     try {
-      const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { headers: { 'User-Agent': 'Mozilla/5.0' } });
-      if (listRes.ok) {
-        const stockList = await listRes.json();
-        const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
-        if (found && found.Code) {
-          finalSymbol = found.Code + '.TW';
+      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=5&newsCount=0`;
+      const searchRes = await fetch(searchUrl, { 
+        headers: { 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+          'Referer': 'https://finance.yahoo.com'
+        } 
+      });
+      
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        const quotes = searchData.quotes || [];
+        
+        // 從檢索結果中尋找最適合的股票代號
+        const validMatch = quotes.find(q => q.symbol && !q.symbol.includes('='));
+        if (validMatch && validMatch.symbol) {
+          finalSymbol = validMatch.symbol;
         }
       }
-    } catch (e) {}
+    } catch (e) {
+      // 搜尋失敗則退回原名稱嘗試
+    }
+  }
+
+  // 2. 如果是台股 4 碼純數字，自動補上 .TW
+  if (/^\d{4}$/.test(finalSymbol)) {
+    finalSymbol += '.TW';
   }
 
   try {
@@ -42,7 +56,7 @@ export default async function handler(req, res) {
       }
     });
     
-    // 若 .TW 失敗自動嘗試 .TWO
+    // 若台股 .TW 失敗自動嘗試 .TWO
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
       url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
@@ -50,7 +64,7 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      throw new Error(`找不到代號 ${finalSymbol}，美股請直接輸入英文代號（如 SKHY）`);
+      throw new Error(`找不到代號 ${finalSymbol} 的市場資料`);
     }
     
     const data = await response.json();
