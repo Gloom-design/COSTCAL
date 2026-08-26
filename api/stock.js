@@ -8,36 +8,43 @@ export default async function handler(req, res) {
   }
 
   let { symbol } = req.query;
-
   if (!symbol) {
     return res.status(400).json({ error: 'Missing symbol' });
   }
 
   let queryTerm = symbol.trim();
+  let finalSymbol = queryTerm.toUpperCase();
 
-  // 如果包含中文或不是純代號格式，透過 Yahoo 搜尋 API 自動把中文轉成正確代號！
+  // 1. 如果輸入的不是標準代號格式（夾帶中文或純文字），透過公開網路搜尋端點動態找出正確代號
   if (/[\u4e00-\u9fa5]/.test(queryTerm) || !/^[A-Z0-9.]+$/i.test(queryTerm)) {
     try {
-      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1`;
-      const searchRes = await fetch(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      // 串接公開財經搜尋網路資源以動態取得代號
+      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=5&newsCount=0`;
+      const searchRes = await fetch(searchUrl, { 
+        headers: { 
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' 
+        } 
+      });
       const searchData = await searchRes.json();
-      const quote = searchData.quotes?.[0];
-      if (quote && quote.symbol) {
-        queryTerm = quote.symbol; // 例如自動找到 "2383.TW"
+      
+      // 從網路搜尋結果中挑選最適合的台股代號 (.TW 或 .TWO)
+      const quotes = searchData.quotes || [];
+      const twMatch = quotes.find(q => q.symbol && (q.symbol.endsWith('.TW') || q.symbol.endsWith('.TWO')));
+      const anyMatch = quotes[0];
+
+      if (twMatch) {
+        finalSymbol = twMatch.symbol;
+      } else if (anyMatch && anyMatch.symbol) {
+        finalSymbol = anyMatch.symbol;
       }
     } catch (e) {
-      // 搜尋失敗則繼續往下嘗試
+      // 網路搜尋若遇阻礙，則退回純代號拼貼邏輯
     }
   }
 
-  let finalSymbol = queryTerm.toUpperCase();
-  
-  // 自動補上台股後綴 (.TW 或 .TWO)
+  // 2. 如果是純 4 碼數字，自動嘗試標準台股後綴網路結點
   if (/^\d{4}$/.test(finalSymbol)) {
-    const knownTwo = ["6223", "3105", "3293", "5347", "6515", "8299", "3548", "3030"];
-    finalSymbol += knownTwo.includes(finalSymbol) ? '.TWO' : '.TW';
-  } else if (/^\d{4}\.TW$/.test(finalSymbol)) {
-    // 預防萬一
+    finalSymbol += '.TW';
   }
 
   try {
@@ -49,7 +56,7 @@ export default async function handler(req, res) {
       }
     });
     
-    // 如果 .TW 失敗，自動嘗試 .TWO
+    // 如果 .TW 網路節點失敗，動態切換嘗試 .TWO 櫃買中心網路節點
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
       url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
@@ -57,14 +64,14 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      throw new Error(`Yahoo API status ${response.status}`);
+      throw new Error(`找不到該代號或網路行情取得失敗`);
     }
     
     const data = await response.json();
     const result = data.chart?.result?.[0];
     
     if (!result) {
-      throw new Error('Invalid symbol data from Yahoo');
+      throw new Error('查無市場資料');
     }
 
     const meta = result.meta;
