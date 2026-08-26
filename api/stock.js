@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.8.1' });
   }
 
   let queryTerm = symbol.trim();
@@ -30,16 +30,12 @@ export default async function handler(req, res) {
       if (searchRes.ok) {
         const searchData = await searchRes.json();
         const quotes = searchData.quotes || [];
-        
-        // 從檢索結果中尋找最適合的股票代號
         const validMatch = quotes.find(q => q.symbol && !q.symbol.includes('='));
         if (validMatch && validMatch.symbol) {
           finalSymbol = validMatch.symbol;
         }
       }
-    } catch (e) {
-      // 搜尋失敗則退回原名稱嘗試
-    }
+    } catch (e) {}
   }
 
   // 2. 如果是台股 4 碼純數字，自動補上 .TW
@@ -56,7 +52,6 @@ export default async function handler(req, res) {
       }
     });
     
-    // 若台股 .TW 失敗自動嘗試 .TWO
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
       url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
@@ -81,10 +76,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       symbol: meta.symbol || finalSymbol,
       currentPrice: Number(currentPrice),
-      prevClose: Number(prevClose || currentPrice)
+      prevClose: Number(prevClose || currentPrice),
+      apiVersion: 'v4.8.1' // 後端版本號回傳
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message, apiVersion: 'v4.8.1' });
   }
 }
