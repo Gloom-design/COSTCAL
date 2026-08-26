@@ -14,9 +14,9 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.8.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.8.1</span>
         </div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中 (前端 v4.8.1)...</div>
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3">
@@ -285,7 +285,6 @@
       }
     };
     
-    // 記憶使用者上一次選取的組別，絕對不會跳回第一組
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
     let currentUsKey = localStorage.getItem('calc_current_us_key') || "AAPL";
 
@@ -350,7 +349,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 呼叫後端進行完全動態的網路查詢，並將後端解析出的標準代號帶回
+    // 呼叫後端進行完全動態網路檢索（支援中文轉美股/台股代號），並顯示後端版本號 v4.8.1
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -386,7 +385,7 @@
           
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
-          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || querySymbol} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || querySymbol} 行情 (${result.currentPrice}) [後端 ${result.apiVersion || 'v4.8.1'}]`;
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
@@ -445,7 +444,7 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2383 或 台光電):" : "請輸入美股代號 (例如: AAPL):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2383 或 台光電):" : "請輸入美股代號或名稱 (例如: AAPL 或 美光):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
