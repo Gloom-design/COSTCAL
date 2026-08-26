@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.4</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -148,7 +148,7 @@
 
     <!-- 美股介面 -->
     <div id="usView" class="space-y-4 sm:space-y-5 hidden">
-      <!-- 美股獨立組合管理列 (內建預設3個美股組合) -->
+      <!-- 美股獨立組合管理列 -->
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
         <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
         </select>
@@ -161,7 +161,7 @@
         <div class="flex justify-between items-center border-b pb-3">
           <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與代號查詢</span>
           <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600 items-center">
-            <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5" value="32.5"></span>
+            <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5" value="32"></span>
             <button type="button" onclick="fetchExchangeRate()" class="bg-teal-50 hover:bg-teal-100 text-teal-700 px-2 py-1 rounded-lg text-[10px] font-bold border border-teal-200 cursor-pointer">🔄 即時</button>
             <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5" value="0"></span>
           </div>
@@ -261,15 +261,14 @@
     let saveTimeout = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     
-    // 獨立分開的雲端/本機資料結構 (台股與美股各自擁有獨立的組合清單)
     let cloudData = { 
       twStocks: { 
-        "力成 (台股組合)": { symbol: "6239", discount: "0.6", minFee: "20", fee: "0" } 
+        "力成 (台股組合)": { symbol: "6239", discount: "0.6", minFee: "20" } 
       },
       usStocks: {
-        "美股組合 1": { symbol: "AAPL", rate: "32.5", fee: "0" },
-        "美股組合 2": { symbol: "NVDA", rate: "32.5", fee: "0" },
-        "美股組合 3": { symbol: "TSLA", rate: "32.5", fee: "0" }
+        "美股組合 1": { symbol: "AAPL", rate: "32", fee: "0" },
+        "美股組合 2": { symbol: "NVDA", rate: "32", fee: "0" },
+        "美股組合 3": { symbol: "TSLA", rate: "32", fee: "0" }
       }
     };
     
@@ -318,41 +317,56 @@
       }
     };
 
+    // 修復並優化即時匯率抓取（支援多重備用來源）
     window.fetchExchangeRate = async function() {
       document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
-
+      
       try {
+        // 來源一：Yahoo Finance API (透過 corsproxy)
         const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/TWD=X?interval=1d`;
         const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
         
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
         const res = await fetch(proxyUrl, { signal: controller.signal });
         clearTimeout(timeoutId);
 
-        if (!res.ok) throw new Error("匯率網路請求異常");
-        
-        const data = await res.json();
-        if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
-          throw new Error("查無匯率資料");
-        }
-
-        const meta = data.chart.result[0].meta;
-        const rate = meta.regularMarketPrice || meta.chartPreviousClose;
-
-        if (rate) {
-          document.getElementById('us_exchangeRate').value = rate.toFixed(2);
-          calculateUs();
-          saveData();
-          document.getElementById('syncStatus').innerText = `已更新即時匯率: ${rate.toFixed(2)}`;
-        } else {
-          throw new Error("無匯率數值");
+        if (res.ok) {
+          const data = await res.json();
+          const meta = data?.chart?.result?.[0]?.meta;
+          const rate = meta?.regularMarketPrice || meta?.chartPreviousClose;
+          if (rate) {
+            applyRate(rate);
+            return;
+          }
         }
       } catch (e) {
-        clearTimeout(timeoutId);
-        document.getElementById('syncStatus').innerText = '即時匯率查詢逾時，維持原設定';
+        // 嘗試備用 API
+      }
+
+      try {
+        // 來源二：open.er-api.com (穩定免費匯率 API)
+        const res2 = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (res2.ok) {
+          const data2 = await res2.json();
+          const rate2 = data2?.rates?.TWD;
+          if (rate2) {
+            applyRate(rate2);
+            return;
+          }
+        }
+        throw new Error("所有即時匯率來源皆無法取得");
+      } catch (err) {
+        document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
       }
     };
+
+    function applyRate(rate) {
+      document.getElementById('us_exchangeRate').value = rate.toFixed(2);
+      calculateUs();
+      saveData();
+      document.getElementById('syncStatus').innerText = `已更新即時匯率: ${rate.toFixed(2)}`;
+    }
 
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
@@ -438,7 +452,7 @@
       if (targetStore[name]) { alert("此組別名稱已存在！"); return; }
       
       saveUIToCurrentStock(type);
-      targetStore[name] = type === 'tw' ? { symbol: "2330", discount: "0.6", minFee: "20" } : { symbol: "AAPL", rate: "32.5", fee: "0" };
+      targetStore[name] = type === 'tw' ? { symbol: "2330", discount: "0.6", minFee: "20" } : { symbol: "AAPL", rate: "32", fee: "0" };
       
       if (type === 'tw') currentTwKey = name; else currentUsKey = name;
       
@@ -568,7 +582,7 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_symbolInput').value = us.symbol || '';
-        document.getElementById('us_exchangeRate').value = us.rate || '32.5';
+        document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 || '';
         document.getElementById('us_p1').value = us.p1 || '';
@@ -753,8 +767,14 @@
       if (fetchedData.twStocks && fetchedData.usStocks) {
         cloudData = fetchedData;
       } else if (fetchedData.stocks) {
-        // 相容舊版資料結構轉換
-        cloudData = { twStocks: {}, usStocks: { "美股組合 1": { symbol: "AAPL", rate: "32.5", fee: "0" }, "美股組合 2": { symbol: "NVDA", rate: "32.5", fee: "0" }, "美股組合 3": { symbol: "TSLA", rate: "32.5", fee: "0" } } };
+        cloudData = { 
+          twStocks: {}, 
+          usStocks: { 
+            "美股組合 1": { symbol: "AAPL", rate: "32", fee: "0" }, 
+            "美股組合 2": { symbol: "NVDA", rate: "32", fee: "0" }, 
+            "美股組合 3": { symbol: "TSLA", rate: "32", fee: "0" } 
+          } 
+        };
         Object.keys(fetchedData.stocks).forEach(k => {
           if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
         });
