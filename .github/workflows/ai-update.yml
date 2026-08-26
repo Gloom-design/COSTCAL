@@ -32,7 +32,7 @@ jobs:
       - name: Call Gemini API and Update Code
         if: steps.check.outputs.is_ai == 'true'
         env:
-          # 這裡已經改成安全讀取，不再寫出明碼
+          # 使用 GitHub Secrets 安全讀取金鑰
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
         run: |
@@ -49,10 +49,10 @@ jobs:
               contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
             });
 
-            // 正確串接金鑰
+            // 🎯 已補上 -latest，解決模型找不到的問題
             const options = {
               hostname: "generativelanguage.googleapis.com",
-              path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+              path: `/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`,
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
