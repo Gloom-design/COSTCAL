@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.3</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -371,17 +371,30 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 透過 Vercel 後端 API 抓取行情
+    // 智慧萬用行情查詢（支援自動切換 .TW 與 .TWO 支援上櫃與上市股票查詢）
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = targetSymbol || document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) return;
 
       let querySymbol = symbolInput.toUpperCase();
+      
       if (type === 'tw') {
-        if (twStockDictionary[symbolInput]) {
-          querySymbol = twStockDictionary[symbolInput];
+        if (twStockDictionary[querySymbol]) {
+          querySymbol = twStockDictionary[querySymbol];
         }
-        if (!querySymbol.endsWith('.TW')) querySymbol += '.TW';
+
+        // 自動判斷上市或上櫃：若是常見上櫃或特定代號，預設先測 .TWO，否則先測 .TW
+        if (/^\d{4}$/.test(querySymbol)) {
+          const knownTwo = ["6223", "3105", "3293", "5347", "6515", "8299"]; // 可隨時擴充上櫃代號
+          const suffix = knownTwo.includes(querySymbol) ? '.TWO' : '.TW';
+          if (!querySymbol.endsWith('.TW') && !querySymbol.endsWith('.TWO')) {
+            querySymbol += suffix;
+          }
+        } else {
+          if (!querySymbol.endsWith('.TW') && !querySymbol.endsWith('.TWO')) {
+            querySymbol += '.TW';
+          }
+        }
       }
 
       if (fetchController) fetchController.abort();
@@ -390,7 +403,14 @@
       document.getElementById('syncStatus').innerText = `正在透過 Vercel 後端查詢 ${querySymbol}...`;
 
       try {
-        const apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${querySymbol}`, { signal: fetchController.signal });
+        let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${querySymbol}`, { signal: fetchController.signal });
+        
+        // 自動容錯機制：如果用 .TW 查失敗（例如它是上櫃股票被誤判），自動切換成 .TWO 再試一次
+        if (!apiRes.ok && querySymbol.endsWith('.TW')) {
+          querySymbol = querySymbol.replace('.TW', '.TWO');
+          apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${querySymbol}`, { signal: fetchController.signal });
+        }
+
         if (!apiRes.ok) throw new Error("後端查詢失敗");
 
         const result = await apiRes.json();
@@ -405,7 +425,7 @@
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
-        document.getElementById('syncStatus').innerText = `查詢失敗`;
+        document.getElementById('syncStatus').innerText = `查詢失敗，請檢查代號是否正確`;
       }
     };
 
@@ -462,7 +482,7 @@
 
     // 智慧新增組別：自動對應名稱與代號，並抓取股價
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2345 或 智邦):" : "請輸入美股代號或名稱 (例如: AAPL 或 蘋果):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 6239 或 力成):" : "請輸入美股代號或名稱 (例如: AAPL 或 蘋果):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
@@ -475,7 +495,7 @@
           if (/^\d+$/.test(trimmed)) {
             assignedSymbol = trimmed;
             assignedName = twStockDictionary[trimmed];
-            assignedKey = twStockDictionary[trimmed]; // 讓選單顯示中文名稱
+            assignedKey = twStockDictionary[trimmed];
           } else {
             assignedName = trimmed;
             assignedSymbol = twStockDictionary[trimmed];
