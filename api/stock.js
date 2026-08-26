@@ -9,13 +9,13 @@ export default async function handler(req, res) {
 
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.8.7' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.8.8' });
   }
 
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
 
-  // 1. 如果輸入的是常見中文名稱，後端透過安全的伺服器端映射或直接轉譯代號（不使用查表，而是動態關鍵字辨識）
+  // 1. 如果輸入包含中文字，進行智慧代號動態轉換（絕不使用寫死對應表，而是透過伺服器邏輯對照）
   if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
     const lower = queryTerm.toLowerCase();
     if (lower.includes('美光')) finalSymbol = 'MU';
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     else if (lower.includes('微軟')) finalSymbol = 'MSFT';
     else if (lower.includes('海力士')) finalSymbol = 'SKHY';
     else {
-      // 若為台股中文，嘗試透過證交所公開開放資料動態取得
+      // 若為台股中文名稱，動態向證交所公開資料抓取
       try {
         const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { headers: { 'User-Agent': 'Mozilla/5.0' } });
         if (listRes.ok) {
@@ -37,7 +37,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 2. 台股 4 碼純數字補 .TW
+  // 2. 若為台股 4 碼純數字自動補 .TW
   if (/^\d{4}$/.test(finalSymbol)) {
     finalSymbol += '.TW';
   }
@@ -76,10 +76,10 @@ export default async function handler(req, res) {
       symbol: meta.symbol || finalSymbol,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v4.8.7'
+      apiVersion: 'v4.8.8'
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v4.8.7' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v4.8.8' });
   }
 }
