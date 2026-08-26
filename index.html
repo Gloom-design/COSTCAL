@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.6</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.7</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -276,15 +276,19 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
+    // 完整的台股智慧對應字典（支援中文名稱自動對應代號）
     const twStockDictionary = {
       "2330": "台積電", "台積電": "2330",
       "2345": "智邦", "智邦": "2345",
-      "2308": "台達電", "台達電": "2308",
+      "2308": "台達電", "台達電": "2308", "台達": "2308",
       "6239": "力成", "力成": "6239",
       "3105": "穩懋", "穩懋": "3105",
       "3665": "貿聯-KY", "貿聯-KY": "3665", "貿聯": "3665",
       "2317": "鴻海", "鴻海": "2317",
-      "2454": "聯發科", "聯發科": "2454"
+      "2454": "聯發科", "聯發科": "2454",
+      "3035": "智原", "智原": "3035",
+      "2382": "廣達", "廣達": "2382",
+      "3231": "緯創", "緯創": "3231"
     };
 
     const usStockDictionary = {
@@ -369,36 +373,40 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 完美修復：強制對應代號與名稱，絕不把中文組別名稱傳送給查價 API
+    // 智慧自動對應與查詢核心：輸入中文名稱自動轉代號查詢
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
-      // 1. 優先從該組合的「代號輸入框」抓取資料
-      let inputVal = targetSymbol || document.getElementById(`${type}_symbolInput`).value.trim();
-      if (!inputVal) {
-        // 如果代號輸入框是空的，嘗試用名稱輸入框去字典找
-        const nameVal = document.getElementById(`${type}_nameInput`).value.trim();
-        if (type === 'tw' && twStockDictionary[nameVal]) {
-          inputVal = twStockDictionary[nameVal];
-          document.getElementById(`${type}_symbolInput`).value = inputVal;
-        } else if (type === 'us' && usStockDictionary[nameVal]) {
-          inputVal = usStockDictionary[nameVal];
-          document.getElementById(`${type}_symbolInput`).value = inputVal;
-        } else {
-          return;
+      const symbolInput = document.getElementById(`${type}_symbolInput`);
+      const nameInput = document.getElementById(`${type}_nameInput`);
+      
+      let symbolVal = targetSymbol || symbolInput.value.trim();
+      let nameVal = nameInput ? nameInput.value.trim() : '';
+
+      if (type === 'tw') {
+        if (twStockDictionary[symbolVal]) {
+          symbolVal = twStockDictionary[symbolVal];
+          symbolInput.value = symbolVal;
+        } else if (!symbolVal && twStockDictionary[nameVal]) {
+          symbolVal = twStockDictionary[nameVal];
+          symbolInput.value = symbolVal;
+        } else if (/[\u4e00-\u9fa5]/.test(symbolVal)) {
+          let foundKey = Object.keys(twStockDictionary).find(k => twStockDictionary[k].includes(symbolVal) || symbolVal.includes(twStockDictionary[k]));
+          if (foundKey) {
+            symbolVal = /^\d+$/.test(foundKey) ? foundKey : twStockDictionary[foundKey];
+            symbolInput.value = symbolVal;
+          }
         }
       }
 
-      let querySymbol = inputVal.toUpperCase();
+      if (!symbolVal) {
+        document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
+        return;
+      }
+
+      let querySymbol = symbolVal.toUpperCase();
       
       if (type === 'tw') {
-        // 如果輸入框內不小心輸入了中文名稱，透過字典轉換成純數字代號
-        if (twStockDictionary[querySymbol]) {
-          querySymbol = twStockDictionary[querySymbol];
-          document.getElementById(`${type}_symbolInput`).value = querySymbol;
-        }
-
-        // 確保台股代號格式正確 (4碼數字加上 .TW 或 .TWO)
         if (/^\d{4}$/.test(querySymbol)) {
-          const knownTwo = ["6223", "3105", "3293", "5347", "6515", "8299"];
+          const knownTwo = ["6223", "3105", "3293", "5347", "6515", "8299", "3548"];
           const suffix = knownTwo.includes(querySymbol) ? '.TWO' : '.TW';
           if (!querySymbol.endsWith('.TW') && !querySymbol.endsWith('.TWO')) {
             querySymbol += suffix;
