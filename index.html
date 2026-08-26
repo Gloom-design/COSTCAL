@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.7.0</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -276,7 +276,7 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
-    // 完整的台股智慧對應字典（名稱對應代號）
+    // 完整的台股智慧對應字典
     const twStockDictionary = {
       "台積電": "2330", "2330": "2330",
       "智邦": "2345", "2345": "2345",
@@ -288,7 +288,8 @@
       "聯發科": "2454", "2454": "2454",
       "智原": "3035", "3035": "3035",
       "廣達": "2382", "2382": "2382",
-      "緯創": "3231", "3231": "3231"
+      "緯創": "3231", "3231": "3231",
+      "德律": "3030", "3030": "3030"
     };
 
     const usStockDictionary = {
@@ -373,7 +374,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 嚴格維持代號欄位為純代號，絕不把中文名稱寫入代號欄位
+    // 智慧防呆查詢：自動攔截並將中文名稱洗白轉成代號
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -381,22 +382,28 @@
       let symbolVal = targetSymbol || symbolInput.value.trim();
       let nameVal = nameInput ? nameInput.value.trim() : '';
 
-      // 如果代號欄位是空的，但名稱有填，嘗試去字典找出對應代號
-      if (!symbolVal && type === 'tw' && twStockDictionary[nameVal]) {
-        symbolVal = twStockDictionary[nameVal];
-        symbolInput.value = symbolVal;
-      }
-
-      // 如果代號欄位裏面不小心輸入了中文名稱，自動轉換成正確的數字代號
-      if (type === 'tw' && twStockDictionary[symbolVal]) {
-        symbolVal = twStockDictionary[symbolVal];
-        symbolInput.value = symbolVal; 
-      }
-
+      // 嚴格過濾：如果代號欄位是空的，或包含中文，強制從名稱或字典中找對應代號
       if (!symbolVal || /[\u4e00-\u9fa5]/.test(symbolVal)) {
-        document.getElementById('syncStatus').innerText = '查詢失敗：請在代號欄位輸入正確數字（例如 6239）';
+        let lookupKey = symbolVal || nameVal;
+        if (twStockDictionary[lookupKey]) {
+          symbolVal = twStockDictionary[lookupKey];
+        } else {
+          // 如果字典找不到，嘗試用當前選中的名稱去查
+          const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+          if (twStockDictionary[currentKey]) {
+            symbolVal = twStockDictionary[currentKey];
+          }
+        }
+      }
+      
+      // 最後防線：若依然含中文，直接指定預設代號並提示
+      if (/[\u4e00-\u9fa5]/.test(symbolVal)) {
+        document.getElementById('syncStatus').innerText = '請輸入正確的台股代號（例如 3030）';
         return;
       }
+
+      // 將乾淨的代號寫回輸入框
+      symbolInput.value = symbolVal;
 
       let querySymbol = symbolVal.toUpperCase();
       
@@ -474,7 +481,12 @@
       if (type === 'tw') {
         currentTwKey = trimmedName;
         targetStore[trimmedName].name = trimmedName;
+        // 自動對應代號
+        if (twStockDictionary[trimmedName]) {
+          targetStore[trimmedName].symbol = twStockDictionary[trimmedName];
+        }
         document.getElementById('tw_nameInput').value = trimmedName;
+        document.getElementById('tw_symbolInput').value = targetStore[trimmedName].symbol || '';
       } else {
         currentUsKey = trimmedName;
         targetStore[trimmedName].name = trimmedName;
@@ -489,10 +501,10 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號 (例如: 6239):" : "請輸入美股代號 (例如: AAPL):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 3030 或 德律):" : "請輸入美股代號 (例如: AAPL):");
       if (!inputVal || !inputVal.trim()) return;
 
-      const trimmed = inputVal.trim().toUpperCase();
+      const trimmed = inputVal.trim();
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       
       let assignedKey = trimmed;
@@ -501,12 +513,12 @@
 
       if (type === 'tw' && twStockDictionary[trimmed]) {
         assignedSymbol = twStockDictionary[trimmed];
-        assignedName = trimmed; // 保留中文名稱
+        assignedName = trimmed; 
         assignedKey = trimmed;
-      } else if (type === 'us' && usStockDictionary[trimmed]) {
-        assignedSymbol = usStockDictionary[trimmed];
+      } else if (type === 'us' && usStockDictionary[trimmed.toUpperCase()]) {
+        assignedSymbol = usStockDictionary[trimmed.toUpperCase()];
         assignedName = trimmed;
-        assignedKey = trimmed;
+        assignedKey = trimmed.toUpperCase();
       }
 
       if (targetStore[assignedKey]) { alert("此組別已存在！"); return; }
@@ -599,9 +611,14 @@
     function saveUIToCurrentStock(type) {
       if (type === 'tw') {
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
+        // 確保存入雲端時 symbol 絕對不能是中文
+        let symVal = document.getElementById('tw_symbolInput').value.trim();
+        if (/[\u4e00-\u9fa5]/.test(symVal) && twStockDictionary[symVal]) {
+          symVal = twStockDictionary[symVal];
+        }
         cloudData.twStocks[currentTwKey] = {
           name: document.getElementById('tw_nameInput').value,
-          symbol: document.getElementById('tw_symbolInput').value,
+          symbol: symVal,
           discount: document.getElementById('twDiscount').value,
           minFee: document.getElementById('twMinFee').value,
           n1: document.getElementById('tw_n1').value,
@@ -636,7 +653,14 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = tw.symbol || ''; // 嚴格讀取代號，絕不填入中文名稱
+        
+        // 核心防呆洗白：如果雲端存的 symbol 是空的或是中文，強制用字典或 key 洗白成數字代號
+        let resolvedSymbol = tw.symbol || '';
+        if (!resolvedSymbol || /[\u4e00-\u9fa5]/.test(resolvedSymbol)) {
+          resolvedSymbol = twStockDictionary[key] || twStockDictionary[tw.name] || '';
+        }
+        document.getElementById('tw_symbolInput').value = resolvedSymbol;
+
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
         document.getElementById('tw_n1').value = tw.n1 || '';
