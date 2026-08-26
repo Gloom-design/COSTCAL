@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.9.5</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.9.7</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -349,16 +349,13 @@
     };
 
     // 取得即時行情（支援在代號或名稱欄位輸入中文名稱，自動解析並回填代號與股價）
-    window.fetchMarketPrice = async function(type, targetSymbol = null) {
+    window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       
-      let symbolVal = targetSymbol || symbolInput.value.trim();
-      let nameVal = nameInput ? nameInput.value.trim() : '';
+      let queryVal = symbolInput.value.trim() || (nameInput ? nameInput.value.trim() : '');
 
-      // 若代號欄位沒填，但名稱欄位有填，優先拿名稱去查詢
-      let querySymbol = symbolVal || nameVal;
-      if (!querySymbol) {
+      if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
         return;
       }
@@ -366,38 +363,17 @@
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
 
-      document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
+      document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
 
       try {
-        let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(querySymbol)}`, { signal: fetchController.signal });
+        let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
         
-        if (!apiRes.ok) throw new Error("後端查詢失敗");
-
         const result = await apiRes.json();
+        if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
         
         if (result.currentPrice) {
-          // 強制將後端解析出的標準代號填入代號欄位
           if (result.symbol) {
-            symbolInput.value = result.symbol;
-          }
-          
-          // 如果是用中文查詢，保持或更新名稱欄位與選單 key
-          if (result.name && nameInput) {
-            if (type === 'us' && currentUsKey !== nameVal && /[\u4e00-\u9fa5]/.test(nameVal)) {
-              const oldKey = currentUsKey;
-              cloudData.usStocks[nameVal] = cloudData.usStocks[oldKey] || {};
-              delete cloudData.usStocks[oldKey];
-              currentUsKey = nameVal;
-              localStorage.setItem('calc_current_us_key', nameVal);
-              renderStockSelector('us');
-            } else if (type === 'tw' && currentTwKey !== result.name) {
-              const oldKey = currentTwKey;
-              cloudData.twStocks[result.name] = cloudData.twStocks[oldKey] || {};
-              delete cloudData.twStocks[oldKey];
-              currentTwKey = result.name;
-              localStorage.setItem('calc_current_tw_key', result.name);
-              renderStockSelector('tw');
-            }
+            symbolInput.value = result.symbol; // 將後端正確解析出的標準代號填回代號欄位
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
@@ -410,11 +386,11 @@
             document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
           }
 
-          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || querySymbol} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
-        document.getElementById('syncStatus').innerText = `查詢失敗，請檢查代號或名稱是否正確`;
+        document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
       }
     };
 
@@ -428,12 +404,7 @@
       }
 
       loadStockToUI(type, key);
-      
-      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const targetSymbol = store[key]?.symbol || store[key]?.name;
-      if (targetSymbol) {
-        await fetchMarketPrice(type, targetSymbol);
-      }
+      await fetchMarketPrice(type);
     };
 
     window.renameStock = async function(type) {
@@ -464,12 +435,11 @@
       renderStockSelector(type);
       loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
       saveData();
-
-      await fetchMarketPrice(type, targetStore[trimmedName].symbol || targetStore[trimmedName].name);
+      await fetchMarketPrice(type);
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 大成 或 1210):" : "請輸入美股名稱或代號 (例如: 昂跑 或 ONON):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號或名稱 (例如: ONON 或 昂跑):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
@@ -493,8 +463,8 @@
       loadStockToUI(type, trimmed);
       saveData();
 
-      // 新增後自動執行查詢，後端會自動把中文轉換為標準美股代號並回填
-      await fetchMarketPrice(type, trimmed);
+      document.getElementById(`${type}_symbolInput`).value = trimmed;
+      await fetchMarketPrice(type);
     };
 
     window.deleteStock = function(type) {
