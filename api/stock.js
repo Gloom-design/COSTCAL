@@ -7,58 +7,41 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  let { symbol, search } = req.query;
-  let queryTerm = search || symbol;
+  let { symbol } = req.query;
 
-  if (!queryTerm) {
-    return res.status(400).json({ error: 'Missing symbol or search term' });
+  if (!symbol) {
+    return res.status(400).json({ error: 'Missing symbol' });
   }
 
-  // 1. 後端強固對應表（確保常用與上櫃/上市代號皆完整帶有 .TW / .TWO）
-  const backendDictionary = {
-    "亞力": "1514.TW",
-    "力成": "6239.TWO",
-    "德律": "3030.TW",
-    "台積電": "2330.TW",
-    "智邦": "2345.TW",
-    "台達電": "2308.TW",
-    "穩懋": "3105.TWO",
-    "貿聯-KY": "3665.TW",
-    "貿聯": "3665.TW",
-    "鴻海": "2317.TW",
-    "聯發科": "2454.TW",
-    "智原": "3035.TW",
-    "廣達": "2382.TW",
-    "緯創": "3231.TW"
-  };
+  let queryTerm = symbol.trim();
 
-  let cleanQuery = queryTerm.trim();
-  if (backendDictionary[cleanQuery]) {
-    cleanQuery = backendDictionary[cleanQuery];
-  } else if (search) {
+  // 如果包含中文或不是純代號格式，透過 Yahoo 搜尋 API 自動把中文轉成正確代號！
+  if (/[\u4e00-\u9fa5]/.test(queryTerm) || !/^[A-Z0-9.]+$/i.test(queryTerm)) {
     try {
-      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanQuery)}&quotesCount=1`;
+      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1`;
       const searchRes = await fetch(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       const searchData = await searchRes.json();
       const quote = searchData.quotes?.[0];
       if (quote && quote.symbol) {
-        cleanQuery = quote.symbol;
+        queryTerm = quote.symbol; // 例如自動找到 "2383.TW"
       }
-    } catch (e) {}
+    } catch (e) {
+      // 搜尋失敗則繼續往下嘗試
+    }
   }
 
-  let finalSymbol = cleanQuery.toUpperCase();
+  let finalSymbol = queryTerm.toUpperCase();
+  
+  // 自動補上台股後綴 (.TW 或 .TWO)
   if (/^\d{4}$/.test(finalSymbol)) {
     const knownTwo = ["6223", "3105", "3293", "5347", "6515", "8299", "3548", "3030"];
     finalSymbol += knownTwo.includes(finalSymbol) ? '.TWO' : '.TW';
-  }
-
-  if (search && !symbol) {
-    return res.status(200).json({ symbol: finalSymbol });
+  } else if (/^\d{4}\.TW$/.test(finalSymbol)) {
+    // 預防萬一
   }
 
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
+    let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
     let response = await fetch(url, {
       headers: { 
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -66,10 +49,11 @@ export default async function handler(req, res) {
       }
     });
     
+    // 如果 .TW 失敗，自動嘗試 .TWO
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
-      const fallbackUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
-      response = await fetch(fallbackUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
+      response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
     }
 
     if (!response.ok) {
@@ -87,7 +71,6 @@ export default async function handler(req, res) {
     const currentPrice = meta.regularMarketPrice || meta.chartPreviousClose || meta.previousClose;
     const prevClose = meta.chartPreviousClose || meta.previousClose || currentPrice;
 
-    // 關鍵：將處理好且帶有完整後綴的 symbol 一併回傳給前端
     return res.status(200).json({
       symbol: meta.symbol || finalSymbol,
       currentPrice: Number(currentPrice),
