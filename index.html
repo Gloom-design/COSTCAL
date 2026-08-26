@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.1.9</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -259,6 +259,7 @@
     let sbClient = null; 
     let currentUser = null;
     let saveTimeout = null;
+    let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     
     let cloudData = { 
@@ -336,6 +337,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
+    // 具備防競態條件（AbortController）的行情抓取
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) { alert("請先輸入股票代號！"); return; }
@@ -347,11 +349,14 @@
         querySymbol = querySymbol + '.us';
       }
 
+      if (fetchController) fetchController.abort();
+      fetchController = new AbortController();
+
       document.getElementById('syncStatus').innerText = `正在查詢 ${symbolInput.toUpperCase()} 行情...`;
 
       try {
         const csvUrl = `https://stooq.com/q/l/?s=${querySymbol}&f=sd2t2ohlcv&h&e=csv`;
-        const res = await fetch(csvUrl);
+        const res = await fetch(csvUrl, { signal: fetchController.signal });
         if (!res.ok) throw new Error("網路請求失敗");
         
         const csvText = await res.text();
@@ -382,6 +387,7 @@
           throw new Error("數值解析錯誤");
         }
       } catch (e) {
+        if (e.name === 'AbortError') return;
         document.getElementById('syncStatus').innerText = `無法取得 ${symbolInput.toUpperCase()} 即時行情`;
         alert(`無法取得代號「${symbolInput.toUpperCase()}」的行情，請確認代號是否正確。`);
       }
@@ -544,7 +550,7 @@
         document.getElementById('tw_p2').value = tw.p2 || '';
         document.getElementById('tw_n2').value = tw.n2 || '';
         document.getElementById('tw_ptarget').value = tw.ptarget || '';
-        calculateTw(); // 確保切換後立即重新計算台股結果
+        calculateTw();
       } else {
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
@@ -558,7 +564,7 @@
         document.getElementById('us_p2').value = us.p2 || '';
         document.getElementById('us_n2').value = us.n2 || '';
         document.getElementById('us_ptarget').value = us.ptarget || '';
-        calculateUs(); // 確保切換後立即重新計算美股結果
+        calculateUs();
       }
     }
 
