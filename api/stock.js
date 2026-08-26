@@ -14,7 +14,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing symbol or search term' });
   }
 
-  // 1. 後端強固對應表（確保常用或容易查不到的股票秒速對應）
+  // 1. 後端強固對應表（確保常用與上櫃/上市代號皆完整帶有 .TW / .TWO）
   const backendDictionary = {
     "亞力": "1514.TW",
     "力成": "6239.TWO",
@@ -36,7 +36,6 @@ export default async function handler(req, res) {
   if (backendDictionary[cleanQuery]) {
     cleanQuery = backendDictionary[cleanQuery];
   } else if (search) {
-    // 如果是純中文名稱但不在字典裡，嘗試透過 Yahoo 搜尋
     try {
       const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanQuery)}&quotesCount=1`;
       const searchRes = await fetch(searchUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
@@ -45,19 +44,15 @@ export default async function handler(req, res) {
       if (quote && quote.symbol) {
         cleanQuery = quote.symbol;
       }
-    } catch (e) {
-      // 搜尋失敗則維持原樣
-    }
+    } catch (e) {}
   }
 
-  // 格式化台股代號後綴
   let finalSymbol = cleanQuery.toUpperCase();
   if (/^\d{4}$/.test(finalSymbol)) {
     const knownTwo = ["6223", "3105", "3293", "5347", "6515", "8299", "3548", "3030"];
     finalSymbol += knownTwo.includes(finalSymbol) ? '.TWO' : '.TW';
   }
 
-  // 如果前端是呼叫 search 模式，回傳解析後的 symbol
   if (search && !symbol) {
     return res.status(200).json({ symbol: finalSymbol });
   }
@@ -71,13 +66,10 @@ export default async function handler(req, res) {
       }
     });
     
-    // 如果 .TW 失敗，自動嘗試 .TWO
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
       const fallbackUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
-      response = await fetch(fallbackUrl, {
-        headers: { 'User-Agent': 'Mozilla/5.0' }
-      });
+      response = await fetch(fallbackUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } });
     }
 
     if (!response.ok) {
@@ -95,6 +87,7 @@ export default async function handler(req, res) {
     const currentPrice = meta.regularMarketPrice || meta.chartPreviousClose || meta.previousClose;
     const prevClose = meta.chartPreviousClose || meta.previousClose || currentPrice;
 
+    // 關鍵：將處理好且帶有完整後綴的 symbol 一併回傳給前端
     return res.status(200).json({
       symbol: meta.symbol || finalSymbol,
       currentPrice: Number(currentPrice),
