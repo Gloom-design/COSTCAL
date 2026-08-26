@@ -9,12 +9,12 @@
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
     
-    <!-- 頂部標題與版本號 -->
+    <!-- 頂部標題與雙版本號 -->
     <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.6</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.7</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -348,26 +348,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 前端動態檢索：利用瀏覽器直接進行全球財經搜尋動態取得代號（完全零查表）
-    async function resolveSymbolInFrontend(query) {
-      let q = query.trim();
-      if (!/[\u4e00-\u9fa5]/.test(q)) return q; // 若不是中文直接回傳
-      
-      try {
-        const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=3&newsCount=0`);
-        if (res.ok) {
-          const data = await res.json();
-          const quotes = data.quotes || [];
-          const match = quotes.find(item => item.symbol && !item.symbol.includes('='));
-          if (match && match.symbol) {
-            return match.symbol;
-          }
-        }
-      } catch (e) {}
-      return q;
-    }
-
-    // 取得即時行情（前端 v4.8.6 與後端 stock.js v4.8.6 雙版本同步）
+    // 取得即時行情（前端直接呼叫後端 v4.8.7，安全無 CORS 問題）
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -384,10 +365,7 @@
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
 
-      document.getElementById('syncStatus').innerText = `正在檢索 ${querySymbol}...`;
-
-      // 透過前端進行安全的動態名稱聯想，轉成標準代號
-      querySymbol = await resolveSymbolInFrontend(querySymbol);
+      document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
 
       try {
         let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(querySymbol)}`, { signal: fetchController.signal });
@@ -399,6 +377,10 @@
         if (result.currentPrice) {
           if (result.symbol) {
             symbolInput.value = result.symbol;
+            // 同步更新美股名稱（若原本是中文，會保留或正確對應）
+            if (type === 'us' && nameInput && /[\u4e00-\u9fa5]/.test(nameVal)) {
+              // 保持使用者的中文名稱
+            }
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
@@ -470,7 +452,7 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2383 或 台光電):" : "請輸入美股代號或名稱 (例如: AAPL 或 美光):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2383 或 台光電):" : "請輸入美股代號或名稱 (例如: MU 或 美光):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
