@@ -9,15 +9,16 @@ export default async function handler(req, res) {
 
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.9.2' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.9.3' });
   }
 
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
   let resolvedName = queryTerm;
 
-  // 如果輸入包含中文字，動態向證交所公開 API 查詢對應代號（完全零查表）
+  // 1. 若為台股中文名稱，透過證交所公開 API 動態抓取代號
   if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
+    let foundTw = false;
     try {
       const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { 
         headers: { 'User-Agent': 'Mozilla/5.0' } 
@@ -28,9 +29,26 @@ export default async function handler(req, res) {
         if (found && found.Code) {
           finalSymbol = found.Code + '.TW';
           resolvedName = found.Name.trim();
+          foundTw = true;
         }
       }
     } catch (e) {}
+
+    // 2. 若不是台股，透過 Yahoo Finance 公開搜尋 API 動態尋找美股標準代號（完全零查表）
+    if (!foundTw) {
+      try {
+        const searchRes = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, {
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        if (searchRes.ok) {
+          const searchData = await searchRes.json();
+          if (searchData.quotes && searchData.quotes.length > 0) {
+            finalSymbol = searchData.quotes[0].symbol;
+            resolvedName = searchData.quotes[0].shortname || searchData.quotes[0].longname || queryTerm;
+          }
+        }
+      } catch (e) {}
+    }
   }
 
   // 若為台股 4 碼純數字自動補 .TW
@@ -73,10 +91,10 @@ export default async function handler(req, res) {
       name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v4.9.2'
+      apiVersion: 'v4.9.3'
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v4.9.2' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v4.9.3' });
   }
 }
