@@ -9,12 +9,12 @@
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
     
-    <!-- 頂部標題與版本號（同時顯示前端與 stock.js 後端版本） -->
+    <!-- 頂部標題與版本號 -->
     <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.4</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -350,26 +350,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 前端動態聯想：若輸入中文名稱，先透過公開免費檢索在前端安全環境轉成英文代號，再送往後端
-    async function resolveSymbolIfNeeded(query) {
-      let q = query.trim();
-      if (!/[\u4e00-\u9fa5]/.test(q)) return q; // 如果不是中文，直接回傳
-      
-      try {
-        const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=3&newsCount=0`);
-        if (res.ok) {
-          const data = await res.json();
-          const quotes = data.quotes || [];
-          const match = quotes.find(item => item.symbol && !item.symbol.includes('='));
-          if (match && match.symbol) {
-            return match.symbol;
-          }
-        }
-      } catch (e) {}
-      return q;
-    }
-
-    // 取得即時行情（支援前後端版本號同步顯示）
+    // 呼叫後端進行完全動態的網路檢索與股價抓取（支援前後端 v4.8.4 版本同步顯示）
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -386,10 +367,7 @@
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
 
-      document.getElementById('syncStatus').innerText = `正在檢索 ${querySymbol}...`;
-
-      // 如果代號欄位輸入的是中文，前端先動態轉成對應代號
-      querySymbol = await resolveSymbolIfNeeded(querySymbol);
+      document.getElementById('syncStatus').innerText = `正在透過網路檢索 ${querySymbol}...`;
 
       try {
         let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(querySymbol)}`, { signal: fetchController.signal });
