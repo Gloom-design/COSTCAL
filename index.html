@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.3.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.5.0</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -58,12 +58,19 @@
           </div>
         </div>
 
-        <div class="bg-indigo-50/60 p-3 sm:p-4 rounded-xl border border-indigo-100 flex items-center gap-2.5">
-          <div class="flex-1">
-            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2330 / 6239)</label>
-            <input id="tw_symbolInput" type="text" placeholder="輸入代號如 6239" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股名稱</label>
+            <input id="tw_nameInput" type="text" placeholder="例: 力成" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
-          <button type="button" onclick="fetchMarketPrice('tw')" class="mt-5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
+          <div>
+            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 6239)</label>
+            <input id="tw_symbolInput" type="text" placeholder="輸入代號如 6239" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="button" onclick="fetchMarketPrice('tw')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
             🔍 即時行情
           </button>
         </div>
@@ -167,12 +174,19 @@
           </div>
         </div>
 
-        <div class="bg-teal-50/60 p-3 sm:p-4 rounded-xl border border-teal-100 flex items-center gap-2.5">
-          <div class="flex-1">
-            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: NOK / AAPL)</label>
-            <input id="us_symbolInput" type="text" placeholder="輸入代號如 NOK" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股名稱</label>
+            <input id="us_nameInput" type="text" placeholder="例: 蘋果" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
           </div>
-          <button type="button" onclick="fetchMarketPrice('us')" class="mt-5 bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
+          <div>
+            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AAPL)</label>
+            <input id="us_symbolInput" type="text" placeholder="輸入代號如 AAPL" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="button" onclick="fetchMarketPrice('us')" class="bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
             🔍 即時行情
           </button>
         </div>
@@ -264,16 +278,16 @@
     
     let cloudData = { 
       twStocks: { 
-        "力成 (台股組合)": { symbol: "6239", discount: "0.6", minFee: "20" } 
+        "力成": { name: "力成", symbol: "6239", discount: "0.6", minFee: "20" } 
       },
       usStocks: {
-        "美股組合 1": { symbol: "AAPL", rate: "32", fee: "0" },
-        "美股組合 2": { symbol: "NVDA", rate: "32", fee: "0" },
-        "美股組合 3": { symbol: "TSLA", rate: "32", fee: "0" }
+        "美股組合 1": { name: "美股組合 1", symbol: "AAPL", rate: "32", fee: "0" },
+        "美股組合 2": { name: "美股組合 2", symbol: "NVDA", rate: "32", fee: "0" },
+        "美股組合 3": { name: "美股組合 3", symbol: "TSLA", rate: "32", fee: "0" }
       }
     };
     
-    let currentTwKey = "力成 (台股組合)";
+    let currentTwKey = "力成";
     let currentUsKey = "美股組合 1";
 
     window.loginWithGoogle = async function() {
@@ -337,7 +351,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 支援指定代號查詢，避免非同步競態條件
+    // 透過 Vercel 後端 API 抓取行情
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = targetSymbol || document.getElementById(`${type}_symbolInput`).value.trim();
       if (!symbolInput) return;
@@ -370,20 +384,20 @@
       }
     };
 
-    // 修復切換組合時的股價自動更新邏輯
+    // 切換組合時，連動更新對應的代號與股價
     window.switchStock = async function(type, key) {
       saveUIToCurrentStock(type);
       loadStockToUI(type, key);
       
       const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       const targetSymbol = store[key]?.symbol;
-      
       if (targetSymbol) {
         await fetchMarketPrice(type, targetSymbol);
       }
     };
 
-    window.renameStock = function(type) {
+    // 改名時同步更新名稱與選單，並聯動查代號與股價
+    window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       const newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
       if (!newName || newName.trim() === "" || newName === currentKey) return;
@@ -395,7 +409,15 @@
       targetStore[newName] = targetStore[currentKey];
       delete targetStore[currentKey];
       
-      if (type === 'tw') currentTwKey = newName; else currentUsKey = newName;
+      if (type === 'tw') {
+        currentTwKey = newName;
+        targetStore[newName].name = newName;
+        document.getElementById('tw_nameInput').value = newName;
+      } else {
+        currentUsKey = newName;
+        targetStore[newName].name = newName;
+        document.getElementById('us_nameInput').value = newName;
+      }
       
       renderStockSelector(type);
       loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
@@ -410,9 +432,13 @@
       if (targetStore[name]) { alert("此組別名稱已存在！"); return; }
       
       saveUIToCurrentStock(type);
-      targetStore[name] = type === 'tw' ? { symbol: "2330", discount: "0.6", minFee: "20" } : { symbol: "AAPL", rate: "32", fee: "0" };
-      
-      if (type === 'tw') currentTwKey = name; else currentUsKey = name;
+      if (type === 'tw') {
+        targetStore[name] = { name: name, symbol: "2330", discount: "0.6", minFee: "20" };
+        currentTwKey = name;
+      } else {
+        targetStore[name] = { name: name, symbol: "AAPL", rate: "32", fee: "0" };
+        currentUsKey = name;
+      }
       
       renderStockSelector(type);
       loadStockToUI(type, name);
@@ -491,6 +517,7 @@
       if (type === 'tw') {
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
         cloudData.twStocks[currentTwKey] = {
+          name: document.getElementById('tw_nameInput').value,
           symbol: document.getElementById('tw_symbolInput').value,
           discount: document.getElementById('twDiscount').value,
           minFee: document.getElementById('twMinFee').value,
@@ -506,6 +533,7 @@
       } else {
         if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
         cloudData.usStocks[currentUsKey] = {
+          name: document.getElementById('us_nameInput').value,
           symbol: document.getElementById('us_symbolInput').value,
           rate: document.getElementById('us_exchangeRate').value,
           fee: document.getElementById('us_fee').value,
@@ -524,6 +552,7 @@
       if (type === 'tw') {
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
+        document.getElementById('tw_nameInput').value = tw.name || key;
         document.getElementById('tw_symbolInput').value = tw.symbol || '';
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
@@ -539,6 +568,7 @@
       } else {
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
+        document.getElementById('us_nameInput').value = us.name || key;
         document.getElementById('us_symbolInput').value = us.symbol || '';
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
@@ -752,9 +782,9 @@
         cloudData = { 
           twStocks: {}, 
           usStocks: { 
-            "美股組合 1": { symbol: "AAPL", rate: "32", fee: "0" }, 
-            "美股組合 2": { symbol: "NVDA", rate: "32", fee: "0" }, 
-            "美股組合 3": { symbol: "TSLA", rate: "32", fee: "0" } 
+            "美股組合 1": { name: "美股組合 1", symbol: "AAPL", rate: "32", fee: "0" }, 
+            "美股組合 2": { name: "美股組合 2", symbol: "NVDA", rate: "32", fee: "0" }, 
+            "美股組合 3": { name: "美股組合 3", symbol: "TSLA", rate: "32", fee: "0" } 
           } 
         };
         Object.keys(fetchedData.stocks).forEach(k => {
