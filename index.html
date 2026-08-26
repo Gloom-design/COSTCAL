@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.9.9</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.5.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -275,33 +275,6 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
-    // 雙向對照表：中文名稱 ⇄ 美股英文代號
-    const CN_US_SYMBOL_MAP = {
-      "昂跑": "ONON",
-      "輝達": "NVDA",
-      "微軟": "MSFT",
-      "蘋果": "AAPL",
-      "特斯拉": "TSLA",
-      "美光": "MU",
-      "超微": "AMD",
-      "谷歌": "GOOGL",
-      "亞馬遜": "AMZN",
-      "台積電ADR": "TSM"
-    };
-
-    const US_CN_NAME_MAP = {
-      "ONON": "昂跑",
-      "NVDA": "輝達",
-      "MSFT": "微軟",
-      "AAPL": "蘋果",
-      "TSLA": "特斯拉",
-      "MU": "美光",
-      "AMD": "超微",
-      "GOOGL": "谷歌",
-      "AMZN": "亞馬遜",
-      "TSM": "台積電ADR"
-    };
-
     let cloudData = { 
       twStocks: { 
         "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20" } 
@@ -375,7 +348,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 取得即時行情（支援雙向自動對應）
+    // 取得即時行情：自動同步後端回傳的官方正確名稱與代號到介面與群組選單
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -385,12 +358,6 @@
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
         return;
-      }
-
-      // 如果代號欄位輸入的是中文，轉為英文代號查詢
-      if (type === 'us' && CN_US_SYMBOL_MAP[queryVal]) {
-        queryVal = CN_US_SYMBOL_MAP[queryVal];
-        symbolInput.value = queryVal;
       }
 
       if (fetchController) fetchController.abort();
@@ -405,16 +372,30 @@
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
         
         if (result.currentPrice) {
+          const oldKey = type === 'tw' ? currentTwKey : currentUsKey;
+          const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+
           if (result.symbol) {
-            const cleanSymbol = result.symbol.toUpperCase();
-            symbolInput.value = cleanSymbol;
-            
-            // 如果名稱欄位是空的或是原本的代號，自動帶入對應的中文名稱
-            if (nameInput && (!nameInput.value || nameInput.value === queryVal || US_CN_NAME_MAP[nameInput.value.toUpperCase()])) {
-              if (US_CN_NAME_MAP[cleanSymbol]) {
-                nameInput.value = US_CN_NAME_MAP[cleanSymbol];
-              }
+            symbolInput.value = result.symbol;
+          }
+          
+          let newName = result.name || queryVal;
+          if (nameInput) {
+            nameInput.value = newName;
+          }
+
+          // 如果後端查回來的官方名稱與目前的群組 key 不同，自動幫你把群組 key 更新為官方正確名稱
+          if (newName && newName !== oldKey && store[oldKey]) {
+            store[newName] = store[oldKey];
+            delete store[oldKey];
+            if (type === 'tw') {
+              currentTwKey = newName;
+              localStorage.setItem('calc_current_tw_key', newName);
+            } else {
+              currentUsKey = newName;
+              localStorage.setItem('calc_current_us_key', newName);
             }
+            renderStockSelector(type);
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
@@ -480,7 +461,7 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號或名稱 (例如: ONON 或 昂跑):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號或名稱 (例如: ON 或 昂跑):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
@@ -495,26 +476,16 @@
         currentTwKey = trimmed;
         localStorage.setItem('calc_current_tw_key', trimmed);
       } else {
-        // 新增美股時，若輸入英文代號（如 ONON），自動對應出中文名稱與代號
-        let resolvedSymbol = trimmed.toUpperCase();
-        let resolvedName = trimmed;
-        
-        if (CN_US_SYMBOL_MAP[trimmed]) {
-          resolvedSymbol = CN_US_SYMBOL_MAP[trimmed];
-          resolvedName = trimmed;
-        } else if (US_CN_NAME_MAP[resolvedSymbol]) {
-          resolvedName = US_CN_NAME_MAP[resolvedSymbol];
-        }
-
-        targetStore[resolvedName] = { name: resolvedName, symbol: resolvedSymbol, rate: "32", fee: "0" };
-        currentUsKey = resolvedName;
-        localStorage.setItem('calc_current_us_key', resolvedName);
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed.toUpperCase(), rate: "32", fee: "0" };
+        currentUsKey = trimmed;
+        localStorage.setItem('calc_current_us_key', trimmed);
       }
 
       renderStockSelector(type);
-      loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
+      loadStockToUI(type, trimmed);
       saveData();
 
+      document.getElementById(`${type}_symbolInput`).value = trimmed;
       await fetchMarketPrice(type);
     };
 
