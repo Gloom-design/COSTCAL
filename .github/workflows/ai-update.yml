@@ -16,9 +16,6 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install Google Auth Library
-        run: npm install google-auth-library
-
       - name: Check commit message for AI prompt
         id: check
         run: |
@@ -32,26 +29,19 @@ jobs:
             echo "is_ai=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Call Gemini API with OAuth2
+      - name: Call Gemini API and Update Code
         if: steps.check.outputs.is_ai == 'true'
         env:
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+          # 這裡已經改成安全讀取，不再寫出明碼
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           PROMPT_TEXT: ${{ steps.check.outputs.prompt_text }}
         run: |
           node -e '
-          const { GoogleAuth } = require("google-auth-library");
           const fs = require("fs");
           const https = require("https");
 
           async function run() {
-            // 1. 自動讀取 JSON 金鑰並產生 Google 要求的 OAuth2 Token
-            const auth = new GoogleAuth({
-              credentials: JSON.parse(process.env.GCP_SA_KEY),
-              scopes: ["https://www.googleapis.com/auth/cloud-platform"]
-            });
-            const client = await auth.getClient();
-            const accessToken = await client.getAccessToken();
-
+            const apiKey = process.env.GEMINI_API_KEY;
             const promptText = process.env.PROMPT_TEXT;
             const currentHtml = fs.readFileSync("index.html", "utf8");
 
@@ -59,14 +49,13 @@ jobs:
               contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentHtml}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
             });
 
+            // 正確串接金鑰
             const options = {
               hostname: "generativelanguage.googleapis.com",
-              path: "/v1beta/models/gemini-1.5-flash:generateContent",
+              path: `/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
               method: "POST",
               headers: {
                 "Content-Type": "application/json",
-                // 2. 將產生的合法 Token 放入標頭，完美破解 401 錯誤
-                "Authorization": `Bearer ${accessToken.token}`,
                 "Content-Length": Buffer.byteLength(postData)
               }
             };
@@ -75,20 +64,29 @@ jobs:
               let data = "";
               res.on("data", (chunk) => { data += chunk; });
               res.on("end", () => {
-                const result = JSON.parse(data);
-                if (result.error) {
-                  console.error("API Error:", result.error.message);
+                try {
+                  const result = JSON.parse(data);
+                  if (result.error) {
+                    console.error("API Error:", result.error.message);
+                    process.exit(1);
+                  }
+                  if (!result.candidates || result.candidates.length === 0) {
+                    console.error("No candidates returned.");
+                    process.exit(1);
+                  }
+
+                  let newHtml = result.candidates[0].content.parts[0].text.trim()
+                    .replace(/^```html\s*/i, "")
+                    .replace(/^```\s*/i, "")
+                    .replace(/\s*```$/, "")
+                    .trim();
+
+                  fs.writeFileSync("index.html", newHtml, "utf8");
+                  console.log("✅ 成功透過 GitHub Actions 更新 index.html！");
+                } catch (e) {
+                  console.error("Parse Error:", e);
                   process.exit(1);
                 }
-                
-                let newHtml = result.candidates[0].content.parts[0].text.trim()
-                  .replace(/^```html\s*/i, "")
-                  .replace(/^```\s*/i, "")
-                  .replace(/\s*```$/, "")
-                  .trim();
-
-                fs.writeFileSync("index.html", newHtml, "utf8");
-                console.log("✅ 成功透過 OAuth2 更新 index.html");
               });
             });
 
