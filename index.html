@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.6</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -276,7 +276,6 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
-    // 完整的台股代號與名稱雙向對照表
     const twStockDictionary = {
       "2330": "台積電", "台積電": "2330",
       "2345": "智邦", "智邦": "2345",
@@ -288,7 +287,6 @@
       "2454": "聯發科", "聯發科": "2454"
     };
 
-    // 常見美股代號與名稱對照表
     const usStockDictionary = {
       "AAPL": "蘋果", "蘋果": "AAPL",
       "NVDA": "輝達", "輝達": "NVDA",
@@ -371,18 +369,34 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 修正後的智慧萬用行情查詢（確保傳給後端的是代號而不是中文）
+    // 完美修復：強制對應代號與名稱，絕不把中文組別名稱傳送給查價 API
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
-      const rawInput = targetSymbol || document.getElementById(`${type}_symbolInput`).value.trim();
-      if (!rawInput) return;
+      // 1. 優先從該組合的「代號輸入框」抓取資料
+      let inputVal = targetSymbol || document.getElementById(`${type}_symbolInput`).value.trim();
+      if (!inputVal) {
+        // 如果代號輸入框是空的，嘗試用名稱輸入框去字典找
+        const nameVal = document.getElementById(`${type}_nameInput`).value.trim();
+        if (type === 'tw' && twStockDictionary[nameVal]) {
+          inputVal = twStockDictionary[nameVal];
+          document.getElementById(`${type}_symbolInput`).value = inputVal;
+        } else if (type === 'us' && usStockDictionary[nameVal]) {
+          inputVal = usStockDictionary[nameVal];
+          document.getElementById(`${type}_symbolInput`).value = inputVal;
+        } else {
+          return;
+        }
+      }
 
-      let querySymbol = rawInput.toUpperCase();
+      let querySymbol = inputVal.toUpperCase();
       
       if (type === 'tw') {
+        // 如果輸入框內不小心輸入了中文名稱，透過字典轉換成純數字代號
         if (twStockDictionary[querySymbol]) {
           querySymbol = twStockDictionary[querySymbol];
+          document.getElementById(`${type}_symbolInput`).value = querySymbol;
         }
 
+        // 確保台股代號格式正確 (4碼數字加上 .TW 或 .TWO)
         if (/^\d{4}$/.test(querySymbol)) {
           const knownTwo = ["6223", "3105", "3293", "5347", "6515", "8299"];
           const suffix = knownTwo.includes(querySymbol) ? '.TWO' : '.TW';
@@ -427,7 +441,6 @@
       }
     };
 
-    // 修正切換組別時被強制重置的問題
     window.switchStock = async function(type, key) {
       if (type === 'tw') currentTwKey = key;
       else currentUsKey = key;
@@ -441,7 +454,6 @@
       }
     };
 
-    // 改名時同步更新名稱與選單
     window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       const newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
@@ -480,7 +492,6 @@
       await fetchMarketPrice(type, targetStore[trimmedName].symbol);
     };
 
-    // 智慧新增組別：自動對應名稱與代號，並抓取股價
     window.addStock = async function(type) {
       const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 6239 或 力成):" : "請輸入美股代號或名稱 (例如: AAPL 或 蘋果):");
       if (!inputVal || !inputVal.trim()) return;
