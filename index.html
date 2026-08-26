@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.7</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.6.8</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -276,28 +276,28 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
-    // 完整的台股智慧對應字典（支援中文名稱自動對應代號）
+    // 完整的台股智慧對應字典（名稱對應代號）
     const twStockDictionary = {
-      "2330": "台積電", "台積電": "2330",
-      "2345": "智邦", "智邦": "2345",
-      "2308": "台達電", "台達電": "2308", "台達": "2308",
-      "6239": "力成", "力成": "6239",
-      "3105": "穩懋", "穩懋": "3105",
-      "3665": "貿聯-KY", "貿聯-KY": "3665", "貿聯": "3665",
-      "2317": "鴻海", "鴻海": "2317",
-      "2454": "聯發科", "聯發科": "2454",
-      "3035": "智原", "智原": "3035",
-      "2382": "廣達", "廣達": "2382",
-      "3231": "緯創", "緯創": "3231"
+      "台積電": "2330", "2330": "2330",
+      "智邦": "2345", "2345": "2345",
+      "台達電": "2308", "台達": "2308", "2308": "2308",
+      "力成": "6239", "6239": "6239",
+      "穩懋": "3105", "3105": "3105",
+      "貿聯-KY": "3665", "貿聯": "3665", "3665": "3665",
+      "鴻海": "2317", "2317": "2317",
+      "聯發科": "2454", "2454": "2454",
+      "智原": "3035", "3035": "3035",
+      "廣達": "2382", "2382": "2382",
+      "緯創": "3231", "3231": "3231"
     };
 
     const usStockDictionary = {
-      "AAPL": "蘋果", "蘋果": "AAPL",
-      "NVDA": "輝達", "輝達": "NVDA",
-      "TSLA": "特斯拉", "特斯拉": "TSLA",
-      "MSFT": "微軟", "微軟": "MSFT",
-      "GOOGL": "谷歌", "谷歌": "GOOGL",
-      "META": "Meta", "美達": "META"
+      "蘋果": "AAPL", "AAPL": "AAPL",
+      "輝達": "NVDA", "NVDA": "NVDA",
+      "特斯拉": "TSLA", "TSLA": "TSLA",
+      "微軟": "MSFT", "MSFT": "MSFT",
+      "谷歌": "GOOGL", "GOOGL": "GOOGL",
+      "Meta": "META", "美達": "META", "META": "META"
     };
     
     let cloudData = { 
@@ -373,7 +373,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 智慧自動對應與查詢核心：輸入中文名稱自動轉代號查詢
+    // 嚴格維持代號欄位為純代號，絕不把中文名稱寫入代號欄位
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -381,24 +381,20 @@
       let symbolVal = targetSymbol || symbolInput.value.trim();
       let nameVal = nameInput ? nameInput.value.trim() : '';
 
-      if (type === 'tw') {
-        if (twStockDictionary[symbolVal]) {
-          symbolVal = twStockDictionary[symbolVal];
-          symbolInput.value = symbolVal;
-        } else if (!symbolVal && twStockDictionary[nameVal]) {
-          symbolVal = twStockDictionary[nameVal];
-          symbolInput.value = symbolVal;
-        } else if (/[\u4e00-\u9fa5]/.test(symbolVal)) {
-          let foundKey = Object.keys(twStockDictionary).find(k => twStockDictionary[k].includes(symbolVal) || symbolVal.includes(twStockDictionary[k]));
-          if (foundKey) {
-            symbolVal = /^\d+$/.test(foundKey) ? foundKey : twStockDictionary[foundKey];
-            symbolInput.value = symbolVal;
-          }
-        }
+      // 如果代號欄位是空的，但名稱有填，嘗試去字典找出對應代號
+      if (!symbolVal && type === 'tw' && twStockDictionary[nameVal]) {
+        symbolVal = twStockDictionary[nameVal];
+        symbolInput.value = symbolVal;
       }
 
-      if (!symbolVal) {
-        document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
+      // 如果代號欄位裏面不小心輸入了中文名稱，自動轉換成正確的數字代號
+      if (type === 'tw' && twStockDictionary[symbolVal]) {
+        symbolVal = twStockDictionary[symbolVal];
+        symbolInput.value = symbolVal; 
+      }
+
+      if (!symbolVal || /[\u4e00-\u9fa5]/.test(symbolVal)) {
+        document.getElementById('syncStatus').innerText = '查詢失敗：請在代號欄位輸入正確數字（例如 6239）';
         return;
       }
 
@@ -478,19 +474,11 @@
       if (type === 'tw') {
         currentTwKey = trimmedName;
         targetStore[trimmedName].name = trimmedName;
-        if (twStockDictionary[trimmedName]) {
-          targetStore[trimmedName].symbol = twStockDictionary[trimmedName];
-        }
         document.getElementById('tw_nameInput').value = trimmedName;
-        document.getElementById('tw_symbolInput').value = targetStore[trimmedName].symbol;
       } else {
         currentUsKey = trimmedName;
         targetStore[trimmedName].name = trimmedName;
-        if (usStockDictionary[trimmedName]) {
-          targetStore[trimmedName].symbol = usStockDictionary[trimmedName];
-        }
         document.getElementById('us_nameInput').value = trimmedName;
-        document.getElementById('us_symbolInput').value = targetStore[trimmedName].symbol;
       }
       
       renderStockSelector(type);
@@ -501,41 +489,26 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 6239 或 力成):" : "請輸入美股代號或名稱 (例如: AAPL 或 蘋果):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號 (例如: 6239):" : "請輸入美股代號 (例如: AAPL):");
       if (!inputVal || !inputVal.trim()) return;
 
-      const trimmed = inputVal.trim();
+      const trimmed = inputVal.trim().toUpperCase();
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      
       let assignedKey = trimmed;
       let assignedName = trimmed;
       let assignedSymbol = trimmed;
 
-      if (type === 'tw') {
-        if (twStockDictionary[trimmed]) {
-          if (/^\d+$/.test(trimmed)) {
-            assignedSymbol = trimmed;
-            assignedName = twStockDictionary[trimmed];
-            assignedKey = twStockDictionary[trimmed];
-          } else {
-            assignedName = trimmed;
-            assignedSymbol = twStockDictionary[trimmed];
-            assignedKey = trimmed;
-          }
-        }
-      } else {
-        if (usStockDictionary[trimmed]) {
-          if (/^[a-zA-Z]+$/.test(trimmed)) {
-            assignedSymbol = trimmed.toUpperCase();
-            assignedName = usStockDictionary[trimmed];
-            assignedKey = trimmed.toUpperCase();
-          } else {
-            assignedName = trimmed;
-            assignedSymbol = usStockDictionary[trimmed];
-            assignedKey = usStockDictionary[trimmed];
-          }
-        }
+      if (type === 'tw' && twStockDictionary[trimmed]) {
+        assignedSymbol = twStockDictionary[trimmed];
+        assignedName = trimmed; // 保留中文名稱
+        assignedKey = trimmed;
+      } else if (type === 'us' && usStockDictionary[trimmed]) {
+        assignedSymbol = usStockDictionary[trimmed];
+        assignedName = trimmed;
+        assignedKey = trimmed;
       }
 
-      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       if (targetStore[assignedKey]) { alert("此組別已存在！"); return; }
 
       saveUIToCurrentStock(type);
@@ -663,7 +636,7 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = tw.symbol || (twStockDictionary[key] || key);
+        document.getElementById('tw_symbolInput').value = tw.symbol || ''; // 嚴格讀取代號，絕不填入中文名稱
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
         document.getElementById('tw_n1').value = tw.n1 || '';
@@ -679,7 +652,7 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_nameInput').value = us.name || key;
-        document.getElementById('us_symbolInput').value = us.symbol || (usStockDictionary[key] || key);
+        document.getElementById('us_symbolInput').value = us.symbol || '';
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 || '';
