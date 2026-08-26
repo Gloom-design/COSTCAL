@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.6</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -41,7 +41,6 @@
 
     <!-- 台股介面 -->
     <div id="twView" class="space-y-4 sm:space-y-5">
-      <!-- 台股獨立組合管理列 -->
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
         <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
         </select>
@@ -156,7 +155,6 @@
 
     <!-- 美股介面 -->
     <div id="usView" class="space-y-4 sm:space-y-5 hidden">
-      <!-- 美股獨立組合管理列 -->
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
         <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
         </select>
@@ -350,7 +348,26 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 呼叫後端進行完全動態的網路檢索與股價抓取（支援前後端 v4.8.4 版本同步顯示）
+    // 前端動態檢索：利用瀏覽器直接進行全球財經搜尋動態取得代號（完全零查表）
+    async function resolveSymbolInFrontend(query) {
+      let q = query.trim();
+      if (!/[\u4e00-\u9fa5]/.test(q)) return q; // 若不是中文直接回傳
+      
+      try {
+        const res = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=3&newsCount=0`);
+        if (res.ok) {
+          const data = await res.json();
+          const quotes = data.quotes || [];
+          const match = quotes.find(item => item.symbol && !item.symbol.includes('='));
+          if (match && match.symbol) {
+            return match.symbol;
+          }
+        }
+      } catch (e) {}
+      return q;
+    }
+
+    // 取得即時行情（前端 v4.8.6 與後端 stock.js v4.8.6 雙版本同步）
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -367,7 +384,10 @@
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
 
-      document.getElementById('syncStatus').innerText = `正在透過網路檢索 ${querySymbol}...`;
+      document.getElementById('syncStatus').innerText = `正在檢索 ${querySymbol}...`;
+
+      // 透過前端進行安全的動態名稱聯想，轉成標準代號
+      querySymbol = await resolveSymbolInFrontend(querySymbol);
 
       try {
         let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(querySymbol)}`, { signal: fetchController.signal });
@@ -387,10 +407,8 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          // 同步更新介面上的 stock.js 後端版本號徽章
           if (result.apiVersion) {
-            const badge = document.getElementById('backendVersionBadge');
-            badge.innerText = `stock.js: ${result.apiVersion}`;
+            document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
           }
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || querySymbol} 行情 (${result.currentPrice})`;
