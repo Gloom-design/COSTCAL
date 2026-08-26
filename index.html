@@ -13,7 +13,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.2.0</span>
+          <span class="bg-red-100 text-red-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.3.0</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">系統運作中...</div>
       </div>
@@ -22,52 +22,32 @@
         <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
           📱 緊湊模式
         </button>
+
+        <div class="flex items-center gap-1.5 relative z-30">
+          <span id="userInfo" class="text-[10px] sm:text-xs text-slate-500 max-w-[90px] sm:max-w-[140px] truncate hidden sm:inline">未登入</span>
+          <button id="loginBtn" type="button" class="bg-red-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold hover:bg-red-700 cursor-pointer shadow">登入</button>
+          <button id="logoutBtn" type="button" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
+        </div>
       </div>
     </header>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center">
-      <h2 class="text-lg font-bold text-slate-700 mb-2">✅ 系統已重置並修正 API 連線</h2>
-      <p class="text-sm text-slate-500">請點擊右下角 AI 面板，輸入你的 AQ. 金鑰與 GitHub Token 進行測試。</p>
+    <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
+      <select id="stockSelector" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-red-600 bg-slate-50 outline-none">
+        <option>2330 台積電 (主組合)</option>
+      </select>
+      <button class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
+      <button class="bg-red-50 text-red-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-red-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
+      <button class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
     </div>
-  </div>
 
-  <!-- 🤖 內建 AI 助理面板 -->
-  <div id="aiPanelContainer" class="fixed bottom-4 right-4 z-50">
-    <button onclick="toggleAiPanel()" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3.5 sm:p-4 rounded-full shadow-xl font-bold text-xs flex items-center gap-2 hover:opacity-90 transition cursor-pointer">
-      🤖 AI 修改助理
-    </button>
-    
-    <div id="aiWindow" class="hidden absolute bottom-16 right-0 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-slate-200 p-4 sm:p-5 space-y-3.5 text-xs">
-      <div class="flex justify-between items-center border-b pb-2.5">
-        <span class="font-bold text-blue-700 text-sm">✨ 純前端 AI 修改工具</span>
-        <button onclick="toggleAiPanel()" class="text-slate-400 hover:text-slate-600 font-bold cursor-pointer text-sm">✕</button>
-      </div>
-      <div>
-        <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">GitHub 倉庫 (帳號/倉庫名)</label>
-        <input id="ghRepo" type="text" value="gloom-design/COSTCAL" class="w-full border rounded-xl p-2.5 outline-none text-xs bg-slate-50 font-bold text-slate-700">
-      </div>
-      <div>
-        <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">GitHub Token (github_pat_...)</label>
-        <div class="relative flex items-center">
-          <input id="ghToken" type="password" placeholder="貼上你的 GitHub PAT" class="w-full border rounded-xl p-2.5 pr-8 outline-none text-xs">
-          <button type="button" onclick="togglePasswordVisibility('ghToken', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
-        </div>
-      </div>
-      <div>
-        <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">Gemini 金鑰 (貼上 AQ. 金鑰即可)</label>
-        <div class="relative flex items-center">
-          <input id="geminiKey" type="password" placeholder="貼上你的 Gemini 金鑰" class="w-full border rounded-xl p-2.5 pr-8 outline-none text-xs">
-          <button type="button" onclick="togglePasswordVisibility('geminiKey', this)" class="absolute right-2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer">👁️</button>
-        </div>
-      </div>
-      <div>
-        <label class="text-[10px] sm:text-xs text-slate-500 block mb-1">想對網頁做什麼修改？</label>
-        <textarea id="aiPrompt" rows="2.5" placeholder="例: 把按鈕改成紅色..." class="w-full border rounded-xl p-2.5 outline-none text-xs resize-none font-medium">把這個網頁的按鈕改成紅色，並把中間的文字改成「AI 修改成功」</textarea>
-      </div>
-      <button onclick="applyDirectAiUpdate()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl shadow transition cursor-pointer text-xs sm:text-sm">
-        🚀 執行 AI 修改並更新網頁
+    <!-- 介面恢復區塊 -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 text-center space-y-4">
+      <h2 class="text-lg font-bold text-slate-700">✅ 介面已完全恢復</h2>
+      <p class="text-sm text-slate-500">已經幫你把介面恢復成原本的計算器架構，並且移除了會報錯的前端 AI 面板。現在一切將由 GitHub Actions 在背景為你代勞！</p>
+      
+      <button class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
+        這是一個紅色的主按鈕 (測試樣式)
       </button>
-      <div id="aiStatus" class="text-[10px] sm:text-xs text-slate-400 text-center font-bold">準備就緒</div>
     </div>
   </div>
 
@@ -88,108 +68,8 @@
         btn.innerText = "💻 標準模式";
       }
     }
+    
     applyUIMode();
-
-    window.toggleAiPanel = function() {
-      document.getElementById('aiWindow').classList.toggle('hidden');
-    };
-
-    window.togglePasswordVisibility = function(fieldId, btnEl) {
-      const inputEl = document.getElementById(fieldId);
-      if (inputEl.type === "password") {
-        inputEl.type = "text";
-        btnEl.innerText = "🙈";
-      } else {
-        inputEl.type = "password";
-        btnEl.innerText = "👁️";
-      }
-    };
-
-    // 自動載入之前輸入的金鑰
-    const savedToken = localStorage.getItem('saved_gh_token') || "";
-    if (savedToken) document.getElementById('ghToken').value = savedToken;
-    const savedGemini = localStorage.getItem('saved_gemini_key') || "";
-    if (savedGemini) document.getElementById('geminiKey').value = savedGemini;
-
-    document.getElementById('ghToken').addEventListener('input', (e) => localStorage.setItem('saved_gh_token', e.target.value.trim()));
-    document.getElementById('geminiKey').addEventListener('input', (e) => localStorage.setItem('saved_gemini_key', e.target.value.trim()));
-
-    window.applyDirectAiUpdate = async function() {
-      const repo = document.getElementById('ghRepo').value.trim();
-      const ghToken = document.getElementById('ghToken').value.trim();
-      const geminiKey = document.getElementById('geminiKey').value.trim();
-      const promptText = document.getElementById('aiPrompt').value.trim();
-      const statusEl = document.getElementById('aiStatus');
-
-      if (!ghToken || !geminiKey || !promptText) { alert("請填寫所有欄位！"); return; }
-
-      statusEl.className = "text-[10px] sm:text-xs text-blue-600 text-center font-bold";
-      statusEl.innerText = "1. 讀取 GitHub 檔案中...";
-
-      try {
-        const fileUrl = `https://api.github.com/repos/${repo}/contents/index.html`;
-        const getFileRes = await fetch(fileUrl, { 
-          headers: { 'Authorization': `Bearer ${ghToken}`, 'Accept': 'application/vnd.github+json' } 
-        });
-        
-        if (!getFileRes.ok) throw new Error("GitHub Token 錯誤或無權限");
-        const fileData = await getFileRes.json();
-        const currentContent = decodeURIComponent(escape(atob(fileData.content)));
-
-        statusEl.innerText = "2. 呼叫 Gemini 進行修改 (已修正 API 串接)...";
-
-        // ❌ 之前錯誤的寫法： headers["Authorization"] = `Bearer AQ...`
-        // ✅ 正確的寫法： 直接將金鑰放在網址參數 ?key= 裡面 (對 AQ 和 AIza 都有效)
-        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
-        
-        const aiRes = await fetch(geminiUrl, {
-          method: 'POST',
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: `你是一個專業前端工程師。目前完整 HTML 程式碼：\n${currentContent}\n\n使用者的修改需求：${promptText}\n\n請回傳完整修改後的 HTML 程式碼。嚴格要求：只回傳程式碼本身，絕對不要加上任何 markdown 區塊標記（如 \`\`\`html 或 \`\`\`），不要包含任何前言或結語說明文字。` }] }]
-          })
-        });
-
-        if (!aiRes.ok) {
-           const errJson = await aiRes.json().catch(() => ({}));
-           throw new Error(errJson.error?.message || "Gemini API 驗證失敗");
-        }
-        
-        const aiData = await aiRes.json();
-        let newHtml = aiData.candidates[0].content.parts[0].text.trim()
-              .replace(/^```html\s*/i, "")
-              .replace(/^```\s*/i, "")
-              .replace(/\s*```$/, "")
-              .trim();
-
-        statusEl.innerText = "3. 寫入 GitHub...";
-
-        const updateRes = await fetch(fileUrl, {
-          method: 'PUT',
-          headers: { 
-            'Authorization': `Bearer ${ghToken}`,
-            'Accept': 'application/vnd.github+json',
-            'Content-Type': 'application/json' 
-          },
-          body: JSON.stringify({ 
-            message: `🤖 AI 自動修改: ${promptText}`, 
-            content: btoa(unescape(encodeURIComponent(newHtml))), 
-            sha: fileData.sha 
-          })
-        });
-
-        if (!updateRes.ok) throw new Error("寫入 GitHub 失敗");
-
-        statusEl.className = "text-[10px] sm:text-xs text-emerald-600 text-center font-bold";
-        statusEl.innerText = "🎉 成功！3秒後重新整理...";
-        setTimeout(() => { location.reload(); }, 3000);
-
-      } catch (err) {
-        statusEl.className = "text-[10px] sm:text-xs text-rose-500 text-center font-bold";
-        statusEl.innerText = "失敗: " + err.message;
-        alert(err.message);
-      }
-    };
   </script>
 </body>
 </html>
