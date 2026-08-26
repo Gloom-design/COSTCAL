@@ -9,14 +9,14 @@ export default async function handler(req, res) {
 
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.9.3' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v4.9.5' });
   }
 
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
   let resolvedName = queryTerm;
 
-  // 1. 若為台股中文名稱，透過證交所公開 API 動態抓取代號
+  // 1. 若包含中文，先檢查是否為台股
   if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
     let foundTw = false;
     try {
@@ -34,7 +34,7 @@ export default async function handler(req, res) {
       }
     } catch (e) {}
 
-    // 2. 若不是台股，透過 Yahoo Finance 公開搜尋 API 動態尋找美股標準代號（完全零查表）
+    // 2. 若不是台股，代表是中文美股名稱（例如「昂跑」、「美光」），透過 Yahoo Finance 官方公開搜尋 API 動態尋找標準代號
     if (!foundTw) {
       try {
         const searchRes = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, {
@@ -44,11 +44,24 @@ export default async function handler(req, res) {
           const searchData = await searchRes.json();
           if (searchData.quotes && searchData.quotes.length > 0) {
             finalSymbol = searchData.quotes[0].symbol;
-            resolvedName = searchData.quotes[0].shortname || searchData.quotes[0].longname || queryTerm;
+            resolvedName = queryTerm; // 保留使用者輸入的中文名稱作為顯示名稱
           }
         }
       } catch (e) {}
     }
+  } else {
+    // 若為純英文，也透過搜尋確保代號最精準
+    try {
+      const searchRes = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        if (searchData.quotes && searchData.quotes.length > 0) {
+          finalSymbol = searchData.quotes[0].symbol;
+        }
+      }
+    } catch (e) {}
   }
 
   // 若為台股 4 碼純數字自動補 .TW
@@ -91,10 +104,10 @@ export default async function handler(req, res) {
       name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v4.9.3'
+      apiVersion: 'v4.9.5'
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v4.9.3' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v4.9.5' });
   }
 }
