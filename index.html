@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.7.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2.5 py-0.5 rounded-full">v4.8.0</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
@@ -61,10 +61,10 @@
         <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股名稱</label>
-            <input id="tw_nameInput" type="text" placeholder="例: 力成" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+            <input id="tw_nameInput" type="text" placeholder="例: 台光電" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
           <div>
-            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 6239)</label>
+            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2383)</label>
             <input id="tw_symbolInput" type="text" placeholder="輸入代號或名稱" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
         </div>
@@ -278,15 +278,16 @@
 
     let cloudData = { 
       twStocks: { 
-        "力成": { name: "力成", symbol: "6239.TWO", discount: "0.6", minFee: "20" } 
+        "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20" } 
       },
       usStocks: {
         "AAPL": { name: "蘋果", symbol: "AAPL", rate: "32", fee: "0" }
       }
     };
     
-    let currentTwKey = "力成";
-    let currentUsKey = "AAPL";
+    // 記憶使用者上一次選取的組別，絕對不會跳回第一組
+    let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
+    let currentUsKey = localStorage.getItem('calc_current_us_key') || "AAPL";
 
     window.loginWithGoogle = async function() {
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
@@ -349,7 +350,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 執行即時行情：直接將使用者輸入的代號或名稱傳給後端，並自動把後端解析後的完整代號（含 .TW / .TWO）帶回輸入框
+    // 呼叫後端進行完全動態的網路查詢，並將後端解析出的標準代號帶回
     window.fetchMarketPrice = async function(type, targetSymbol = null) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -366,7 +367,7 @@
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
 
-      document.getElementById('syncStatus').innerText = `正在查詢 ${querySymbol}...`;
+      document.getElementById('syncStatus').innerText = `正在透過網路檢索 ${querySymbol}...`;
 
       try {
         let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(querySymbol)}`, { signal: fetchController.signal });
@@ -376,7 +377,6 @@
         const result = await apiRes.json();
         
         if (result.currentPrice) {
-          // 自動將後端回傳的完整標準代號（例如 2383.TW）寫回代號輸入框
           if (result.symbol) {
             symbolInput.value = result.symbol;
           }
@@ -386,7 +386,7 @@
           
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
-          document.getElementById('syncStatus').innerText = `已成功代入 ${result.symbol || querySymbol} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || querySymbol} 行情 (${result.currentPrice})`;
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
@@ -395,8 +395,13 @@
     };
 
     window.switchStock = async function(type, key) {
-      if (type === 'tw') currentTwKey = key;
-      else currentUsKey = key;
+      if (type === 'tw') {
+        currentTwKey = key;
+        localStorage.setItem('calc_current_tw_key', key);
+      } else {
+        currentUsKey = key;
+        localStorage.setItem('calc_current_us_key', key);
+      }
 
       loadStockToUI(type, key);
       
@@ -422,10 +427,12 @@
       
       if (type === 'tw') {
         currentTwKey = trimmedName;
+        localStorage.setItem('calc_current_tw_key', trimmedName);
         targetStore[trimmedName].name = trimmedName;
         document.getElementById('tw_nameInput').value = trimmedName;
       } else {
         currentUsKey = trimmedName;
+        localStorage.setItem('calc_current_us_key', trimmedName);
         targetStore[trimmedName].name = trimmedName;
         document.getElementById('us_nameInput').value = trimmedName;
       }
@@ -455,9 +462,11 @@
       if (type === 'tw') {
         targetStore[assignedKey] = { name: assignedName, symbol: assignedSymbol, discount: "0.6", minFee: "20" };
         currentTwKey = assignedKey;
+        localStorage.setItem('calc_current_tw_key', assignedKey);
       } else {
         targetStore[assignedKey] = { name: assignedName, symbol: assignedSymbol, rate: "32", fee: "0" };
         currentUsKey = assignedKey;
+        localStorage.setItem('calc_current_us_key', assignedKey);
       }
 
       renderStockSelector(type);
@@ -476,7 +485,13 @@
       if (confirm(`確定刪除「${currentKey}」嗎？`)) {
         delete targetStore[currentKey];
         const nextKey = Object.keys(targetStore)[0];
-        if (type === 'tw') currentTwKey = nextKey; else currentUsKey = nextKey;
+        if (type === 'tw') {
+          currentTwKey = nextKey;
+          localStorage.setItem('calc_current_tw_key', nextKey);
+        } else {
+          currentUsKey = nextKey;
+          localStorage.setItem('calc_current_us_key', nextKey);
+        }
         
         renderStockSelector(type);
         loadStockToUI(type, nextKey);
@@ -751,13 +766,6 @@
     async function init() {
       applyUIMode();
 
-      renderStockSelector('tw');
-      renderStockSelector('us');
-      loadStockToUI('tw', currentTwKey);
-      loadStockToUI('us', currentUsKey);
-
-      fetchExchangeRate();
-
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
           auth: {
@@ -788,14 +796,33 @@
           const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           if (data && data.portfolio_data) {
             parseCloudData(data.portfolio_data);
+          } else {
+            initDefaultView();
           }
           document.getElementById('syncStatus').innerText = '已同步雲端';
         } else {
+          initDefaultView();
           document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
         }
       } catch (err) {
+        initDefaultView();
         document.getElementById('syncStatus').innerText = '單機離線模式';
       }
+
+      fetchExchangeRate();
+    }
+
+    function initDefaultView() {
+      renderStockSelector('tw');
+      renderStockSelector('us');
+      if (!cloudData.twStocks[currentTwKey]) {
+        currentTwKey = Object.keys(cloudData.twStocks)[0];
+      }
+      if (!cloudData.usStocks[currentUsKey]) {
+        currentUsKey = Object.keys(cloudData.usStocks)[0];
+      }
+      loadStockToUI('tw', currentTwKey);
+      loadStockToUI('us', currentUsKey);
     }
 
     function parseCloudData(fetchedData) {
@@ -811,10 +838,16 @@
         Object.keys(fetchedData.stocks).forEach(k => {
           if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
         });
-        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "力成": { name: "力成", symbol: "6239.TWO" } };
+        if (Object.keys(cloudData.twStocks).length === 0) cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383" } };
       }
-      currentTwKey = Object.keys(cloudData.twStocks)[0];
-      currentUsKey = Object.keys(cloudData.usStocks)[0];
+
+      if (!cloudData.twStocks[currentTwKey]) {
+        currentTwKey = Object.keys(cloudData.twStocks)[0];
+      }
+      if (!cloudData.usStocks[currentUsKey]) {
+        currentUsKey = Object.keys(cloudData.usStocks)[0];
+      }
+
       renderStockSelector('tw');
       renderStockSelector('us');
       loadStockToUI('tw', currentTwKey);
