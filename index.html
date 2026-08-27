@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.0.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.1.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -33,7 +33,7 @@
       </div>
     </header>
 
-    <!-- 分頁切換 (台股 / 美股) -->
+    <!-- 分頁切換 -->
     <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl">
       <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer">🇹🇼 台股專用</button>
       <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
@@ -266,7 +266,6 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    // 後端與資料庫端點設定
     const API_BACKEND_URL = 'https://costcal-peach.vercel.app/api/stock';
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
@@ -277,7 +276,6 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
-    // 預設資料結構
     let cloudData = { 
       twStocks: { 
         "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20" } 
@@ -290,7 +288,6 @@
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
     let currentUsKey = localStorage.getItem('calc_current_us_key') || "應用材料";
 
-    // 帳號認證
     window.loginWithGoogle = async function() {
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({ 
@@ -308,7 +305,6 @@
       window.location.href = window.location.origin + window.location.pathname;
     };
 
-    // UI 控制
     window.toggleUIMode = function() {
       isCompactMode = !isCompactMode;
       localStorage.setItem('calc_compact_mode', isCompactMode);
@@ -334,7 +330,6 @@
       }
     };
 
-    // 美金即時匯率
     window.fetchExchangeRate = async function() {
       document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
       try {
@@ -354,14 +349,14 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 呼叫 Vercel 後端 API 查詢即時行情 (支援台/美股代號與中文名稱)
+    // 取得即時行情並自動更新名稱欄位
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
-      let queryVal = symbolInput.value.trim() || (nameInput ? nameInput.value.trim() : '');
+      let queryVal = symbolInput.value.trim();
 
       if (!queryVal) {
-        document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
+        document.getElementById('syncStatus').innerText = '請先輸入股票代號';
         return;
       }
 
@@ -378,10 +373,11 @@
 
         if (result.currentPrice) {
           if (result.symbol) {
-            if (/[\u4e00-\u9fa5]/.test(queryVal) && nameInput && !nameInput.value) {
-              nameInput.value = queryVal;
-            }
             symbolInput.value = result.symbol;
+          }
+          // 自動將後端抓到的名稱更新到名稱欄位
+          if (result.name && nameInput) {
+            nameInput.value = result.name;
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
@@ -394,7 +390,7 @@
             document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
           }
 
-          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} (${result.name || ''}) 行情`;
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
@@ -402,7 +398,6 @@
       }
     };
 
-    // 組合切換與增刪改名
     window.switchStock = async function(type, key) {
       if (type === 'tw') {
         currentTwKey = key;
@@ -448,7 +443,7 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AMAT):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AAPL):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
@@ -648,12 +643,10 @@
       }
     }
 
-    // 格式化工具與台股手續費試算
     function formatMoney(num) { return isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('en-US'); }
     function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
-    // 🇹🇼 台股算式
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -716,7 +709,6 @@
       }
     }
 
-    // 🇺🇸 美股算式
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -767,7 +759,6 @@
       }
     }
 
-    // 監聽所有輸入欄位改動
     document.querySelectorAll('.save-trigger').forEach(el => {
       el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
@@ -775,7 +766,6 @@
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
-    // 初始化程式
     async function init() {
       applyUIMode();
 
