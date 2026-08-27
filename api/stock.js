@@ -9,7 +9,7 @@ export default async function handler(req, res) {
 
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v5.0.1' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.0.0' });
   }
 
   let queryTerm = symbol.trim();
@@ -21,9 +21,8 @@ export default async function handler(req, res) {
     if (/^\d{4}$/.test(queryTerm)) {
       finalSymbol = queryTerm + '.TW';
     } 
-    // 2. 若包含中文，先檢查是否為台股名稱，若不是則透過 Yahoo 官方 Search API 尋找美股對應代號
+    // 2. 若台股輸入中文名稱，透過台灣證交所官方清單查詢
     else if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
-      let foundTw = false;
       try {
         const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { 
           headers: { 'User-Agent': 'Mozilla/5.0' } 
@@ -34,25 +33,9 @@ export default async function handler(req, res) {
           if (found && found.Code) {
             finalSymbol = found.Code + '.TW';
             resolvedName = found.Name.trim();
-            foundTw = true;
           }
         }
       } catch (e) {}
-
-      if (!foundTw) {
-        try {
-          const searchRes = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, {
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-          });
-          if (searchRes.ok) {
-            const searchData = await searchRes.json();
-            if (searchData && searchData.quotes && searchData.quotes.length > 0) {
-              finalSymbol = searchData.quotes[0].symbol;
-              resolvedName = searchData.quotes[0].shortname || searchData.quotes[0].longname || queryTerm;
-            }
-          }
-        } catch (e) {}
-      }
     }
 
     let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
@@ -70,14 +53,14 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v5.0.1' });
+      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.0.0' });
     }
     
     const data = await response.json();
     const result = data.chart?.result?.[0];
     
     if (!result) {
-      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v5.0.1' });
+      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.0.0' });
     }
 
     const meta = result.meta;
@@ -89,10 +72,10 @@ export default async function handler(req, res) {
       name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v5.0.1'
+      apiVersion: 'v7.0.0'
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v5.0.1' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v7.0.0' });
   }
 }
