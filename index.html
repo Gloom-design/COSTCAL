@@ -14,14 +14,14 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v5.0.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.0.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3">
-        <button onclick="toggleUIMode()" id="modeToggleBtn" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
+        <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
           📱 緊湊模式
         </button>
 
@@ -33,20 +33,20 @@
       </div>
     </header>
 
-    <!-- 分頁切換 -->
+    <!-- 分頁切換 (台股 / 美股) -->
     <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl">
-      <button id="tabTwBtn" onclick="switchTab('tw')" class="py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer">🇹🇼 台股專用</button>
-      <button id="tabUsBtn" onclick="switchTab('us')" class="py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
+      <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer">🇹🇼 台股專用</button>
+      <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
     </div>
 
-    <!-- 台股介面 -->
+    <!-- 🇹🇼 台股介面 -->
     <div id="twView" class="space-y-4 sm:space-y-5">
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
         <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
         </select>
-        <button onclick="renameStock('tw')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
-        <button onclick="addStock('tw')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
-        <button onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
+        <button type="button" onclick="renameStock('tw')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
+        <button type="button" onclick="addStock('tw')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
+        <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
       </div>
 
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -61,10 +61,10 @@
         <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股名稱</label>
-            <input id="tw_nameInput" type="text" placeholder="例: 大成" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+            <input id="tw_nameInput" type="text" placeholder="例: 台光電" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
           <div>
-            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 1210)</label>
+            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2383)</label>
             <input id="tw_symbolInput" type="text" placeholder="輸入代號或名稱" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
         </div>
@@ -78,11 +78,11 @@
         <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1)</label>
-            <input id="tw_n1" type="number" placeholder="60" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+            <input id="tw_n1" type="number" placeholder="1000" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有均價 (P1)</label>
-            <input id="tw_p1" type="number" step="0.01" placeholder="2693.82" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+            <input id="tw_p1" type="number" step="0.01" placeholder="400" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
         </div>
 
@@ -92,7 +92,10 @@
             <input id="tw_prevClose" type="number" step="0.01" placeholder="前收價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
           <div>
-            <div class="flex justify-between items-center mb-1"><label class="text-[10px] sm:text-xs text-slate-600">目前市價</label><label class="text-[10px] text-slate-400 cursor-pointer"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label></div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[10px] sm:text-xs text-slate-600">目前市價</label>
+              <label class="text-[10px] text-slate-400 cursor-pointer"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label>
+            </div>
             <input id="tw_currentPrice" type="number" step="0.01" placeholder="目前市價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
           </div>
         </div>
@@ -100,7 +103,7 @@
         <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center">
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-600 font-bold block mb-1">手動對齊 App 損益率%</label>
-            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -24.24" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-indigo-700 outline-none">
+            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -12.5" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-indigo-700 outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">未實現損益 (現有)</label>
@@ -113,7 +116,10 @@
         <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-3.5">
           <div>
-            <div class="flex justify-between mb-1"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 (P2)</label><button type="button" onclick="copyPrice('tw')" class="text-[10px] sm:text-xs text-indigo-600 underline cursor-pointer">帶入市價</button></div>
+            <div class="flex justify-between mb-1">
+              <label class="text-[10px] sm:text-xs text-slate-600">預計買入 (P2)</label>
+              <button type="button" onclick="copyPrice('tw')" class="text-[10px] sm:text-xs text-indigo-600 underline cursor-pointer">帶入市價</button>
+            </div>
             <input id="tw_p2" type="number" step="0.01" placeholder="買入價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
@@ -137,30 +143,26 @@
           <span class="text-slate-400">調整後平均成本：</span>
           <strong id="tw_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
-        <div class="text-[10px] sm:text-xs text-slate-400 flex justify-between pt-1">
-          <span id="tw_resNewPnl">損益(最新)：-%</span>
-          <span id="tw_resNewPrevPnl">損益(前收)：-%</span>
-        </div>
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
           <div>原總額: <span id="tw_resOriginalCost">$0</span></div>
           <div>本次資金: <span id="tw_resAddCost" class="text-white">$0</span></div>
         </div>
         <div class="pt-2.5">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
+          <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
             💾 即時儲存至雲端
           </button>
         </div>
       </div>
     </div>
 
-    <!-- 美股介面 -->
+    <!-- 🇺🇸 美股介面 -->
     <div id="usView" class="space-y-4 sm:space-y-5 hidden">
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
         <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
         </select>
-        <button onclick="renameStock('us')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
-        <button onclick="addStock('us')" class="bg-teal-50 text-teal-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
-        <button onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
+        <button type="button" onclick="renameStock('us')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
+        <button type="button" onclick="addStock('us')" class="bg-teal-50 text-teal-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
+        <button type="button" onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
       </div>
 
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -214,7 +216,6 @@
 
         <div class="text-[10px] sm:text-xs text-slate-600 flex justify-between pt-2.5 border-t border-slate-100">
           <span>未實現損益(現有): <strong id="us_pnlDisplay" class="text-slate-800">-%</strong></span>
-          <span>未實現損益(前收): <strong id="us_prevPnlDisplay" class="text-slate-800">-%</strong></span>
         </div>
       </div>
 
@@ -222,7 +223,10 @@
         <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 補倉規劃</h2>
         <div class="grid grid-cols-2 gap-3.5">
           <div>
-            <div class="flex justify-between mb-1"><label class="text-[10px] sm:text-xs text-slate-600">預計買入 ($ P2)</label><button type="button" onclick="copyPrice('us')" class="text-[10px] sm:text-xs text-teal-600 underline cursor-pointer">帶入市價</button></div>
+            <div class="flex justify-between mb-1">
+              <label class="text-[10px] sm:text-xs text-slate-600">預計買入 ($ P2)</label>
+              <button type="button" onclick="copyPrice('us')" class="text-[10px] sm:text-xs text-teal-600 underline cursor-pointer">帶入市價</button>
+            </div>
             <input id="us_p2" type="number" step="0.01" placeholder="買入價" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
@@ -246,16 +250,12 @@
           <span class="text-slate-400">調整後平均成本：</span>
           <strong id="us_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
-        <div class="text-[10px] sm:text-xs text-slate-400 flex justify-between pt-1">
-          <span id="us_resNewPnl">損益(最新)：-%</span>
-          <span id="us_resNewPrevPnl">損益(前收)：-%</span>
-        </div>
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
           <div>原總額: <span id="us_resOriginalCostUSD">$0</span></div>
           <div>本次資金: <span id="us_resAddCostUSD" class="text-white">$0</span></div>
         </div>
         <div class="pt-2.5">
-          <button onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
+          <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
             💾 即時儲存至雲端
           </button>
         </div>
@@ -266,6 +266,8 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
+    // 後端與資料庫端點設定
+    const API_BACKEND_URL = 'https://costcal-peach.vercel.app/api/stock';
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
@@ -275,18 +277,20 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
+    // 預設資料結構
     let cloudData = { 
       twStocks: { 
-        "台股預設": { name: "台股預設", symbol: "2330", discount: "0.6", minFee: "20" } 
+        "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20" } 
       },
       usStocks: {
-        "美股預設": { name: "美股預設", symbol: "AAPL", rate: "32", fee: "0" }
+        "應用材料": { name: "應用材料", symbol: "AMAT", rate: "32", fee: "0" }
       }
     };
     
-    let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台股預設";
-    let currentUsKey = localStorage.getItem('calc_current_us_key') || "美股預設";
+    let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
+    let currentUsKey = localStorage.getItem('calc_current_us_key') || "應用材料";
 
+    // 帳號認證
     window.loginWithGoogle = async function() {
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({ 
@@ -304,6 +308,7 @@
       window.location.href = window.location.origin + window.location.pathname;
     };
 
+    // UI 控制
     window.toggleUIMode = function() {
       isCompactMode = !isCompactMode;
       localStorage.setItem('calc_compact_mode', isCompactMode);
@@ -329,6 +334,7 @@
       }
     };
 
+    // 美金即時匯率
     window.fetchExchangeRate = async function() {
       document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
       try {
@@ -348,11 +354,11 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 取得即時行情（前端自動分離：若輸入中文，名稱欄位保留中文，代號欄位填入英文 Symbol）
+    // 呼叫 Vercel 後端 API 查詢即時行情 (支援台/美股代號與中文名稱)
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
-      let queryVal = symbolInput.value.trim();
+      let queryVal = symbolInput.value.trim() || (nameInput ? nameInput.value.trim() : '');
 
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
@@ -365,23 +371,22 @@
       document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
 
       try {
-        let apiRes = await fetch(`https://costcal-peach.vercel.app/api/stock?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
-        
+        const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
         const result = await apiRes.json();
+
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
-        
+
         if (result.currentPrice) {
           if (result.symbol) {
-            // 如果你輸入的是中文（例如「應用材料」），前端會精準保留中文在名稱欄位，代號欄位填入正確的英文代號 (如 AMAT)
-            if (/[\u4e00-\u9fa5]/.test(queryVal)) {
-              if (nameInput) nameInput.value = queryVal;
+            if (/[\u4e00-\u9fa5]/.test(queryVal) && nameInput && !nameInput.value) {
+              nameInput.value = queryVal;
             }
             symbolInput.value = result.symbol;
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
           if (result.prevClose) document.getElementById(`${type}_prevClose`).value = result.prevClose;
-          
+
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
@@ -397,6 +402,7 @@
       }
     };
 
+    // 組合切換與增刪改名
     window.switchStock = async function(type, key) {
       if (type === 'tw') {
         currentTwKey = key;
@@ -442,7 +448,7 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號或中文名稱 (例如: AMAT 或 應用材料):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AMAT):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
@@ -642,10 +648,12 @@
       }
     }
 
+    // 格式化工具與台股手續費試算
     function formatMoney(num) { return isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('en-US'); }
     function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
+    // 🇹🇼 台股算式
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -708,6 +716,7 @@
       }
     }
 
+    // 🇺🇸 美股算式
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -715,6 +724,14 @@
       const n2In = parseFloat(document.getElementById('us_n2').value);
       const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
       const fee = parseFloat(document.getElementById('us_fee').value) || 0;
+      const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
+
+      const pnlPct = (p1 > 0 && currentPrice > 0) ? ((currentPrice - p1) / p1) * 100 : null;
+      const pnlEl = document.getElementById('us_pnlDisplay');
+      if (pnlEl) {
+        pnlEl.className = `font-bold text-xs sm:text-base ${pnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        pnlEl.innerText = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
+      }
 
       if (n1 <= 0 || p1 <= 0 || p2 <= 0) {
         document.getElementById('us_resN2').innerText = '0';
@@ -750,6 +767,7 @@
       }
     }
 
+    // 監聽所有輸入欄位改動
     document.querySelectorAll('.save-trigger').forEach(el => {
       el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
@@ -757,6 +775,7 @@
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
+    // 初始化程式
     async function init() {
       applyUIMode();
 
@@ -830,10 +849,10 @@
       }
 
       if (!cloudData.twStocks || Object.keys(cloudData.twStocks).length === 0) {
-        cloudData.twStocks = { "台股預設": { name: "台股預設", symbol: "2330" } };
+        cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383" } };
       }
       if (!cloudData.usStocks || Object.keys(cloudData.usStocks).length === 0) {
-        cloudData.usStocks = { "美股預設": { name: "美股預設", symbol: "AAPL" } };
+        cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT" } };
       }
 
       if (!cloudData.twStocks[currentTwKey]) {
