@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v5.0.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -275,7 +275,6 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
 
-    // 徹底清除所有預設硬編碼，改由動態建立預設空白分組
     let cloudData = { 
       twStocks: { 
         "台股預設": { name: "台股預設", symbol: "2330", discount: "0.6", minFee: "20" } 
@@ -349,7 +348,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 取得即時行情（純動態 API 查詢）
+    // 取得即時行情（前端自動分離：若輸入中文，名稱欄位保留中文，代號欄位填入英文 Symbol）
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -373,6 +372,7 @@
         
         if (result.currentPrice) {
           if (result.symbol) {
+            // 如果你輸入的是中文（例如「應用材料」），前端會精準保留中文在名稱欄位，代號欄位填入正確的英文代號 (如 AMAT)
             if (/[\u4e00-\u9fa5]/.test(queryVal)) {
               if (nameInput) nameInput.value = queryVal;
             }
