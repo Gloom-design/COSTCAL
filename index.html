@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v5.0.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v4.8.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -348,12 +348,10 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 取得即時行情（完全由後端透過 Yahoo Search 進行動態解析，不作弊、不查表）
+    // 取得即時行情（穩定版邏輯）
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
-      const nameInput = document.getElementById(`${type}_nameInput`);
-      
-      let queryVal = symbolInput.value.trim() || (nameInput ? nameInput.value.trim() : '');
+      let queryVal = symbolInput.value.trim();
 
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號或名稱';
@@ -373,10 +371,7 @@
         
         if (result.currentPrice) {
           if (result.symbol) {
-            symbolInput.value = result.symbol; // 填入後端動態查到的正確 Symbol
-          }
-          if (result.name && nameInput) {
-            nameInput.value = result.name; // 填入後端動態查到的官方名稱
+            symbolInput.value = result.symbol;
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
@@ -442,7 +437,7 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號或名稱 (例如: ONON 或 昂跑):");
+      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: ONON):");
       if (!inputVal || !inputVal.trim()) return;
 
       const trimmed = inputVal.trim();
