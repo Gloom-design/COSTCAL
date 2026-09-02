@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.2.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.3.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -250,9 +250,15 @@
           <span class="text-slate-400">調整後平均成本：</span>
           <strong id="us_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
+        <!-- 原總額與台幣換算 -->
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
           <div>原總額: <span id="us_resOriginalCostUSD">$0</span></div>
+          <div>原總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
+        </div>
+        <!-- 本次資金與台幣換算 -->
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
           <div>本次資金: <span id="us_resAddCostUSD" class="text-white">$0</span></div>
+          <div>本次資金(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
         </div>
         <div class="pt-2.5">
           <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
@@ -349,7 +355,6 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 取得即時行情（台股維持原本完全不受影響；美股會自動填入代號與名稱）
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -375,7 +380,6 @@
           if (result.symbol) {
             symbolInput.value = result.symbol;
           }
-          // 只有美股會自動更新名稱欄位，台股名稱保留你的自訂名稱
           if (type === 'us' && result.name && nameInput) {
             nameInput.value = result.name;
           }
@@ -716,6 +720,7 @@
       const n2In = parseFloat(document.getElementById('us_n2').value);
       const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
       const fee = parseFloat(document.getElementById('us_fee').value) || 0;
+      const exchangeRate = parseFloat(document.getElementById('us_exchangeRate').value) || 32;
       const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
 
       const pnlPct = (p1 > 0 && currentPrice > 0) ? ((currentPrice - p1) / p1) * 100 : null;
@@ -730,7 +735,9 @@
         document.getElementById('us_resTotalN').innerText = '0 股';
         document.getElementById('us_resAvgPrice').innerText = '$0.00';
         document.getElementById('us_resOriginalCostUSD').innerText = '$0';
+        document.getElementById('us_resOriginalCostTWD').innerText = 'NT$0';
         document.getElementById('us_resAddCostUSD').innerText = '$0';
+        document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
         return;
       }
 
@@ -744,18 +751,25 @@
         calcAvg = ((n1 * p1) + (calcN2 * p2) + fee) / (n1 + calcN2);
       }
 
+      const origUSD = n1 * p1;
+      const addUSD = calcN2 > 0 ? (calcN2 * p2) + fee : 0;
+
       if (calcN2 > 0) {
         document.getElementById('us_resN2').innerText = `${calcN2.toFixed(1)}股`;
         document.getElementById('us_resTotalN').innerText = `${(n1 + calcN2).toFixed(1)}股`;
         document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
-        document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(n1 * p1)}`;
-        document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney((calcN2 * p2) + fee)}`;
+        document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+        document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
+        document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(addUSD)}`;
+        document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney(addUSD * exchangeRate)}`;
       } else {
         document.getElementById('us_resN2').innerText = '0';
         document.getElementById('us_resTotalN').innerText = `${n1} 股`;
         document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(p1)}`;
-        document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(n1 * p1)}`;
+        document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+        document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
         document.getElementById('us_resAddCostUSD').innerText = '$0';
+        document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
       }
     }
 
