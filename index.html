@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.3</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -136,7 +136,7 @@
         
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">原始股數 /分批補倉股數 / 總股數：</span>
-          <span><strong id="tw_resN1" class="text-slate-300">0</strong> / <strong id="tw_resN2" class="text-white">0</strong> / <strong id="tw_resTotalN" class="text-cyan-300">0 股</strong></span>
+          <span><strong id="tw_resN1" class="text-slate-300">0.0</strong> / <strong id="tw_resN2" class="text-white">0.0</strong> / <strong id="tw_resTotalN" class="text-cyan-300">0.0 股</strong></span>
         </div>
         <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">綜合調整後平均成本：</span>
@@ -249,7 +249,7 @@
         <!-- 整體總結 -->
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">原始股數 /分批補倉股數 / 總股數：</span>
-          <span><strong id="us_resN1" class="text-slate-300">0</strong> / <strong id="us_resN2" class="text-white">0</strong> / <strong id="us_resTotalN" class="text-teal-300">0 股</strong></span>
+          <span><strong id="us_resN1" class="text-slate-300">0.0</strong> / <strong id="us_resN2" class="text-white">0.0</strong> / <strong id="us_resTotalN" class="text-teal-300">0.0 股</strong></span>
         </div>
         <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
           <span class="text-slate-400">綜合調整後平均成本：</span>
@@ -790,7 +790,7 @@
 
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
-        document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : '';
+        document.getElementById('tw_n1').value = tw.n1 || '';
         document.getElementById('tw_p1').value = tw.p1 || '';
         document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
         document.getElementById('tw_prevClose').value = tw.prevClose || '';
@@ -812,7 +812,7 @@
         document.getElementById('us_symbolInput').value = us.symbol || '';
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
-        document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
+        document.getElementById('us_n1').value = us.n1 || '';
         document.getElementById('us_p1').value = us.p1 || '';
         document.getElementById('us_prevClose').value = us.prevClose || '';
         document.getElementById('us_currentPrice').value = us.currentPrice || '';
@@ -860,7 +860,7 @@
     function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
-    // 🇹🇼 台股計算（支援 n1 原始股數小數點與格式化顯示）
+    // 🇹🇼 台股計算（強制原始股數顯示至小數第一位，格式一致）
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -887,9 +887,9 @@
       batchContainer.innerHTML = '';
 
       if (n1 <= 0 || p1 <= 0) {
-        document.getElementById('tw_resN1').innerText = '0';
-        document.getElementById('tw_resN2').innerText = '0';
-        document.getElementById('tw_resTotalN').innerText = '0 股';
+        document.getElementById('tw_resN1').innerText = '0.0';
+        document.getElementById('tw_resN2').innerText = '0.0';
+        document.getElementById('tw_resTotalN').innerText = '0.0 股';
         document.getElementById('tw_resAvgPrice').innerText = '$0.00';
         document.getElementById('tw_resOriginalCost').innerText = '$0';
         document.getElementById('tw_resAddCost').innerText = '$0';
@@ -917,9 +917,9 @@
             const totalShares = n1 + totalAddShares;
             const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
 
-            document.getElementById('tw_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
-            document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
-            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+            document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
+            document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
             document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
             document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
             document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
@@ -984,15 +984,15 @@
       const totalCost = totalOriginalCost + totalAddCost;
       finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
 
-      document.getElementById('tw_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
-      document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
-      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+      document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
+      document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
       document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
       document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
       document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
     }
 
-    // 🇺🇸 美股計算（支援 n1 原始股數小數點與格式化顯示）
+    // 🇺🇸 美股計算（強制原始股數顯示至小數第一位，格式一致）
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -1012,9 +1012,9 @@
       batchContainer.innerHTML = '';
 
       if (n1 <= 0 || p1 <= 0) {
-        document.getElementById('us_resN1').innerText = '0';
-        document.getElementById('us_resN2').innerText = '0';
-        document.getElementById('us_resTotalN').innerText = '0 股';
+        document.getElementById('us_resN1').innerText = '0.0';
+        document.getElementById('us_resN2').innerText = '0.0';
+        document.getElementById('us_resTotalN').innerText = '0.0 股';
         document.getElementById('us_resAvgPrice').innerText = '$0.00';
         document.getElementById('us_resAvgPriceTWD').innerText = 'NT$0.00';
         document.getElementById('us_resOriginalCostUSD').innerText = '$0';
@@ -1043,9 +1043,9 @@
           const totalCostUSD = origUSD + totalAddCostUSD + fee;
           const totalShares = n1 + totalAddShares;
 
-          document.getElementById('us_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
-          document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
-          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+          document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
+          document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
           document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
           document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
           document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
@@ -1117,9 +1117,9 @@
       const totalShares = n1 + totalAddShares;
       finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
 
-      document.getElementById('us_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
-      document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
-      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+      document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
+      document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
       document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
       document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
       document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
