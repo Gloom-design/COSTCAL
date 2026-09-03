@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -77,8 +77,8 @@
 
         <div class="grid grid-cols-2 gap-3.5">
           <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1)</label>
-            <input id="tw_n1" type="number" placeholder="1000" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1 - 可小數)</label>
+            <input id="tw_n1" type="number" step="any" placeholder="1000" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有均價 (P1)</label>
@@ -199,8 +199,8 @@
 
         <div class="grid grid-cols-2 gap-3.5">
           <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1)</label>
-            <input id="us_n1" type="number" placeholder="100" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1 - 可小數)</label>
+            <input id="us_n1" type="number" step="any" placeholder="100" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有均價 ($ P1)</label>
@@ -422,7 +422,6 @@
       }
     };
 
-    // 台股動態補倉列操作
     window.addTwPlanRow = function(p2 = "", n2 = "") {
       const container = document.getElementById('twPlansContainer');
       const index = container.children.length;
@@ -448,7 +447,7 @@
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
-            <input type="number" placeholder="加碼股數" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+            <input type="number" step="any" placeholder="加碼股數" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
           </div>
         </div>
       `;
@@ -501,7 +500,6 @@
       });
     }
 
-    // 美股動態補倉列操作
     window.addUsPlanRow = function(p2 = "", n2 = "") {
       const container = document.getElementById('usPlansContainer');
       const index = container.children.length;
@@ -527,7 +525,7 @@
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
-            <input type="number" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+            <input type="number" step="any" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
           </div>
         </div>
       `;
@@ -792,7 +790,7 @@
 
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
-        document.getElementById('tw_n1').value = tw.n1 || '';
+        document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : '';
         document.getElementById('tw_p1').value = tw.p1 || '';
         document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
         document.getElementById('tw_prevClose').value = tw.prevClose || '';
@@ -814,7 +812,7 @@
         document.getElementById('us_symbolInput').value = us.symbol || '';
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
-        document.getElementById('us_n1').value = us.n1 || '';
+        document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
         document.getElementById('us_p1').value = us.p1 || '';
         document.getElementById('us_prevClose').value = us.prevClose || '';
         document.getElementById('us_currentPrice').value = us.currentPrice || '';
@@ -862,7 +860,7 @@
     function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
-    // 🇹🇼 台股計算（支援多筆批次加碼與模式B目標均價反算，並包含 8 項明細）
+    // 🇹🇼 台股計算（支援 n1 小數點與多筆批次加碼）
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -919,7 +917,7 @@
             const totalShares = n1 + totalAddShares;
             const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
 
-            document.getElementById('tw_resN1').innerText = `${n1}股`;
+            document.getElementById('tw_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
             document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
             document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
             document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
@@ -986,7 +984,7 @@
       const totalCost = totalOriginalCost + totalAddCost;
       finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
 
-      document.getElementById('tw_resN1').innerText = `${n1}股`;
+      document.getElementById('tw_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
       document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
       document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
       document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
@@ -994,7 +992,7 @@
       document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
     }
 
-    // 🇺🇸 美股計算
+    // 🇺🇸 美股計算（支援 n1 小數點）
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -1045,7 +1043,7 @@
           const totalCostUSD = origUSD + totalAddCostUSD + fee;
           const totalShares = n1 + totalAddShares;
 
-          document.getElementById('us_resN1').innerText = `${n1}股`;
+          document.getElementById('us_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
           document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
           document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
           document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
@@ -1119,7 +1117,7 @@
       const totalShares = n1 + totalAddShares;
       finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
 
-      document.getElementById('us_resN1').innerText = `${n1}股`;
+      document.getElementById('us_resN1').innerText = `${n1 % 1 === 0 ? n1 : n1.toFixed(1)}股`;
       document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
       document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
       document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
