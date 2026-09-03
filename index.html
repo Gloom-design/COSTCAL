@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.3.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.4.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -219,45 +219,37 @@
         </div>
       </div>
 
-      <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
-        <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 補倉規劃</h2>
-        <div class="grid grid-cols-2 gap-3.5">
-          <div>
-            <div class="flex justify-between mb-1">
-              <label class="text-[10px] sm:text-xs text-slate-600">預計買入 ($ P2)</label>
-              <button type="button" onclick="copyPrice('us')" class="text-[10px] sm:text-xs text-teal-600 underline cursor-pointer">帶入市價</button>
-            </div>
-            <input id="us_p2" type="number" step="0.01" placeholder="買入價" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">加碼股數 (模式A)</label>
-            <input id="us_n2" type="number" placeholder="加碼股數" class="us-input us-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
-          </div>
+      <!-- 2. 多筆補倉規劃區 -->
+      <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2.5">
+          <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 分批補倉規劃</h2>
+          <button type="button" onclick="addUsPlanRow()" class="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
+            ➕ 新增補倉筆數
+          </button>
         </div>
-        <div>
-          <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 ($ Target)</label>
-          <input id="us_ptarget" type="number" step="0.01" placeholder="目標均價" class="us-input us-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+
+        <!-- 動態補倉清單容器 -->
+        <div id="usPlansContainer" class="space-y-3">
+          <!-- 這裡會由 JS 動態生成補倉列 -->
         </div>
       </div>
 
       <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
+        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果 (含分批加總)</h2>
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
-          <span class="text-slate-400">需買入 / 總股數：</span>
+          <span class="text-slate-400">總補倉 / 總股數：</span>
           <span><strong id="us_resN2" class="text-white">0</strong> / <strong id="us_resTotalN" class="text-teal-300">0 股</strong></span>
         </div>
         <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
           <span class="text-slate-400">調整後平均成本：</span>
           <strong id="us_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
-        <!-- 原總額與台幣換算 -->
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
           <div>原總額: <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
         </div>
-        <!-- 本次資金與台幣換算 -->
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
-          <div>本次資金: <span id="us_resAddCostUSD" class="text-white">$0</span></div>
+          <div>本次總資金: <span id="us_resAddCostUSD" class="text-white">$0</span></div>
           <div>本次資金(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
         </div>
         <div class="pt-2.5">
@@ -287,7 +279,13 @@
         "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20" } 
       },
       usStocks: {
-        "應用材料": { name: "應用材料", symbol: "AMAT", rate: "32", fee: "0" }
+        "應用材料": { 
+          name: "應用材料", 
+          symbol: "AMAT", 
+          rate: "32", 
+          fee: "0",
+          plans: [{ p2: "", n2: "" }] // 預設一筆補倉
+        }
       }
     };
     
@@ -402,6 +400,87 @@
       }
     };
 
+    // 動態美股補倉列操作
+    window.addUsPlanRow = function(p2 = "", n2 = "") {
+      const container = document.getElementById('usPlansContainer');
+      const index = container.children.length;
+      const rowId = 'us_plan_' + Math.random().toString(36.substring(2, 9));
+
+      const div = document.createElement('div');
+      div.className = "us-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
+      div.setAttribute('data-id', rowId);
+
+      div.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-[11px] text-teal-700">補倉批次 #${index + 1}</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="copyUsPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
+            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <div class="flex justify-between mb-0.5">
+              <label class="text-[10px] text-slate-600">預計買入 ($ P2)</label>
+              <button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] text-teal-600 underline cursor-pointer">帶入市價</button>
+            </div>
+            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] text-slate-600 block mb-0.5">加碼股數 (N2)</label>
+            <input type="number" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+        </div>
+      `;
+
+      container.appendChild(div);
+      bindPlanEvents(div);
+      calculateUs();
+      saveData();
+    }
+
+    window.removeUsPlanRow = function(btn) {
+      const container = document.getElementById('usPlansContainer');
+      if (container.children.length <= 1) {
+        alert("至少需保留一筆補倉規劃！");
+        return;
+      }
+      btn.closest('.us-plan-row').remove();
+      relabelUsPlans();
+      calculateUs();
+      saveData();
+    }
+
+    window.copyUsPlanRow = function(btn) {
+      const row = btn.closest('.us-plan-row');
+      const p2 = row.querySelector('.us-plan-p2').value;
+      const n2 = row.querySelector('.us-plan-n2').value;
+      addUsPlanRow(p2, n2);
+    }
+
+    window.copyCurrentPriceToRow = function(btn) {
+      const cp = document.getElementById('us_currentPrice').value;
+      if (cp) {
+        const row = btn.closest('.us-plan-row');
+        row.querySelector('.us-plan-p2').value = cp;
+        calculateUs();
+        saveData();
+      }
+    }
+
+    function relabelUsPlans() {
+      const rows = document.querySelectorAll('.us-plan-row');
+      rows.forEach((row, idx) => {
+        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
+      });
+    }
+
+    function bindPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => {
+        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
+      });
+    }
+
     window.switchStock = async function(type, key) {
       if (type === 'tw') {
         currentTwKey = key;
@@ -462,7 +541,7 @@
         currentTwKey = trimmed;
         localStorage.setItem('calc_current_tw_key', trimmed);
       } else {
-        targetStore[trimmed] = { name: trimmed, symbol: trimmed.toUpperCase(), rate: "32", fee: "0" };
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed.toUpperCase(), rate: "32", fee: "0", plans: [{ p2: "", n2: "" }] };
         currentUsKey = trimmed;
         localStorage.setItem('calc_current_us_key', trimmed);
       }
@@ -568,6 +647,16 @@
         };
       } else {
         if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
+        
+        // 收集所有美股補倉列資料
+        const plans = [];
+        document.querySelectorAll('.us-plan-row').forEach(row => {
+          plans.push({
+            p2: row.querySelector('.us-plan-p2').value,
+            n2: row.querySelector('.us-plan-n2').value
+          });
+        });
+
         cloudData.usStocks[currentUsKey] = {
           name: document.getElementById('us_nameInput').value,
           symbol: document.getElementById('us_symbolInput').value,
@@ -577,9 +666,7 @@
           p1: document.getElementById('us_p1').value,
           prevClose: document.getElementById('us_prevClose').value,
           currentPrice: document.getElementById('us_currentPrice').value,
-          p2: document.getElementById('us_p2').value,
-          n2: document.getElementById('us_n2').value,
-          ptarget: document.getElementById('us_ptarget').value
+          plans: plans
         };
       }
     }
@@ -613,9 +700,15 @@
         document.getElementById('us_p1').value = us.p1 || '';
         document.getElementById('us_prevClose').value = us.prevClose || '';
         document.getElementById('us_currentPrice').value = us.currentPrice || '';
-        document.getElementById('us_p2').value = us.p2 || '';
-        document.getElementById('us_n2').value = us.n2 || '';
-        document.getElementById('us_ptarget').value = us.ptarget || '';
+
+        // 載入多筆補倉規劃
+        const container = document.getElementById('usPlansContainer');
+        container.innerHTML = '';
+        const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "" }];
+        plans.forEach(plan => {
+          addUsPlanRow(plan.p2 || "", plan.n2 || "");
+        });
+
         calculateUs();
       }
     }
@@ -713,12 +806,10 @@
       }
     }
 
+    // 🇺🇸 美股多筆分批補倉計算
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
-      const p2 = parseFloat(document.getElementById('us_p2').value) || 0;
-      const n2In = parseFloat(document.getElementById('us_n2').value);
-      const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
       const fee = parseFloat(document.getElementById('us_fee').value) || 0;
       const exchangeRate = parseFloat(document.getElementById('us_exchangeRate').value) || 32;
       const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
@@ -730,7 +821,24 @@
         pnlEl.innerText = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
       }
 
-      if (n1 <= 0 || p1 <= 0 || p2 <= 0) {
+      let totalAddShares = 0;
+      let totalAddCostUSD = 0;
+
+      document.querySelectorAll('.us-plan-row').forEach(row => {
+        const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
+        const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
+        if (p2 > 0 && n2 > 0) {
+          totalAddShares += n2;
+          totalAddCostUSD += (p2 * n2);
+        }
+      });
+
+      const origUSD = n1 * p1;
+      const totalCostUSD = origUSD + totalAddCostUSD + fee;
+      const totalShares = n1 + totalAddShares;
+      const finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
+
+      if (n1 <= 0 || p1 <= 0) {
         document.getElementById('us_resN2').innerText = '0';
         document.getElementById('us_resTotalN').innerText = '0 股';
         document.getElementById('us_resAvgPrice').innerText = '$0.00';
@@ -741,36 +849,13 @@
         return;
       }
 
-      let calcN2 = 0, calcAvg = 0;
-      if (!isNaN(ptargetIn) && ptargetIn > 0) {
-        if (ptargetIn <= p2) return;
-        calcN2 = ((n1 * (p1 - ptargetIn)) + fee) / (ptargetIn - p2);
-        calcAvg = ptargetIn;
-      } else if (!isNaN(n2In) && n2In > 0) {
-        calcN2 = n2In;
-        calcAvg = ((n1 * p1) + (calcN2 * p2) + fee) / (n1 + calcN2);
-      }
-
-      const origUSD = n1 * p1;
-      const addUSD = calcN2 > 0 ? (calcN2 * p2) + fee : 0;
-
-      if (calcN2 > 0) {
-        document.getElementById('us_resN2').innerText = `${calcN2.toFixed(1)}股`;
-        document.getElementById('us_resTotalN').innerText = `${(n1 + calcN2).toFixed(1)}股`;
-        document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
-        document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
-        document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
-        document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(addUSD)}`;
-        document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney(addUSD * exchangeRate)}`;
-      } else {
-        document.getElementById('us_resN2').innerText = '0';
-        document.getElementById('us_resTotalN').innerText = `${n1} 股`;
-        document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(p1)}`;
-        document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
-        document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
-        document.getElementById('us_resAddCostUSD').innerText = '$0';
-        document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
-      }
+      document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
+      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+      document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+      document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
+      document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
+      document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
     }
 
     document.querySelectorAll('.save-trigger').forEach(el => {
@@ -856,7 +941,7 @@
         cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383" } };
       }
       if (!cloudData.usStocks || Object.keys(cloudData.usStocks).length === 0) {
-        cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT" } };
+        cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }] } };
       }
 
       if (!cloudData.twStocks[currentTwKey]) {
