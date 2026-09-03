@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.5</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.6</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -269,7 +269,7 @@
           <div>原成本總額(美元): <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
           <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="text-white">$0</span></div>
           <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
         </div>
@@ -294,7 +294,7 @@
     let saveTimeout = null;
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
-    let isInitializing = true; // 新增：初始化旗標，防止啟動時自動儲存覆蓋雲端
+    let isInitializing = true;
 
     let cloudData = { 
       twStocks: { 
@@ -380,7 +380,7 @@
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
-      const targetKeyWhenFetching = (type === 'tw' ? currentTwKey : currentUsKey); // 記錄發起時的股別
+      const targetKeyWhenFetching = (type === 'tw' ? currentTwKey : currentUsKey);
 
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號';
@@ -398,7 +398,6 @@
 
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
-        // 防呆：如果使用者在請求回來前已經切換了股票，則捨棄此次更新，避免錯置
         const currentActiveKey = (type === 'tw' ? currentTwKey : currentUsKey);
         if (targetKeyWhenFetching !== currentActiveKey) return;
 
@@ -440,7 +439,7 @@
           <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -599,12 +598,21 @@
 
     window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
-      const newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
-      if (!newName || !newName.trim() || newName === currentKey) return;
-      
-      const trimmedName = newName.trim();
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      if (targetStore[trimmedName]) { alert("此組別名稱已存在！"); return; }
+      
+      let newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
+      if (!newName || !newName.trim()) return;
+      
+      let trimmedName = newName.trim();
+      
+      // 重複命名防呆與即時互動改名迴圈
+      while (trimmedName !== currentKey && targetStore[trimmedName]) {
+        newName = prompt(`名稱「${trimmedName}」已存在！請輸入其他新名稱：`, currentKey);
+        if (!newName || !newName.trim()) return;
+        trimmedName = newName.trim();
+      }
+
+      if (trimmedName === currentKey) return;
       
       saveUIToCurrentStock(type);
       targetStore[trimmedName] = targetStore[currentKey];
@@ -629,13 +637,19 @@
     };
 
     window.addStock = async function(type) {
-      const inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AMAT):");
-      if (!inputVal || !inputVal.trim()) return;
-
-      const trimmed = inputVal.trim();
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       
-      if (targetStore[trimmed]) { alert("此組別已存在！"); return; }
+      let inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AMAT):");
+      if (!inputVal || !inputVal.trim()) return;
+
+      let trimmed = inputVal.trim();
+
+      // 重複命名防呆與即時互動改名迴圈
+      while (targetStore[trimmed]) {
+        inputVal = prompt(`名稱「${trimmed}」已存在！請重新輸入其他代號或名稱：`, "");
+        if (!inputVal || !inputVal.trim()) return;
+        trimmed = inputVal.trim();
+      }
 
       saveUIToCurrentStock(type);
 
@@ -659,23 +673,37 @@
 
     window.deleteStock = function(type) {
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const keys = Object.keys(targetStore);
-      if (keys.length <= 1) { alert("至少需保留一個組合！"); return; }
-      
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      
       if (confirm(`確定刪除「${currentKey}」嗎？`)) {
         delete targetStore[currentKey];
-        const nextKey = Object.keys(targetStore)[0];
-        if (type === 'tw') {
-          currentTwKey = nextKey;
-          localStorage.setItem('calc_current_tw_key', nextKey);
+        
+        const remainingKeys = Object.keys(targetStore);
+        
+        // 若全部刪除完畢，自動建立預設組別
+        if (remainingKeys.length === 0) {
+          if (type === 'tw') {
+            cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            currentTwKey = "台光電";
+            localStorage.setItem('calc_current_tw_key', currentTwKey);
+          } else {
+            cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            currentUsKey = "應用材料";
+            localStorage.setItem('calc_current_us_key', currentUsKey);
+          }
         } else {
-          currentUsKey = nextKey;
-          localStorage.setItem('calc_current_us_key', nextKey);
+          const nextKey = remainingKeys[0];
+          if (type === 'tw') {
+            currentTwKey = nextKey;
+            localStorage.setItem('calc_current_tw_key', nextKey);
+          } else {
+            currentUsKey = nextKey;
+            localStorage.setItem('calc_current_us_key', nextKey);
+          }
         }
         
         renderStockSelector(type);
-        loadStockToUI(type, nextKey);
+        loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
         saveData();
       }
     };
@@ -836,7 +864,7 @@
     }
 
     function saveData() {
-      if (isInitializing) return; // 初始化載入期間禁止自動同步，防止覆蓋雲端
+      if (isInitializing) return;
       if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
@@ -867,7 +895,6 @@
     function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
-    // 🇹🇼 台股計算（強制原始股數顯示至小數第一位，格式一致）
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -907,7 +934,6 @@
       let totalAddCost = 0;
       let finalAvgPrice = p1;
 
-      // 模式B：目標均價反算
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
         const firstRow = document.querySelector('.tw-plan-row');
         const p2 = firstRow ? (parseFloat(firstRow.querySelector('.tw-plan-p2').value) || 0) : 0;
@@ -950,7 +976,6 @@
         }
       }
 
-      // 模式A：多筆批次加碼累計與逐批獨立計算
       let cumulativeShares = n1;
       let cumulativeCost = totalOriginalCost;
 
@@ -999,7 +1024,6 @@
       document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
     }
 
-    // 🇺🇸 美股計算（強制原始股數顯示至小數第一位，格式一致）
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -1036,7 +1060,6 @@
       let totalAddCostUSD = 0;
       let finalAvgPrice = p1;
 
-      // 模式B：目標均價反算
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
         const firstRow = document.querySelector('.us-plan-row');
         const p2 = firstRow ? (parseFloat(firstRow.querySelector('.us-plan-p2').value) || 0) : 0;
@@ -1082,7 +1105,6 @@
         }
       }
 
-      // 模式A：多筆批次加碼累計與逐批獨立計算
       let cumulativeShares = n1;
       let cumulativeCostUSD = origUSD;
 
@@ -1227,7 +1249,6 @@
         cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
 
-      // 檢查 localStorage 記錄的 key 是否存在，若因刪除等原因不存在則防呆修正
       if (!cloudData.twStocks[currentTwKey]) {
         currentTwKey = Object.keys(cloudData.twStocks)[0];
         localStorage.setItem('calc_current_tw_key', currentTwKey);
@@ -1242,7 +1263,7 @@
       loadStockToUI('tw', currentTwKey);
       loadStockToUI('us', currentUsKey);
 
-      isInitializing = false; // 雲端資料載入並渲染完畢，解除防護鎖定，之後的操作才會正常同步
+      isInitializing = false;
     }
 
     function updateAuthUI() {
