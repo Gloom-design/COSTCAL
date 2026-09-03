@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.5.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -112,40 +112,45 @@
         </div>
       </div>
 
-      <div id="twCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
-        <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 補倉規劃</h2>
-        <div class="grid grid-cols-2 gap-3.5">
-          <div>
-            <div class="flex justify-between mb-1">
-              <label class="text-[10px] sm:text-xs text-slate-600">預計買入 (P2)</label>
-              <button type="button" onclick="copyPrice('tw')" class="text-[10px] sm:text-xs text-indigo-600 underline cursor-pointer">帶入市價</button>
-            </div>
-            <input id="tw_p2" type="number" step="0.01" placeholder="買入價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">加碼股數 (模式A)</label>
-            <input id="tw_n2" type="number" placeholder="加碼股數" class="tw-input tw-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
-          </div>
+      <!-- 2. 台股分批補倉規劃區 -->
+      <div id="twCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2.5">
+          <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 分批補倉規劃</h2>
+          <button type="button" onclick="addTwPlanRow()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-indigo-200 cursor-pointer shadow-sm">
+            ➕ 新增補倉筆數
+          </button>
         </div>
-        <div>
-          <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 (模式B)</label>
-          <input id="tw_ptarget" type="number" step="0.01" placeholder="目標均價" class="tw-input tw-mode-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+
+        <div id="twPlansContainer" class="space-y-3">
+          <!-- 動態生成台股補倉列 -->
+        </div>
+
+        <div class="pt-2 border-t border-slate-100">
+          <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 (目標均價 - 模式B)</label>
+          <input id="tw_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none bg-slate-50">
         </div>
       </div>
 
       <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
         <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">台股試算結果</h2>
+        
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
-          <span class="text-slate-400">需買入 / 總股數：</span>
-          <span><strong id="tw_resN2" class="text-white">0</strong> / <strong id="tw_resTotalN" class="text-cyan-300">0 股</strong></span>
+          <span class="text-slate-400">原始股數 /分批補倉股數 / 總股數：</span>
+          <span><strong id="tw_resN1" class="text-slate-300">0</strong> / <strong id="tw_resN2" class="text-white">0</strong> / <strong id="tw_resTotalN" class="text-cyan-300">0 股</strong></span>
         </div>
-        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
-          <span class="text-slate-400">調整後平均成本：</span>
+        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-800 pb-2.5">
+          <span class="text-slate-400">綜合調整後平均成本：</span>
           <strong id="tw_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
-          <div>原總額: <span id="tw_resOriginalCost">$0</span></div>
-          <div>本次資金: <span id="tw_resAddCost" class="text-white">$0</span></div>
+
+        <!-- 台股依批次獨立顯示明細容器 -->
+        <div id="twBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3">
+          <!-- 動態填入各批次明細 -->
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
+          <div>原成本總額: <span id="tw_resOriginalCost">$0</span></div>
+          <div>本次補倉總計: <span id="tw_resAddCost" class="text-white">$0</span></div>
         </div>
         <div class="pt-2.5">
           <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
@@ -292,7 +297,7 @@
 
     let cloudData = { 
       twStocks: { 
-        "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20" } 
+        "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } 
       },
       usStocks: {
         "應用材料": { 
@@ -417,6 +422,86 @@
       }
     };
 
+    // 台股動態補倉列操作
+    window.addTwPlanRow = function(p2 = "", n2 = "") {
+      const container = document.getElementById('twPlansContainer');
+      const index = container.children.length;
+
+      const div = document.createElement('div');
+      div.className = "tw-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
+
+      div.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <div class="flex justify-between mb-0.5">
+              <label class="text-[10px] text-slate-600">預計買入 (P2)</label>
+              <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] text-indigo-600 underline cursor-pointer">帶入市價</button>
+            </div>
+            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
+            <input type="number" placeholder="加碼股數" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+        </div>
+      `;
+
+      container.appendChild(div);
+      bindTwPlanEvents(div);
+      calculateTw();
+      saveData();
+    }
+
+    window.removeTwPlanRow = function(btn) {
+      const container = document.getElementById('twPlansContainer');
+      if (container.children.length <= 1) {
+        alert("至少需保留一筆補倉規劃！");
+        return;
+      }
+      btn.closest('.tw-plan-row').remove();
+      relabelTwPlans();
+      calculateTw();
+      saveData();
+    }
+
+    window.copyTwPlanRow = function(btn) {
+      const row = btn.closest('.tw-plan-row');
+      const p2 = row.querySelector('.tw-plan-p2').value;
+      const n2 = row.querySelector('.tw-plan-n2').value;
+      addTwPlanRow(p2, n2);
+    }
+
+    window.copyCurrentPriceToTwRow = function(btn) {
+      const cp = document.getElementById('tw_currentPrice').value;
+      if (cp) {
+        const row = btn.closest('.tw-plan-row');
+        row.querySelector('.tw-plan-p2').value = cp;
+        calculateTw();
+        saveData();
+      }
+    }
+
+    function relabelTwPlans() {
+      const rows = document.querySelectorAll('.tw-plan-row');
+      rows.forEach((row, idx) => {
+        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
+      });
+    }
+
+    function bindTwPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => {
+        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
+      });
+    }
+
+    // 美股動態補倉列操作
     window.addUsPlanRow = function(p2 = "", n2 = "") {
       const container = document.getElementById('usPlansContainer');
       const index = container.children.length;
@@ -441,14 +526,14 @@
             <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
           </div>
           <div>
-            <label class="text-[10px] text-slate-600 block mb-0.5">加碼股數 (N2)</label>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
             <input type="number" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
           </div>
         </div>
       `;
 
       container.appendChild(div);
-      bindPlanEvents(div);
+      bindUsPlanEvents(div);
       calculateUs();
       saveData();
     }
@@ -489,7 +574,7 @@
       });
     }
 
-    function bindPlanEvents(rowEl) {
+    function bindUsPlanEvents(rowEl) {
       rowEl.querySelectorAll('.save-trigger').forEach(el => {
         el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
       });
@@ -551,7 +636,7 @@
       saveUIToCurrentStock(type);
 
       if (type === 'tw') {
-        targetStore[trimmed] = { name: trimmed, symbol: trimmed, discount: "0.6", minFee: "20" };
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed, discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" };
         currentTwKey = trimmed;
         localStorage.setItem('calc_current_tw_key', trimmed);
       } else {
@@ -602,9 +687,14 @@
     window.copyPrice = function(type) {
       const cp = document.getElementById(`${type}_currentPrice`).value;
       if (cp) { 
-        document.getElementById(`${type}_p2`).value = cp; 
-        type === 'tw' ? calculateTw() : calculateUs(); 
-        saveData(); 
+        if (type === 'tw') {
+          const firstRow = document.querySelector('.tw-plan-row');
+          if (firstRow) {
+            firstRow.querySelector('.tw-plan-p2').value = cp;
+            calculateTw();
+            saveData();
+          }
+        }
       }
     };
 
@@ -645,6 +735,15 @@
     function saveUIToCurrentStock(type) {
       if (type === 'tw') {
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
+        
+        const plans = [];
+        document.querySelectorAll('.tw-plan-row').forEach(row => {
+          plans.push({
+            p2: row.querySelector('.tw-plan-p2').value,
+            n2: row.querySelector('.tw-plan-n2').value
+          });
+        });
+
         cloudData.twStocks[currentTwKey] = {
           name: document.getElementById('tw_nameInput').value,
           symbol: document.getElementById('tw_symbolInput').value,
@@ -655,8 +754,7 @@
           manualPnlPct: document.getElementById('tw_manualPnlPct').value,
           prevClose: document.getElementById('tw_prevClose').value,
           currentPrice: document.getElementById('tw_currentPrice').value,
-          p2: document.getElementById('tw_p2').value,
-          n2: document.getElementById('tw_n2').value,
+          plans: plans,
           ptarget: document.getElementById('tw_ptarget').value
         };
       } else {
@@ -699,9 +797,15 @@
         document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
         document.getElementById('tw_prevClose').value = tw.prevClose || '';
         document.getElementById('tw_currentPrice').value = tw.currentPrice || '';
-        document.getElementById('tw_p2').value = tw.p2 || '';
-        document.getElementById('tw_n2').value = tw.n2 || '';
         document.getElementById('tw_ptarget').value = tw.ptarget || '';
+
+        const container = document.getElementById('twPlansContainer');
+        container.innerHTML = '';
+        const plans = (tw.plans && tw.plans.length > 0) ? tw.plans : [{ p2: "", n2: "" }];
+        plans.forEach(plan => {
+          addTwPlanRow(plan.p2 || "", plan.n2 || "");
+        });
+
         calculateTw();
       } else {
         currentUsKey = key;
@@ -758,6 +862,7 @@
     function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
+    // 🇹🇼 台股計算（支援多筆批次加碼與模式B目標均價反算，並包含 8 項明細）
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -765,8 +870,6 @@
       let currentPrice = parseFloat(document.getElementById('tw_currentPrice').value) || 0;
       const prevClose = parseFloat(document.getElementById('tw_prevClose').value) || 0;
       const sameAsPrev = document.getElementById('tw_sameAsPrev').checked;
-      const p2 = parseFloat(document.getElementById('tw_p2').value) || 0;
-      const n2In = parseFloat(document.getElementById('tw_n2').value);
       const ptargetIn = parseFloat(document.getElementById('tw_ptarget').value);
       const discount = parseFloat(document.getElementById('twDiscount').value) || 0.6;
       const minFee = parseFloat(document.getElementById('twMinFee').value) || 20;
@@ -782,7 +885,11 @@
       pnlEl.className = `font-bold text-xs sm:text-base ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
       pnlEl.innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
 
-      if (n1 <= 0 || p1 <= 0 || p2 <= 0) {
+      const batchContainer = document.getElementById('twBatchResultsContainer');
+      batchContainer.innerHTML = '';
+
+      if (n1 <= 0 || p1 <= 0) {
+        document.getElementById('tw_resN1').innerText = '0';
         document.getElementById('tw_resN2').innerText = '0';
         document.getElementById('tw_resTotalN').innerText = '0 股';
         document.getElementById('tw_resAvgPrice').innerText = '$0.00';
@@ -791,36 +898,103 @@
         return;
       }
 
-      let calcN2 = 0, calcAvg = 0;
+      let totalAddShares = 0;
+      let totalAddCost = 0;
+      let finalAvgPrice = p1;
+
+      // 模式B：目標均價反算
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
-        if (ptargetIn <= p2) return;
-        let roughN2 = (n1 * (p1 - ptargetIn)) / (ptargetIn - p2);
-        if (roughN2 <= 0) return;
-        calcN2 = ((n1 * (p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / (ptargetIn - p2);
-        calcAvg = ptargetIn;
-      } else if (!isNaN(n2In) && n2In > 0) {
-        calcN2 = n2In;
-        const addFee = calcTwBuyFee(p2, calcN2, discount, minFee);
-        calcAvg = (totalOriginalCost + (calcN2 * p2) + addFee) / (n1 + calcN2);
+        const firstRow = document.querySelector('.tw-plan-row');
+        const p2 = firstRow ? (parseFloat(firstRow.querySelector('.tw-plan-p2').value) || 0) : 0;
+
+        if (p2 > 0 && ptargetIn > p2) {
+          let roughN2 = (n1 * (p1 - ptargetIn)) / (ptargetIn - p2);
+          if (roughN2 > 0) {
+            totalAddShares = ((n1 * (p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / (ptargetIn - p2);
+            const addFee = calcTwBuyFee(p2, totalAddShares, discount, minFee);
+            totalAddCost = (totalAddShares * p2) + addFee;
+            finalAvgPrice = ptargetIn;
+
+            const totalCost = totalOriginalCost + totalAddCost;
+            const totalShares = n1 + totalAddShares;
+            const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+
+            document.getElementById('tw_resN1').innerText = `${n1}股`;
+            document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
+            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+            document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+            document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
+            document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+
+            const batchDiv = document.createElement('div');
+            batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+            batchDiv.innerHTML = `
+              <div class="font-bold text-indigo-300 border-b border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
+              <div class="grid grid-cols-2 gap-1 text-slate-300">
+                <div>1. 本次所需補倉: <span class="text-white">$${formatMoney(totalAddCost)}</span></div>
+                <div>2. 目前個股總資金: <span class="text-white">$${formatMoney(totalCost)}</span></div>
+                <div>3. 本次所需補倉股數: <span class="text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
+                <div>4. 目前個股總股數: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
+                <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
+                <div class="col-span-2">6. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              </div>
+            `;
+            batchContainer.appendChild(batchDiv);
+            return;
+          }
+        }
       }
 
-      if (calcN2 > 0) {
-        const addFee = calcTwBuyFee(p2, calcN2, discount, minFee);
-        document.getElementById('tw_resN2').innerText = `${calcN2.toFixed(1)}股`;
-        document.getElementById('tw_resTotalN').innerText = `${(n1 + calcN2).toFixed(1)}股`;
-        document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(calcAvg)}`;
-        document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
-        document.getElementById('tw_resAddCost').innerText = `$${formatMoney((calcN2 * p2) + addFee)}`;
-      } else {
-        document.getElementById('tw_resN2').innerText = '0';
-        document.getElementById('tw_resTotalN').innerText = `${n1} 股`;
-        document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(p1)}`;
-        document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
-        document.getElementById('tw_resAddCost').innerText = '$0';
-      }
+      // 模式A：多筆批次加碼累計與逐批獨立計算
+      let cumulativeShares = n1;
+      let cumulativeCost = totalOriginalCost;
+
+      const planRows = document.querySelectorAll('.tw-plan-row');
+      planRows.forEach((row, idx) => {
+        const p2 = parseFloat(row.querySelector('.tw-plan-p2').value) || 0;
+        const n2 = parseFloat(row.querySelector('.tw-plan-n2').value) || 0;
+
+        if (p2 > 0 && n2 > 0) {
+          totalAddShares += n2;
+          const batchFee = calcTwBuyFee(p2, n2, discount, minFee);
+          const batchCost = (p2 * n2) + batchFee;
+          totalAddCost += batchCost;
+
+          cumulativeShares += n2;
+          cumulativeCost += batchCost;
+          const batchAvgPrice = cumulativeCost / cumulativeShares;
+          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          batchDiv.innerHTML = `
+            <div class="font-bold text-indigo-300 border-b border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-300">
+              <div>1. 本次所需補倉: <span class="text-white">$${formatMoney(batchCost)}</span></div>
+              <div>2. 目前個股總資金: <span class="text-white">$${formatMoney(cumulativeCost)}</span></div>
+              <div>3. 本次所需補倉股數: <span class="text-cyan-300">${n2.toFixed(1)} 股</span></div>
+              <div>4. 目前個股總股數: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
+              <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(batchAvgPrice)}</span></div>
+              <div class="col-span-2">6. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>
+          `;
+          batchContainer.appendChild(batchDiv);
+        }
+      });
+
+      const totalShares = n1 + totalAddShares;
+      const totalCost = totalOriginalCost + totalAddCost;
+      finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
+
+      document.getElementById('tw_resN1').innerText = `${n1}股`;
+      document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
+      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+      document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
+      document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
     }
 
-    // 🇺🇸 美股計算（第 7 項已更新為 調整後平均成本(美元)&(台幣)）
+    // 🇺🇸 美股計算
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -1041,7 +1215,7 @@
       }
 
       if (!cloudData.twStocks || Object.keys(cloudData.twStocks).length === 0) {
-        cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383" } };
+        cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
       if (!cloudData.usStocks || Object.keys(cloudData.usStocks).length === 0) {
         cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }], ptarget: "" } };
