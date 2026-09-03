@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.5</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -269,7 +269,7 @@
           <div>原成本總額(美元): <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
           <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="text-white">$0</span></div>
           <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
         </div>
@@ -294,6 +294,7 @@
     let saveTimeout = null;
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
+    let isInitializing = true; // 新增：初始化旗標，防止啟動時自動儲存覆蓋雲端
 
     let cloudData = { 
       twStocks: { 
@@ -379,6 +380,7 @@
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
+      const targetKeyWhenFetching = (type === 'tw' ? currentTwKey : currentUsKey); // 記錄發起時的股別
 
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號';
@@ -395,6 +397,10 @@
         const result = await apiRes.json();
 
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
+
+        // 防呆：如果使用者在請求回來前已經切換了股票，則捨棄此次更新，避免錯置
+        const currentActiveKey = (type === 'tw' ? currentTwKey : currentUsKey);
+        if (targetKeyWhenFetching !== currentActiveKey) return;
 
         if (result.currentPrice) {
           if (result.symbol) {
@@ -790,7 +796,7 @@
 
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
-        document.getElementById('tw_n1').value = tw.n1 || '';
+        document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : '';
         document.getElementById('tw_p1').value = tw.p1 || '';
         document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
         document.getElementById('tw_prevClose').value = tw.prevClose || '';
@@ -812,7 +818,7 @@
         document.getElementById('us_symbolInput').value = us.symbol || '';
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
-        document.getElementById('us_n1').value = us.n1 || '';
+        document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
         document.getElementById('us_p1').value = us.p1 || '';
         document.getElementById('us_prevClose').value = us.prevClose || '';
         document.getElementById('us_currentPrice').value = us.currentPrice || '';
@@ -830,6 +836,7 @@
     }
 
     function saveData() {
+      if (isInitializing) return; // 初始化載入期間禁止自動同步，防止覆蓋雲端
       if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
@@ -1142,6 +1149,7 @@
 
     async function init() {
       applyUIMode();
+      initDefaultView();
 
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1157,6 +1165,7 @@
           currentUser = session?.user || null;
           updateAuthUI();
           if (currentUser) {
+            document.getElementById('syncStatus').innerText = '載入雲端資料中...';
             const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (data && data.portfolio_data) {
               parseCloudData(data.portfolio_data);
@@ -1170,19 +1179,16 @@
         updateAuthUI();
 
         if (currentUser) {
+          document.getElementById('syncStatus').innerText = '載入雲端資料中...';
           const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           if (data && data.portfolio_data) {
             parseCloudData(data.portfolio_data);
-          } else {
-            initDefaultView();
           }
           document.getElementById('syncStatus').innerText = '已同步雲端';
         } else {
-          initDefaultView();
           document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
         }
       } catch (err) {
-        initDefaultView();
         document.getElementById('syncStatus').innerText = '單機離線模式';
       }
 
@@ -1194,9 +1200,11 @@
       renderStockSelector('us');
       if (!cloudData.twStocks[currentTwKey]) {
         currentTwKey = Object.keys(cloudData.twStocks)[0];
+        localStorage.setItem('calc_current_tw_key', currentTwKey);
       }
       if (!cloudData.usStocks[currentUsKey]) {
         currentUsKey = Object.keys(cloudData.usStocks)[0];
+        localStorage.setItem('calc_current_us_key', currentUsKey);
       }
       loadStockToUI('tw', currentTwKey);
       loadStockToUI('us', currentUsKey);
@@ -1219,17 +1227,22 @@
         cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
 
+      // 檢查 localStorage 記錄的 key 是否存在，若因刪除等原因不存在則防呆修正
       if (!cloudData.twStocks[currentTwKey]) {
         currentTwKey = Object.keys(cloudData.twStocks)[0];
+        localStorage.setItem('calc_current_tw_key', currentTwKey);
       }
       if (!cloudData.usStocks[currentUsKey]) {
         currentUsKey = Object.keys(cloudData.usStocks)[0];
+        localStorage.setItem('calc_current_us_key', currentUsKey);
       }
 
       renderStockSelector('tw');
       renderStockSelector('us');
       loadStockToUI('tw', currentTwKey);
       loadStockToUI('us', currentUsKey);
+
+      isInitializing = false; // 雲端資料載入並渲染完畢，解除防護鎖定，之後的操作才會正常同步
     }
 
     function updateAuthUI() {
