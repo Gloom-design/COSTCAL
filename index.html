@@ -219,7 +219,7 @@
         </div>
       </div>
 
-      <!-- 2. 多筆補倉規劃區 -->
+      <!-- 2. 分批補倉規劃區 (支援多筆新增、複製、刪除、模式A與模式B) -->
       <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
         <div class="flex justify-between items-center border-b pb-2.5">
           <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 分批補倉規劃</h2>
@@ -230,12 +230,18 @@
 
         <!-- 動態補倉清單容器 -->
         <div id="usPlansContainer" class="space-y-3">
-          <!-- 這裡會由 JS 動態生成補倉列 -->
+          <!-- 由 JS 動態生成 -->
+        </div>
+
+        <!-- 目標攤平均價 (模式B) -->
+        <div class="pt-2 border-t border-slate-100">
+          <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 ($ Target - 模式B)</label>
+          <input id="us_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none bg-slate-50">
         </div>
       </div>
 
       <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
-        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果 (含分批加總)</h2>
+        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">總補倉 / 總股數：</span>
           <span><strong id="us_resN2" class="text-white">0</strong> / <strong id="us_resTotalN" class="text-teal-300">0 股</strong></span>
@@ -284,7 +290,8 @@
           symbol: "AMAT", 
           rate: "32", 
           fee: "0",
-          plans: [{ p2: "", n2: "" }] // 預設一筆補倉
+          plans: [{ p2: "", n2: "" }],
+          ptarget: ""
         }
       }
     };
@@ -400,15 +407,13 @@
       }
     };
 
-    // 動態美股補倉列操作
+    // 動態美股補倉列操作 (支援新增、複製、刪除)
     window.addUsPlanRow = function(p2 = "", n2 = "") {
       const container = document.getElementById('usPlansContainer');
       const index = container.children.length;
-      const rowId = 'us_plan_' + Math.random().toString(36.substring(2, 9));
 
       const div = document.createElement('div');
       div.className = "us-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
-      div.setAttribute('data-id', rowId);
 
       div.innerHTML = `
         <div class="flex justify-between items-center">
@@ -541,7 +546,7 @@
         currentTwKey = trimmed;
         localStorage.setItem('calc_current_tw_key', trimmed);
       } else {
-        targetStore[trimmed] = { name: trimmed, symbol: trimmed.toUpperCase(), rate: "32", fee: "0", plans: [{ p2: "", n2: "" }] };
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed.toUpperCase(), rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "" };
         currentUsKey = trimmed;
         localStorage.setItem('calc_current_us_key', trimmed);
       }
@@ -648,7 +653,6 @@
       } else {
         if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
         
-        // 收集所有美股補倉列資料
         const plans = [];
         document.querySelectorAll('.us-plan-row').forEach(row => {
           plans.push({
@@ -666,7 +670,8 @@
           p1: document.getElementById('us_p1').value,
           prevClose: document.getElementById('us_prevClose').value,
           currentPrice: document.getElementById('us_currentPrice').value,
-          plans: plans
+          plans: plans,
+          ptarget: document.getElementById('us_ptarget').value
         };
       }
     }
@@ -700,8 +705,8 @@
         document.getElementById('us_p1').value = us.p1 || '';
         document.getElementById('us_prevClose').value = us.prevClose || '';
         document.getElementById('us_currentPrice').value = us.currentPrice || '';
+        document.getElementById('us_ptarget').value = us.ptarget || '';
 
-        // 載入多筆補倉規劃
         const container = document.getElementById('usPlansContainer');
         container.innerHTML = '';
         const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "" }];
@@ -806,13 +811,14 @@
       }
     }
 
-    // 🇺🇸 美股多筆分批補倉計算
+    // 🇺🇸 美股計算（完美支援多筆批次加碼與目標均價反算）
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
       const fee = parseFloat(document.getElementById('us_fee').value) || 0;
       const exchangeRate = parseFloat(document.getElementById('us_exchangeRate').value) || 32;
       const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
+      const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
 
       const pnlPct = (p1 > 0 && currentPrice > 0) ? ((currentPrice - p1) / p1) * 100 : null;
       const pnlEl = document.getElementById('us_pnlDisplay');
@@ -820,23 +826,6 @@
         pnlEl.className = `font-bold text-xs sm:text-base ${pnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
         pnlEl.innerText = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
       }
-
-      let totalAddShares = 0;
-      let totalAddCostUSD = 0;
-
-      document.querySelectorAll('.us-plan-row').forEach(row => {
-        const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
-        const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
-        if (p2 > 0 && n2 > 0) {
-          totalAddShares += n2;
-          totalAddCostUSD += (p2 * n2);
-        }
-      });
-
-      const origUSD = n1 * p1;
-      const totalCostUSD = origUSD + totalAddCostUSD + fee;
-      const totalShares = n1 + totalAddShares;
-      const finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
 
       if (n1 <= 0 || p1 <= 0) {
         document.getElementById('us_resN2').innerText = '0';
@@ -848,6 +837,48 @@
         document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
         return;
       }
+
+      const origUSD = n1 * p1;
+      let totalAddShares = 0;
+      let totalAddCostUSD = 0;
+
+      // 模式B：目標均價反算
+      if (!isNaN(ptargetIn) && ptargetIn > 0) {
+        const firstRow = document.querySelector('.us-plan-row');
+        const p2 = firstRow ? (parseFloat(firstRow.querySelector('.us-plan-p2').value) || 0) : 0;
+
+        if (p2 > 0 && ptargetIn > p2) {
+          totalAddShares = ((n1 * (p1 - ptargetIn)) + fee) / (ptargetIn - p2);
+          if (totalAddShares > 0) {
+            totalAddCostUSD = totalAddShares * p2;
+          }
+          const totalCostUSD = origUSD + totalAddCostUSD + fee;
+          const totalShares = n1 + totalAddShares;
+
+          document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
+          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
+          document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(ptargetIn)}`;
+          document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+          document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
+          document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
+          document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+          return;
+        }
+      }
+
+      // 模式A：多筆批次加碼加總
+      document.querySelectorAll('.us-plan-row').forEach(row => {
+        const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
+        const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
+        if (p2 > 0 && n2 > 0) {
+          totalAddShares += n2;
+          totalAddCostUSD += (p2 * n2);
+        }
+      });
+
+      const totalCostUSD = origUSD + totalAddCostUSD + fee;
+      const totalShares = n1 + totalAddShares;
+      const finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
 
       document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
       document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
@@ -941,7 +972,7 @@
         cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383" } };
       }
       if (!cloudData.usStocks || Object.keys(cloudData.usStocks).length === 0) {
-        cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }] } };
+        cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
 
       if (!cloudData.twStocks[currentTwKey]) {
