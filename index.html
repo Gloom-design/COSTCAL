@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.4.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.5.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -240,19 +240,26 @@
 
       <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
         <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
+        
+        <!-- 整體總結 -->
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">總補倉 / 總股數：</span>
           <span><strong id="us_resN2" class="text-white">0</strong> / <strong id="us_resTotalN" class="text-teal-300">0 股</strong></span>
         </div>
         <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
-          <span class="text-slate-400">調整後平均成本：</span>
+          <span class="text-slate-400">綜合調整後平均成本：</span>
           <strong id="us_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
-        <!-- 新增：調整後平均成本（台幣） -->
         <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-800 pb-2.5">
-          <span class="text-slate-400">調整後平均成本(台幣)：</span>
+          <span class="text-slate-400">綜合均價(台幣)：</span>
           <strong id="us_resAvgPriceTWD" class="text-cyan-300 text-sm sm:text-base font-bold">NT$0.00</strong>
         </div>
+
+        <!-- 依批次獨立顯示明細容器 -->
+        <div id="usBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3">
+          <!-- 動態填入各批次 7 項明細 -->
+        </div>
+
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
           <div>原總額: <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
@@ -813,7 +820,7 @@
       }
     }
 
-    // 🇺🇸 美股計算（含平均成本台幣換算）
+    // 🇺🇸 美股計算（含各批次獨立 7 項明細）
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -828,6 +835,9 @@
         pnlEl.className = `font-bold text-xs sm:text-base ${pnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
         pnlEl.innerText = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
       }
+
+      const batchContainer = document.getElementById('usBatchResultsContainer');
+      batchContainer.innerHTML = '';
 
       if (n1 <= 0 || p1 <= 0) {
         document.getElementById('us_resN2').innerText = '0';
@@ -868,23 +878,68 @@
           document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
           document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
           document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+
+          // 模式B 單批次檢視
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          batchDiv.innerHTML = `
+            <div class="font-bold text-teal-300 border-b border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-300">
+              <div>1. 本次美元所需補倉: <span class="text-white">$${formatMoney(totalAddCostUSD)}</span></div>
+              <div>2. 本次台幣所需補倉: <span class="text-amber-300">NT$${formatMoney(totalAddCostUSD * exchangeRate)}</span></div>
+              <div>3. 個股美元總資金: <span class="text-white">$${formatMoney(totalCostUSD)}</span></div>
+              <div>4. 個股台幣總資金: <span class="text-amber-300">NT$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
+              <div>5. 個股總股數資金: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
+              <div>6. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)} (NT$${formatPrice(finalAvgPrice * exchangeRate)})</span></div>
+              <div class="col-span-2">7. 未實現損益 (vs 市價 $${currentPrice}): <span class="${currentPrice >= finalAvgPrice ? 'text-emerald-400' : 'text-rose-400'} font-bold">${currentPrice > 0 ? (((currentPrice - finalAvgPrice) / finalAvgPrice) * 100).toFixed(2) + '%' : '-%'}</span></div>
+            </div>
+          `;
+          batchContainer.appendChild(batchDiv);
           return;
         }
       }
 
-      // 模式A：多筆批次加碼加總
-      document.querySelectorAll('.us-plan-row').forEach(row => {
+      // 模式A：多筆批次加碼累計與逐批獨立計算
+      let cumulativeShares = n1;
+      let cumulativeCostUSD = origUSD;
+
+      const planRows = document.querySelectorAll('.us-plan-row');
+      planRows.forEach((row, idx) => {
         const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
         const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
+
         if (p2 > 0 && n2 > 0) {
           totalAddShares += n2;
-          totalAddCostUSD += (p2 * n2);
+          const batchCostUSD = p2 * n2;
+          totalAddCostUSD += batchCostUSD;
+
+          cumulativeShares += n2;
+          cumulativeCostUSD += batchCostUSD;
+          const batchAvgPrice = cumulativeCostUSD / cumulativeShares;
+          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          batchDiv.innerHTML = `
+            <div class="font-bold text-teal-300 border-b border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-300">
+              <div>1. 本次美元所需補倉: <span class="text-white">$${formatMoney(batchCostUSD)}</span></div>
+              <div>2. 本次台幣所需補倉: <span class="text-amber-300">NT$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
+              <div>3. 個股美元總資金: <span class="text-white">$${formatMoney(cumulativeCostUSD)}</span></div>
+              <div>4. 個股台幣總資金: <span class="text-amber-300">NT$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
+              <div>5. 個股總股數資金: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
+              <div>6. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(batchAvgPrice)} (NT$${formatPrice(batchAvgPrice * exchangeRate)})</span></div>
+              <div class="col-span-2">7. 未實現損益 (vs 市價 $${currentPrice}): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>
+          `;
+          batchContainer.appendChild(batchDiv);
         }
       });
 
       const totalCostUSD = origUSD + totalAddCostUSD + fee;
       const totalShares = n1 + totalAddShares;
       finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
+      const overallPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
 
       document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
       document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
@@ -894,6 +949,11 @@
       document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
       document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
       document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+    }
+
+    function batchPnlPropColor(pct) {
+      if (pct === null) return 'text-slate-400';
+      return pct >= 0 ? 'text-emerald-400' : 'text-rose-400';
     }
 
     document.querySelectorAll('.save-trigger').forEach(el => {
