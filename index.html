@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.4.0</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.4.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -219,7 +219,7 @@
         </div>
       </div>
 
-      <!-- 2. 分批補倉規劃區 (支援多筆新增、複製、刪除、模式A與模式B) -->
+      <!-- 2. 分批補倉規劃區 -->
       <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
         <div class="flex justify-between items-center border-b pb-2.5">
           <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 分批補倉規劃</h2>
@@ -228,12 +228,10 @@
           </button>
         </div>
 
-        <!-- 動態補倉清單容器 -->
         <div id="usPlansContainer" class="space-y-3">
-          <!-- 由 JS 動態生成 -->
+          <!-- 動態生成 -->
         </div>
 
-        <!-- 目標攤平均價 (模式B) -->
         <div class="pt-2 border-t border-slate-100">
           <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 ($ Target - 模式B)</label>
           <input id="us_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none bg-slate-50">
@@ -250,7 +248,12 @@
           <span class="text-slate-400">調整後平均成本：</span>
           <strong id="us_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs border-t border-slate-800 pt-2.5 text-slate-300">
+        <!-- 新增：調整後平均成本（台幣） -->
+        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-800 pb-2.5">
+          <span class="text-slate-400">調整後平均成本(台幣)：</span>
+          <strong id="us_resAvgPriceTWD" class="text-cyan-300 text-sm sm:text-base font-bold">NT$0.00</strong>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
           <div>原總額: <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
         </div>
@@ -407,7 +410,6 @@
       }
     };
 
-    // 動態美股補倉列操作 (支援新增、複製、刪除)
     window.addUsPlanRow = function(p2 = "", n2 = "") {
       const container = document.getElementById('usPlansContainer');
       const index = container.children.length;
@@ -811,7 +813,7 @@
       }
     }
 
-    // 🇺🇸 美股計算（完美支援多筆批次加碼與目標均價反算）
+    // 🇺🇸 美股計算（含平均成本台幣換算）
     function calculateUs() {
       const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
@@ -831,6 +833,7 @@
         document.getElementById('us_resN2').innerText = '0';
         document.getElementById('us_resTotalN').innerText = '0 股';
         document.getElementById('us_resAvgPrice').innerText = '$0.00';
+        document.getElementById('us_resAvgPriceTWD').innerText = 'NT$0.00';
         document.getElementById('us_resOriginalCostUSD').innerText = '$0';
         document.getElementById('us_resOriginalCostTWD').innerText = 'NT$0';
         document.getElementById('us_resAddCostUSD').innerText = '$0';
@@ -841,6 +844,7 @@
       const origUSD = n1 * p1;
       let totalAddShares = 0;
       let totalAddCostUSD = 0;
+      let finalAvgPrice = p1;
 
       // 模式B：目標均價反算
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
@@ -852,12 +856,14 @@
           if (totalAddShares > 0) {
             totalAddCostUSD = totalAddShares * p2;
           }
+          finalAvgPrice = ptargetIn;
           const totalCostUSD = origUSD + totalAddCostUSD + fee;
           const totalShares = n1 + totalAddShares;
 
           document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
           document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
-          document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(ptargetIn)}`;
+          document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+          document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
           document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
           document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
           document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
@@ -878,11 +884,12 @@
 
       const totalCostUSD = origUSD + totalAddCostUSD + fee;
       const totalShares = n1 + totalAddShares;
-      const finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
+      finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
 
       document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}股`;
       document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)}股`;
       document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
       document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
       document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
       document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
