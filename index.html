@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.3</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -38,10 +38,13 @@
     </header>
 
     <!-- 👑 管理者專屬統計面板 -->
-    <div id="adminPanel" class="hidden bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-2 border border-slate-700">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+    <div id="adminPanel" class="hidden bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-3 border border-slate-700">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
         <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
-        <button type="button" onclick="resetAllCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1 rounded-lg cursor-pointer">🔄 重置所有計數</button>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" onclick="resetAllCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 僅重置次數歸0</button>
+          <button type="button" onclick="resetAllUsers()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🗑️ 清除所有使用者與次數</button>
+        </div>
       </div>
       <div class="grid grid-cols-2 gap-2 text-xs pt-1">
         <div>總使用者人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
@@ -401,18 +404,33 @@
       }
     }
 
-    // 👑 重置所有使用次數計數為 0
+    // 👑 功能 1：僅將所有使用者的同步/使用次數歸零（總人數保持不變）
     window.resetAllCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("確定要將所有使用者的存取次數全部重置為 0 嗎？")) return;
+      if (!confirm("確定要將所有使用者的同步/使用次數全部歸零嗎？（使用者人數會保留）")) return;
 
       try {
         const { error } = await sbClient.from('user_portfolios').update({ access_count: 0 }).neq('user_id', '00000000-0000-0000-0000-000000000000');
         if (error) throw error;
-        alert("計數已全部重置為 0 成功！");
+        alert("使用次數已全部歸零成功！");
         loadAdminStats();
       } catch (err) {
-        alert("重置失敗: " + err.message);
+        alert("歸零失敗: " + err.message);
+      }
+    };
+
+    // 👑 功能 2：清除所有使用者與次數（總人數與總次數同步變為 0）
+    window.resetAllUsers = async function() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      if (!confirm("⚠️ 警告：這將會刪除所有使用者的雲端資料與帳號紀錄，使總人數與總次數同步歸零！確定要執行嗎？")) return;
+
+      try {
+        const { error } = await sbClient.from('user_portfolios').delete().neq('user_id', '00000000-0000-0000-0000-000000000000');
+        if (error) throw error;
+        alert("已成功清除所有使用者資料，總人數與次數已同步歸零！");
+        loadAdminStats();
+      } catch (err) {
+        alert("清除失敗: " + err.message);
       }
     };
 
