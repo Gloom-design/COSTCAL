@@ -293,7 +293,7 @@
           <div>原成本總額(美元): <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
           <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="text-white">$0</span></div>
           <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
         </div>
@@ -313,8 +313,8 @@
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
-    // 👑 設定你的管理者 Gmail（請在此處填入你自己的真實信箱）
-    const ADMIN_EMAIL = 'ihmfepo...'; // 請改成你的管理者信箱
+    // 👑 管理者 Gmail 已設定
+    const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
     
     let sbClient = null; 
     let currentUser = null;
@@ -601,7 +601,7 @@
           <span class="font-bold text-[11px] text-teal-700">補倉批次 #${index + 1}</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyUsPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
