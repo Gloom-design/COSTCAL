@@ -10,28 +10,40 @@
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
     
     <!-- 頂部標題與版本號 -->
-    <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-20">
+    <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-25 flex-wrap gap-3">
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.6</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.7</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
       </div>
       
-      <div class="flex items-center gap-2.5 sm:gap-3">
+      <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
         <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
           📱 緊湊模式
         </button>
 
-        <div class="flex items-center gap-1.5 relative z-30">
+        <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
           <span id="userInfo" class="text-[10px] sm:text-xs text-slate-500 max-w-[90px] sm:max-w-[140px] truncate hidden sm:inline">未登入</span>
           <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
-          <button id="logoutBtn" type="button" onclick="logout()" class="hidden bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
+          
+          <div id="loggedOptions" class="hidden flex items-center gap-1.5">
+            <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-semibold border border-rose-200 cursor-pointer shadow-sm">⚠️ 刪除帳號</button>
+            <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
+          </div>
         </div>
       </div>
     </header>
+
+    <!-- ⚠️ 免責聲明提示條 (符合App上架規範) -->
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3.5 py-2.5 rounded-xl text-[10px] sm:text-xs flex items-start gap-2 shadow-sm">
+      <span class="text-amber-600 font-bold text-sm leading-none mt-0.5">⚠️</span>
+      <div>
+        <strong class="font-bold">免責聲明：</strong>本工具提供之試算結果與即時行情僅供輔助參考，不負任何投資盈虧、法律責任或資料誤差之擔保。投資理財有賺有賠，請自行獨立評估風險。
+      </div>
+    </div>
 
     <!-- 分頁切換 -->
     <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl">
@@ -269,7 +281,7 @@
           <div>原成本總額(美元): <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
           <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="text-white">$0</span></div>
           <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
         </div>
@@ -330,6 +342,31 @@
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = window.location.origin + window.location.pathname;
+    };
+
+    // ⚠️ 刪除帳號功能（符合 Apple/Google 商店上架硬性規範）
+    window.deleteAccount = async function() {
+      if (!currentUser || !sbClient) { alert("請先登入！"); return; }
+      
+      const confirmText = prompt("⚠️ 警告：刪除帳號將會永久清除你在雲端儲存的所有投資組合與計算資料，且無法復原。\n\n如確定要刪除，請輸入「DELETE」：");
+      if (confirmText !== "DELETE") {
+        alert("已取消刪除帳號操作。");
+        return;
+      }
+
+      document.getElementById('syncStatus').innerText = '正在刪除帳號資料...';
+      
+      try {
+        // 1. 刪除資料庫中的使用者紀錄
+        const { error: dbError } = await sbClient.from('user_portfolios').delete().eq('user_id', currentUser.id);
+        if (dbError) throw dbError;
+
+        alert("帳號資料已成功清除，系統將自動登出。");
+        await logout();
+      } catch (err) {
+        alert("刪除帳號失敗: " + err.message);
+        document.getElementById('syncStatus').innerText = '刪除失敗';
+      }
     };
 
     window.toggleUIMode = function() {
@@ -439,7 +476,7 @@
           <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -1269,16 +1306,16 @@
     function updateAuthUI() {
       const userInfoEl = document.getElementById('userInfo');
       const loginBtn = document.getElementById('loginBtn');
-      const logoutBtn = document.getElementById('logoutBtn');
+      const loggedOptions = document.getElementById('loggedOptions');
 
       if (currentUser) {
         userInfoEl.innerText = currentUser.email.split('@')[0];
         loginBtn.classList.add('hidden');
-        logoutBtn.classList.remove('hidden');
+        loggedOptions.classList.remove('hidden');
       } else {
         userInfoEl.innerText = '未登入';
         loginBtn.classList.remove('hidden');
-        logoutBtn.classList.add('hidden');
+        loggedOptions.classList.add('hidden');
       }
     }
 
