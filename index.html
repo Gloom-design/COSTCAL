@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.7</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.6.8</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -37,7 +37,19 @@
       </div>
     </header>
 
-    <!-- ⚠️ 免責聲明提示條 (符合App上架規範) -->
+    <!-- 👑 管理者專屬統計面板 (僅設定的管理者登入可見) -->
+    <div id="adminPanel" class="hidden bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-2 border border-slate-700">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+        <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
+        <button type="button" onclick="resetAllCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1 rounded-lg cursor-pointer">🔄 重置所有計數</button>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-xs pt-1">
+        <div>總使用者人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
+        <div>總使用/同步次數: <strong id="adminTotalActions" class="text-emerald-300 font-bold">0 次</strong></div>
+      </div>
+    </div>
+
+    <!-- ⚠️ 免責聲明提示條 -->
     <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3.5 py-2.5 rounded-xl text-[10px] sm:text-xs flex items-start gap-2 shadow-sm">
       <span class="text-amber-600 font-bold text-sm leading-none mt-0.5">⚠️</span>
       <div>
@@ -281,7 +293,7 @@
           <div>原成本總額(美元): <span id="us_resOriginalCostUSD">$0</span></div>
           <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
         </div>
-        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
           <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="text-white">$0</span></div>
           <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
         </div>
@@ -300,6 +312,9 @@
     const API_BACKEND_URL = 'https://costcal-peach.vercel.app/api/stock';
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
+    
+    // 👑 設定你的管理者 Gmail（請在此處填入你自己的真實信箱）
+    const ADMIN_EMAIL = 'ihmfeporsky@gmail.com'; // 請改成你的管理者信箱
     
     let sbClient = null; 
     let currentUser = null;
@@ -344,7 +359,6 @@
       window.location.href = window.location.origin + window.location.pathname;
     };
 
-    // ⚠️ 刪除帳號功能（符合 Apple/Google 商店上架硬性規範）
     window.deleteAccount = async function() {
       if (!currentUser || !sbClient) { alert("請先登入！"); return; }
       
@@ -357,7 +371,6 @@
       document.getElementById('syncStatus').innerText = '正在刪除帳號資料...';
       
       try {
-        // 1. 刪除資料庫中的使用者紀錄
         const { error: dbError } = await sbClient.from('user_portfolios').delete().eq('user_id', currentUser.id);
         if (dbError) throw dbError;
 
@@ -366,6 +379,40 @@
       } catch (err) {
         alert("刪除帳號失敗: " + err.message);
         document.getElementById('syncStatus').innerText = '刪除失敗';
+      }
+    };
+
+    // 👑 讀取並顯示管理者統計數據
+    async function loadAdminStats() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      
+      try {
+        const { data, error } = await sbClient.from('user_portfolios').select('access_count');
+        if (error) throw error;
+
+        const totalUsers = data.length;
+        const totalActions = data.reduce((sum, row) => sum + (row.access_count || 1), 0);
+
+        document.getElementById('adminTotalUsers').innerText = `${totalUsers} 人`;
+        document.getElementById('adminTotalActions').innerText = `${totalActions} 次`;
+        document.getElementById('adminPanel').classList.remove('hidden');
+      } catch (err) {
+        console.error("載入管理者統計失敗:", err);
+      }
+    }
+
+    // 👑 重置所有使用次數計數
+    window.resetAllCounts = async function() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      if (!confirm("確定要將所有使用者的存取次數全部重置為 1 嗎？")) return;
+
+      try {
+        const { error } = await sbClient.from('user_portfolios').update({ access_count: 1 }).neq('user_id', '00000000-0000-0000-0000-000000000000');
+        if (error) throw error;
+        alert("計數已全部重置成功！");
+        loadAdminStats();
+      } catch (err) {
+        alert("重置失敗: " + err.message);
       }
     };
 
@@ -642,7 +689,6 @@
       
       let trimmedName = newName.trim();
       
-      // 重複命名防呆與即時互動改名迴圈
       while (trimmedName !== currentKey && targetStore[trimmedName]) {
         newName = prompt(`名稱「${trimmedName}」已存在！請輸入其他新名稱：`, currentKey);
         if (!newName || !newName.trim()) return;
@@ -681,7 +727,6 @@
 
       let trimmed = inputVal.trim();
 
-      // 重複命名防呆與即時互動改名迴圈
       while (targetStore[trimmed]) {
         inputVal = prompt(`名稱「${trimmed}」已存在！請重新輸入其他代號或名稱：`, "");
         if (!inputVal || !inputVal.trim()) return;
@@ -717,7 +762,6 @@
         
         const remainingKeys = Object.keys(targetStore);
         
-        // 若全部刪除完畢，自動建立預設組別
         if (remainingKeys.length === 0) {
           if (type === 'tw') {
             cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } };
@@ -908,11 +952,17 @@
       document.getElementById('syncStatus').innerText = '同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
-        const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+        // 每次同步時，取得現有紀錄以累加存取次數 (access_count)
+        const { data: existing } = await sbClient.from('user_portfolios').select('user_id, access_count').eq('user_id', currentUser.id).maybeSingle();
+        
+        let newCount = (existing?.access_count || 0) + 1;
+
         let error = existing ? 
-          (await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id)).error :
-          (await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() })).error;
+          (await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, access_count: newCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id)).error :
+          (await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, access_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() })).error;
+        
         document.getElementById('syncStatus').innerText = error ? '同步失敗' : '已同步雲端';
+        loadAdminStats(); // 更新管理面板
       }, 500);
     }
 
@@ -920,12 +970,15 @@
       if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      const { data: existing } = await sbClient.from('user_portfolios').select('user_id').eq('user_id', currentUser.id).maybeSingle();
+      const { data: existing } = await sbClient.from('user_portfolios').select('user_id, access_count').eq('user_id', currentUser.id).maybeSingle();
+      let newCount = (existing?.access_count || 0) + 1;
+
       if (existing) {
-        await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
+        await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, access_count: newCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
       } else {
-        await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, updated_at: new Date().toISOString() });
+        await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, access_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() });
       }
+      loadAdminStats();
     }
 
     function formatMoney(num) { return isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('en-US'); }
@@ -1230,6 +1283,7 @@
               parseCloudData(data.portfolio_data);
             }
             document.getElementById('syncStatus').innerText = '已同步雲端';
+            loadAdminStats();
           }
         });
 
@@ -1244,6 +1298,7 @@
             parseCloudData(data.portfolio_data);
           }
           document.getElementById('syncStatus').innerText = '已同步雲端';
+          loadAdminStats();
         } else {
           document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
         }
@@ -1312,10 +1367,12 @@
         userInfoEl.innerText = currentUser.email.split('@')[0];
         loginBtn.classList.add('hidden');
         loggedOptions.classList.remove('hidden');
+        loadAdminStats();
       } else {
         userInfoEl.innerText = '未登入';
         loginBtn.classList.remove('hidden');
         loggedOptions.classList.add('hidden');
+        document.getElementById('adminPanel').classList.add('hidden');
       }
     }
 
