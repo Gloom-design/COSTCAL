@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.5</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -404,13 +404,13 @@
       }
     }
 
-    // 👑 功能 1：僅將所有使用者的同步/使用次數歸零（絕對乾淨歸零）
+    // 👑 安全管理者功能 1：透過後端 RPC 函式歸零所有次數
     window.resetAllCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
       if (!confirm("確定要將所有使用者的同步/使用次數全部歸零嗎？")) return;
 
       try {
-        const { error } = await sbClient.from('user_portfolios').update({ access_count: 0 }).gte('access_count', 0);
+        const { error } = await sbClient.rpc('admin_reset_all_counts');
         if (error) throw error;
         alert("使用次數已全部歸零成功！");
         loadAdminStats();
@@ -419,15 +419,15 @@
       }
     };
 
-    // 👑 功能 2：清除所有使用者與次數（總人數與總次數同步變為 0）
+    // 👑 安全管理者功能 2：透過後端 RPC 函式清除所有使用者與紀錄
     window.resetAllUsers = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("⚠️ 警告：這將會刪除所有使用者的雲端資料與帳號紀錄，使總人數與總次數同步歸零！確定要執行嗎？")) return;
+      if (!confirm("⚠️ 警告：這將會透過後端安全性驗證刪除所有使用者的雲端資料！確定要執行嗎？")) return;
 
       try {
-        const { error } = await sbClient.from('user_portfolios').delete().gte('access_count', 0);
+        const { error } = await sbClient.rpc('admin_delete_all_users');
         if (error) throw error;
-        alert("已成功清除所有使用者資料，總人數與次數已同步歸零！");
+        alert("已成功清除所有使用者資料！");
         loadAdminStats();
       } catch (err) {
         alert("清除失敗: " + err.message);
