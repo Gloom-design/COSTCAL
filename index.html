@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.5</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.6</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -42,13 +42,14 @@
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
         <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
         <div class="flex items-center gap-2 flex-wrap">
-          <button type="button" onclick="resetAllCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 僅重置次數歸0</button>
-          <button type="button" onclick="resetAllUsers()" class="bg-rose-600 hover:bg-rose-700 text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🗑️ 清除所有使用者與次數</button>
+          <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零登入次數</button>
+          <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步次數</button>
         </div>
       </div>
-      <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-        <div>總使用者人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
-        <div>總使用/同步次數: <strong id="adminTotalActions" class="text-emerald-300 font-bold">0 次</strong></div>
+      <div class="grid grid-cols-3 gap-2 text-xs pt-1">
+        <div>總人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
+        <div>總登入次數: <strong id="adminTotalLogins" class="text-indigo-300 font-bold">0 次</strong></div>
+        <div>總同步次數: <strong id="adminTotalSyncs" class="text-emerald-300 font-bold">0 次</strong></div>
       </div>
     </div>
 
@@ -385,18 +386,19 @@
       }
     };
 
-    // 👑 讀取並顯示管理者統計數據 (透過 RPC 繞過 RLS 限制)
+    // 👑 讀取並顯示管理者統計數據 (透過自定義 RPC 取得各項次數)
     async function loadAdminStats() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
       
       try {
-        const { data, error } = await sbClient.rpc('get_admin_stats');
+        const { data, error } = await sbClient.rpc('get_admin_stats_v2');
         if (error) throw error;
 
         if (data && data.length > 0) {
           const stats = data[0];
-          document.getElementById('adminTotalUsers').innerText = `${stats.total_users} 人`;
-          document.getElementById('adminTotalActions').innerText = `${stats.total_actions} 次`;
+          document.getElementById('adminTotalUsers').innerText = `${stats.total_users || 0} 人`;
+          document.getElementById('adminTotalLogins').innerText = `${stats.total_logins || 0} 次`;
+          document.getElementById('adminTotalSyncs').innerText = `${stats.total_syncs || 0} 次`;
           document.getElementById('adminPanel').classList.remove('hidden');
         }
       } catch (err) {
@@ -404,33 +406,33 @@
       }
     }
 
-    // 👑 安全管理者功能 1：透過後端 RPC 函式歸零所有次數
-    window.resetAllCounts = async function() {
+    // 👑 歸零登入次數
+    window.resetLoginCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("確定要將所有使用者的同步/使用次數全部歸零嗎？")) return;
+      if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎？")) return;
 
       try {
-        const { error } = await sbClient.rpc('admin_reset_all_counts');
+        const { error } = await sbClient.rpc('admin_reset_login_counts');
         if (error) throw error;
-        alert("使用次數已全部歸零成功！");
+        alert("登入次數已全部歸零成功！");
         loadAdminStats();
       } catch (err) {
         alert("歸零失敗: " + err.message);
       }
     };
 
-    // 👑 安全管理者功能 2：透過後端 RPC 函式清除所有使用者與紀錄
-    window.resetAllUsers = async function() {
+    // 👑 歸零同步次數
+    window.resetSyncCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("⚠️ 警告：這將會透過後端安全性驗證刪除所有使用者的雲端資料！確定要執行嗎？")) return;
+      if (!confirm("確定要將所有使用者的「同步次數」全部歸零嗎？")) return;
 
       try {
-        const { error } = await sbClient.rpc('admin_delete_all_users');
+        const { error } = await sbClient.rpc('admin_reset_sync_counts');
         if (error) throw error;
-        alert("已成功清除所有使用者資料！");
+        alert("同步次數已全部歸零成功！");
         loadAdminStats();
       } catch (err) {
-        alert("清除失敗: " + err.message);
+        alert("歸零失敗: " + err.message);
       }
     };
 
@@ -962,6 +964,7 @@
       }
     }
 
+    // 每次同步時只累加 sync_count
     function saveData() {
       if (isInitializing) return;
       if (!currentUser || !sbClient) return;
@@ -971,12 +974,12 @@
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         try {
-          const { data: existing } = await sbClient.from('user_portfolios').select('user_id, access_count').eq('user_id', currentUser.id).maybeSingle();
-          let newCount = (existing?.access_count || 0) + 1;
+          const { data: existing } = await sbClient.from('user_portfolios').select('user_id, sync_count').eq('user_id', currentUser.id).maybeSingle();
+          let newSyncCount = (existing?.sync_count || 0) + 1;
 
           let error = existing ? 
-            (await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, access_count: newCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id)).error :
-            (await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, access_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() })).error;
+            (await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, sync_count: newSyncCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id)).error :
+            (await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, login_count: 0, sync_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() })).error;
           
           document.getElementById('syncStatus').innerText = error ? '同步失敗' : '已同步雲端';
           if (!error) loadAdminStats();
@@ -990,15 +993,33 @@
       if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      const { data: existing } = await sbClient.from('user_portfolios').select('user_id, access_count').eq('user_id', currentUser.id).maybeSingle();
-      let newCount = (existing?.access_count || 0) + 1;
+      const { data: existing } = await sbClient.from('user_portfolios').select('user_id, sync_count').eq('user_id', currentUser.id).maybeSingle();
+      let newSyncCount = (existing?.sync_count || 0) + 1;
 
       if (existing) {
-        await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, access_count: newCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
+        await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, sync_count: newSyncCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
       } else {
-        await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, access_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() });
+        await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, login_count: 0, sync_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() });
       }
       loadAdminStats();
+    }
+
+    // 每次登入成功（初次載入或狀態切換）時累加 login_count
+    async function recordLogin() {
+      if (!currentUser || !sbClient) return;
+      try {
+        const { data: existing } = await sbClient.from('user_portfolios').select('user_id, login_count').eq('user_id', currentUser.id).maybeSingle();
+        let newLoginCount = (existing?.login_count || 0) + 1;
+
+        if (existing) {
+          await sbClient.from('user_portfolios').update({ login_count: newLoginCount, last_active: new Date().toISOString() }).eq('user_id', currentUser.id);
+        } else {
+          await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, login_count: 1, sync_count: 0, last_active: new Date().toISOString(), updated_at: new Date().toISOString() });
+        }
+        loadAdminStats();
+      } catch (err) {
+        console.error("記錄登入次數失敗:", err);
+      }
     }
 
     function formatMoney(num) { return isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('en-US'); }
@@ -1298,6 +1319,9 @@
           updateAuthUI();
           if (currentUser) {
             document.getElementById('syncStatus').innerText = '載入雲端資料中...';
+            if (event === 'SIGNED_IN') {
+              await recordLogin();
+            }
             const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (data && data.portfolio_data) {
               parseCloudData(data.portfolio_data);
