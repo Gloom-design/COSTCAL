@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.3</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -526,6 +526,7 @@
       }
     };
 
+    // 💡 修正：直接強制同步儲存與上傳，繞過防抖延遲
     window.moveStockOrder = function(type, direction) {
       saveUIToCurrentStock(type);
       const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
@@ -555,7 +556,12 @@
       
       renderStockSelector(type);
       loadStockToUI(type, currentKey);
-      saveData(); // 💡 修正：排序變更後立即觸發儲存與雲端同步
+      
+      // 立即強制儲存並上傳
+      saveToLocalStorage();
+      if (currentUser && sbClient && navigator.onLine) {
+        manualSaveDataSilent();
+      }
     };
 
     window.fetchExchangeRate = async function() {
