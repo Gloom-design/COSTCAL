@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.9</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -22,7 +22,7 @@
       
       <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
         <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
-          📱 緊湊模式
+          📱 手機介面
         </button>
 
         <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
@@ -466,7 +466,6 @@
       }
     };
 
-    // 💡 新增：調整投資組合順序功能 (direction: -1 往上, 1 往下)
     window.moveStockOrder = function(type, direction) {
       saveUIToCurrentStock(type);
       const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
@@ -477,14 +476,12 @@
       if (index === -1) return;
       
       const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= keys.length) return; // 已經到頂或到底
+      if (targetIndex < 0 || targetIndex >= keys.length) return;
       
-      // 交換順序
       const temp = keys[index];
       keys[index] = keys[targetIndex];
       keys[targetIndex] = temp;
       
-      // 重新建立排序後的物件
       const reorderedStore = {};
       keys.forEach(k => {
         reorderedStore[k] = store[k];
@@ -759,7 +756,6 @@
       
       saveUIToCurrentStock(type);
       
-      // 保持原本的順序進行重新命名
       const newStore = {};
       Object.keys(targetStore).forEach(k => {
         if (k === currentKey) {
@@ -887,12 +883,12 @@
       const cards = document.querySelectorAll('.card-box');
 
       if (isCompactMode) {
-        btn.innerText = "📱 緊湊模式";
+        btn.innerText = "📱 手機介面";
         body.className = "bg-slate-100 text-slate-800 p-1.5 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
         cards.forEach(card => card.className = "card-box bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2");
       } else {
-        btn.innerText = "💻 標準模式";
+        btn.innerText = "💻 電腦介面";
         body.className = "bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm";
         cards.forEach(card => card.className = "card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5");
@@ -1381,7 +1377,7 @@
           }
         });
 
-        const { data: { session } } = await sbClient.auth.getSession();
+        const { data: { session } %> = await sbClient.auth.getSession();
         currentUser = session?.user || null;
         updateAuthUI();
 
