@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.6</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.8</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
@@ -69,12 +69,16 @@
 
     <!-- 🇹🇼 台股介面 -->
     <div id="twView" class="space-y-4 sm:space-y-5">
-      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
-        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
+        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
         </select>
-        <button type="button" onclick="renameStock('tw')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
-        <button type="button" onclick="addStock('tw')" class="bg-indigo-50 text-indigo-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
-        <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button type="button" onclick="moveStockOrder('tw', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
+          <button type="button" onclick="moveStockOrder('tw', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
+          <button type="button" onclick="renameStock('tw')" class="bg-amber-50 text-amber-600 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
+          <button type="button" onclick="addStock('tw')" class="bg-indigo-50 text-indigo-600 px-2.5 py-2 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
+          <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
+        </div>
       </div>
 
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -190,12 +194,16 @@
 
     <!-- 🇺🇸 美股介面 -->
     <div id="usView" class="space-y-4 sm:space-y-5 hidden">
-      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2.5">
-        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 border rounded-xl p-2.5 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
+        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
         </select>
-        <button type="button" onclick="renameStock('us')" class="bg-amber-50 text-amber-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️ 改名</button>
-        <button type="button" onclick="addStock('us')" class="bg-teal-50 text-teal-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+ 新增</button>
-        <button type="button" onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-3.5 py-2.5 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪除</button>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button type="button" onclick="moveStockOrder('us', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
+          <button type="button" onclick="moveStockOrder('us', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
+          <button type="button" onclick="renameStock('us')" class="bg-amber-50 text-amber-600 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
+          <button type="button" onclick="addStock('us')" class="bg-teal-50 text-teal-600 px-2.5 py-2 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
+          <button type="button" onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
+        </div>
       </div>
 
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -317,7 +325,6 @@
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
-    // 👑 管理者 Gmail
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
     
     let sbClient = null; 
@@ -386,7 +393,6 @@
       }
     };
 
-    // 👑 讀取並顯示管理者統計數據 (透過自定義 RPC 取得各項次數)
     async function loadAdminStats() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
       
@@ -406,7 +412,6 @@
       }
     }
 
-    // 👑 歸零登入次數
     window.resetLoginCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
       if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎？")) return;
@@ -421,7 +426,6 @@
       }
     };
 
-    // 👑 歸零同步次數
     window.resetSyncCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
       if (!confirm("確定要將所有使用者的「同步次數」全部歸零嗎？")) return;
@@ -443,6 +447,7 @@
     };
 
     window.switchTab = function(type) {
+      localStorage.setItem('calc_current_tab', type);
       const twView = document.getElementById('twView');
       const usView = document.getElementById('usView');
       const twBtn = document.getElementById('tabTwBtn');
@@ -459,6 +464,41 @@
         usBtn.className = "py-2.5 font-semibold rounded-xl transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm cursor-pointer";
         twBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
       }
+    };
+
+    // 💡 新增：調整投資組合順序功能 (direction: -1 往上, 1 往下)
+    window.moveStockOrder = function(type, direction) {
+      saveUIToCurrentStock(type);
+      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const keys = Object.keys(store);
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      
+      const index = keys.indexOf(currentKey);
+      if (index === -1) return;
+      
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= keys.length) return; // 已經到頂或到底
+      
+      // 交換順序
+      const temp = keys[index];
+      keys[index] = keys[targetIndex];
+      keys[targetIndex] = temp;
+      
+      // 重新建立排序後的物件
+      const reorderedStore = {};
+      keys.forEach(k => {
+        reorderedStore[k] = store[k];
+      });
+      
+      if (type === 'tw') {
+        cloudData.twStocks = reorderedStore;
+      } else {
+        cloudData.usStocks = reorderedStore;
+      }
+      
+      renderStockSelector(type);
+      loadStockToUI(type, currentKey);
+      saveData();
     };
 
     window.fetchExchangeRate = async function() {
@@ -718,18 +758,27 @@
       if (trimmedName === currentKey) return;
       
       saveUIToCurrentStock(type);
-      targetStore[trimmedName] = targetStore[currentKey];
-      delete targetStore[currentKey];
+      
+      // 保持原本的順序進行重新命名
+      const newStore = {};
+      Object.keys(targetStore).forEach(k => {
+        if (k === currentKey) {
+          newStore[trimmedName] = targetStore[currentKey];
+          newStore[trimmedName].name = trimmedName;
+        } else {
+          newStore[k] = targetStore[k];
+        }
+      });
       
       if (type === 'tw') {
+        cloudData.twStocks = newStore;
         currentTwKey = trimmedName;
         localStorage.setItem('calc_current_tw_key', trimmedName);
-        targetStore[trimmedName].name = trimmedName;
         document.getElementById('tw_nameInput').value = trimmedName;
       } else {
+        cloudData.usStocks = newStore;
         currentUsKey = trimmedName;
         localStorage.setItem('calc_current_us_key', trimmedName);
-        targetStore[trimmedName].name = trimmedName;
         document.getElementById('us_nameInput').value = trimmedName;
       }
       
@@ -964,7 +1013,6 @@
       }
     }
 
-    // 每次同步時只累加 sync_count
     function saveData() {
       if (isInitializing) return;
       if (!currentUser || !sbClient) return;
@@ -1004,7 +1052,6 @@
       loadAdminStats();
     }
 
-    // 每次登入成功（初次載入或狀態切換）時累加 login_count
     async function recordLogin() {
       if (!currentUser || !sbClient) return;
       try {
@@ -1303,6 +1350,9 @@
     async function init() {
       applyUIMode();
       initDefaultView();
+
+      const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
+      switchTab(savedTab);
 
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
