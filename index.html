@@ -14,10 +14,15 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.9</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
+          <!-- 💡 連線模式狀態標籤 -->
+          <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="connectionText">即時連線</span>
+          </span>
         </div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">離線優先模式已啟動</div>
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
@@ -36,6 +41,11 @@
         </div>
       </div>
     </header>
+
+    <!-- 💡 未來廣告安插預留區 (Banner Ad Slot) -->
+    <!-- <div id="adBannerSlot" class="bg-white border border-dashed border-slate-300 p-3 rounded-2xl text-center text-xs text-slate-400">
+      📢 廣告版位預留區 (Banner Slot)
+    </div> -->
 
     <!-- 👑 管理者專屬統計面板 -->
     <div id="adminPanel" class="hidden bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-3 border border-slate-700">
@@ -326,6 +336,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
+    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v1';
     
     let sbClient = null; 
     let currentUser = null;
@@ -353,7 +364,55 @@
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
     let currentUsKey = localStorage.getItem('calc_current_us_key') || "應用材料";
 
+    // 💡 更新網路狀態燈號 UI
+    function updateConnectionStatusUI() {
+      const badge = document.getElementById('connectionBadge');
+      const dot = document.getElementById('connectionDot');
+      const text = document.getElementById('connectionText');
+      if (!badge || !dot || !text) return;
+
+      if (navigator.onLine) {
+        badge.className = "bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
+        text.innerText = "即時連線";
+      } else {
+        badge.className = "bg-amber-50 text-amber-700 border border-amber-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
+        text.innerText = "離線模式";
+      }
+    }
+
+    window.addEventListener('online', updateConnectionStatusUI);
+    window.addEventListener('offline', updateConnectionStatusUI);
+
+    function loadFromLocalStorage() {
+      try {
+        const localRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw);
+          if (parsed && parsed.twStocks && parsed.usStocks) {
+            cloudData = parsed;
+            return true;
+          }
+        }
+      } catch (err) {
+        console.error("讀取本地快取失敗:", err);
+      }
+      return false;
+    }
+
+    function saveToLocalStorage() {
+      try {
+        saveUIToCurrentStock('tw');
+        saveUIToCurrentStock('us');
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
+      } catch (err) {
+        console.error("寫入本地快取失敗:", err);
+      }
+    }
+
     window.loginWithGoogle = async function() {
+      if (!navigator.onLine) { alert("目前離線中，無法進行Google登入！"); return; }
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({ 
         provider: 'google',
@@ -365,6 +424,7 @@
     window.logout = async function() {
       if (!sbClient) return;
       await sbClient.auth.signOut({ scope: 'local' });
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = window.location.origin + window.location.pathname;
@@ -385,6 +445,7 @@
         const { error: dbError } = await sbClient.from('user_portfolios').delete().eq('user_id', currentUser.id);
         if (dbError) throw dbError;
 
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
         alert("帳號資料已成功清除，系統將自動登出。");
         await logout();
       } catch (err) {
@@ -394,7 +455,7 @@
     };
 
     async function loadAdminStats() {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL || !navigator.onLine) return;
       
       try {
         const { data, error } = await sbClient.rpc('get_admin_stats_v2');
@@ -466,7 +527,6 @@
       }
     };
 
-    // 💡 新增：調整投資組合順序功能 (direction: -1 往上, 1 往下)
     window.moveStockOrder = function(type, direction) {
       saveUIToCurrentStock(type);
       const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
@@ -477,14 +537,12 @@
       if (index === -1) return;
       
       const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= keys.length) return; // 已經到頂或到底
+      if (targetIndex < 0 || targetIndex >= keys.length) return;
       
-      // 交換順序
       const temp = keys[index];
       keys[index] = keys[targetIndex];
       keys[targetIndex] = temp;
       
-      // 重新建立排序後的物件
       const reorderedStore = {};
       keys.forEach(k => {
         reorderedStore[k] = store[k];
@@ -502,6 +560,7 @@
     };
 
     window.fetchExchangeRate = async function() {
+      if (!navigator.onLine) return;
       document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
       try {
         const res = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -521,6 +580,11 @@
     };
 
     window.fetchMarketPrice = async function(type) {
+      if (!navigator.onLine) {
+        document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
+        return;
+      }
+
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
@@ -759,7 +823,6 @@
       
       saveUIToCurrentStock(type);
       
-      // 保持原本的順序進行重新命名
       const newStore = {};
       Object.keys(targetStore).forEach(k => {
         if (k === currentKey) {
@@ -861,9 +924,13 @@
     window.manualSaveData = async function() {
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      if (!currentUser) { alert("請先登入！"); return; }
+      saveToLocalStorage();
+      if (!currentUser || !navigator.onLine) { 
+        alert("目前處於離線模式，資料已成功儲存於本地裝置！"); 
+        return; 
+      }
       await manualSaveDataSilent();
-      alert("儲存成功！");
+      alert("儲存成功並已同步至雲端！");
     };
 
     window.copyPrice = function(type) {
@@ -1015,10 +1082,16 @@
 
     function saveData() {
       if (isInitializing) return;
-      if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      document.getElementById('syncStatus').innerText = '同步中...';
+      saveToLocalStorage();
+
+      if (!currentUser || !sbClient || !navigator.onLine) {
+        document.getElementById('syncStatus').innerText = '已存至本地 (離線模式)';
+        return;
+      }
+
+      document.getElementById('syncStatus').innerText = '雲端同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         try {
@@ -1029,10 +1102,10 @@
             (await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, sync_count: newSyncCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id)).error :
             (await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, login_count: 0, sync_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() })).error;
           
-          document.getElementById('syncStatus').innerText = error ? '同步失敗' : '已同步雲端';
+          document.getElementById('syncStatus').innerText = error ? '同步失敗 (資料已保存在本地)' : '已同步雲端';
           if (!error) loadAdminStats();
         } catch (err) {
-          document.getElementById('syncStatus').innerText = '同步失敗';
+          document.getElementById('syncStatus').innerText = '同步失敗 (離線模式)';
         }
       }, 500);
     }
@@ -1041,6 +1114,7 @@
       if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
+      saveToLocalStorage();
       const { data: existing } = await sbClient.from('user_portfolios').select('user_id, sync_count').eq('user_id', currentUser.id).maybeSingle();
       let newSyncCount = (existing?.sync_count || 0) + 1;
 
@@ -1053,7 +1127,7 @@
     }
 
     async function recordLogin() {
-      if (!currentUser || !sbClient) return;
+      if (!currentUser || !sbClient || !navigator.onLine) return;
       try {
         const { data: existing } = await sbClient.from('user_portfolios').select('user_id, login_count').eq('user_id', currentUser.id).maybeSingle();
         let newLoginCount = (existing?.login_count || 0) + 1;
@@ -1349,6 +1423,10 @@
 
     async function init() {
       applyUIMode();
+      updateConnectionStatusUI();
+
+      // 1. 離線優先：先從本地快取載入畫面，達到秒開效果
+      loadFromLocalStorage();
       initDefaultView();
 
       const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
@@ -1367,7 +1445,7 @@
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
           updateAuthUI();
-          if (currentUser) {
+          if (currentUser && navigator.onLine) {
             document.getElementById('syncStatus').innerText = '載入雲端資料中...';
             if (event === 'SIGNED_IN') {
               await recordLogin();
@@ -1375,6 +1453,7 @@
             const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (data && data.portfolio_data) {
               parseCloudData(data.portfolio_data);
+              saveToLocalStorage(); // 更新本地快取
             }
             document.getElementById('syncStatus').innerText = '已同步雲端';
             loadAdminStats();
@@ -1385,16 +1464,17 @@
         currentUser = session?.user || null;
         updateAuthUI();
 
-        if (currentUser) {
+        if (currentUser && navigator.onLine) {
           document.getElementById('syncStatus').innerText = '載入雲端資料中...';
           const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           if (data && data.portfolio_data) {
             parseCloudData(data.portfolio_data);
+            saveToLocalStorage(); // 更新本地快取
           }
           document.getElementById('syncStatus').innerText = '已同步雲端';
           loadAdminStats();
         } else {
-          document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
+          document.getElementById('syncStatus').innerText = currentUser ? '離線模式 (顯示本地庫存)' : '已就緒 (未登入)';
         }
       } catch (err) {
         document.getElementById('syncStatus').innerText = '單機離線模式';
