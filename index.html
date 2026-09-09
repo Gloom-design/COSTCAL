@@ -529,8 +529,10 @@
       }
     };
 
-    // 💡 修正：直接強制同步儲存與上傳，繞過防抖延遲
+    // 💡 修正：清除計時器，防止自動存檔與即時排序衝突覆蓋
     window.moveStockOrder = function(type, direction) {
+      clearTimeout(saveTimeout);
+
       saveUIToCurrentStock(type);
       const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       const keys = Object.keys(store);
