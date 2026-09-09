@@ -1,15 +1,38 @@
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // 🛡️ 1. 設定 CORS 白名單網域
+  const allowedOrigins = [
+    'https://gloom-design.github.io',   // 你的 GitHub Pages 主要網域 (Origin 不包含路徑)
+    'https://costcal-peach.vercel.app', // Vercel 專案網域
+    'http://localhost:3000',            // 本地開發測試
+    'http://127.0.0.1:5500'             // 本地 VS Code Live Server 測試
+  ];
 
+  const origin = req.headers.origin;
+
+  // 🛡️ 2. 處理瀏覽器的預檢請求 (Preflight OPTIONS)
   if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.status(200).end();
   }
 
+  // 🛡️ 3. 攔截非法來源 (阻擋 Python 腳本或陌生網站盜用 API)
+  if (!origin || !allowedOrigins.includes(origin)) {
+    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.4.1' });
+  }
+
+  // 🛡️ 4. 來源合法，允許通過
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  // ==========================================
+  // 以下為原有的股票查詢業務邏輯
+  // ==========================================
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.4.0' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.4.1' });
   }
 
   let queryTerm = symbol.trim();
@@ -63,14 +86,14 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.4.0' });
+      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.4.1' });
     }
     
     const data = await response.json();
     const result = data.chart?.result?.[0];
     
     if (!result) {
-      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.4.0' });
+      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.4.1' });
     }
 
     const meta = result.meta;
@@ -82,10 +105,10 @@ export default async function handler(req, res) {
       name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v7.4.0'
+      apiVersion: 'v7.4.1' // 版本號微調，方便你確認 Vercel 已部署最新版
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v7.4.0' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v7.4.1' });
   }
 }
