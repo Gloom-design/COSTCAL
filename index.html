@@ -466,6 +466,7 @@
       }
     };
 
+    // 💡 新增：調整投資組合順序功能 (direction: -1 往上, 1 往下)
     window.moveStockOrder = function(type, direction) {
       saveUIToCurrentStock(type);
       const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
@@ -476,12 +477,14 @@
       if (index === -1) return;
       
       const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= keys.length) return;
+      if (targetIndex < 0 || targetIndex >= keys.length) return; // 已經到頂或到底
       
+      // 交換順序
       const temp = keys[index];
       keys[index] = keys[targetIndex];
       keys[targetIndex] = temp;
       
+      // 重新建立排序後的物件
       const reorderedStore = {};
       keys.forEach(k => {
         reorderedStore[k] = store[k];
@@ -756,6 +759,7 @@
       
       saveUIToCurrentStock(type);
       
+      // 保持原本的順序進行重新命名
       const newStore = {};
       Object.keys(targetStore).forEach(k => {
         if (k === currentKey) {
@@ -1377,7 +1381,7 @@
           }
         });
 
-        const { data: { session } %> = await sbClient.auth.getSession();
+        const { data: { session } } = await sbClient.auth.getSession();
         currentUser = session?.user || null;
         updateAuthUI();
 
