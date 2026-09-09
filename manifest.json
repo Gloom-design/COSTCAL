@@ -1,0 +1,15 @@
+{
+  "name": "台美股攤平與損益計算器",
+  "short_name": "股利計算器",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f1f5f9",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2910/2910791.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
