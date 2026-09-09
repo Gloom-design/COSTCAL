@@ -45,11 +45,6 @@
       </div>
     </header>
 
-    <!-- 💡 未來廣告安插預留區 (Banner Ad Slot) -->
-    <!-- <div id="adBannerSlot" class="bg-white border border-dashed border-slate-300 p-3 rounded-2xl text-center text-xs text-slate-400">
-      📢 廣告版位預留區 (Banner Slot)
-    </div> -->
-
     <!-- 👑 管理者專屬統計面板 -->
     <div id="adminPanel" class="hidden bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-3 border border-slate-700">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
@@ -352,6 +347,7 @@
       twStocks: { 
         "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } 
       },
+      twOrder: ["台光電"],
       usStocks: {
         "應用材料": { 
           name: "應用材料", 
@@ -361,7 +357,8 @@
           plans: [{ p2: "", n2: "" }],
           ptarget: ""
         }
-      }
+      },
+      usOrder: ["應用材料"]
     };
     
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
@@ -448,7 +445,7 @@
         if (dbError) throw dbError;
 
         localStorage.removeItem(LOCAL_STORAGE_KEY);
-        alert("帳號資料已成功清除，系統將自動登出。");
+        alert("帳號資料已成功清除系統將自動登出。");
         await logout();
       } catch (err) {
         alert("刪除帳號失敗: " + err.message);
@@ -529,13 +526,18 @@
       }
     };
 
-    // 💡 修正：清除計時器，防止自動存檔與即時排序衝突覆蓋
     window.moveStockOrder = function(type, direction) {
       clearTimeout(saveTimeout);
-
       saveUIToCurrentStock(type);
-      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const keys = Object.keys(store);
+
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(cloudData[storeKey]);
+      }
+
+      const keys = cloudData[orderKey];
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       
       const index = keys.indexOf(currentKey);
@@ -548,21 +550,9 @@
       keys[index] = keys[targetIndex];
       keys[targetIndex] = temp;
       
-      const reorderedStore = {};
-      keys.forEach(k => {
-        reorderedStore[k] = store[k];
-      });
-      
-      if (type === 'tw') {
-        cloudData.twStocks = reorderedStore;
-      } else {
-        cloudData.usStocks = reorderedStore;
-      }
-      
       renderStockSelector(type);
       loadStockToUI(type, currentKey);
       
-      // 立即強制儲存並上傳
       saveToLocalStorage();
       if (currentUser && sbClient && navigator.onLine) {
         manualSaveDataSilent();
@@ -817,6 +807,7 @@
     window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       
       let newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
       if (!newName || !newName.trim()) return;
@@ -833,23 +824,23 @@
       
       saveUIToCurrentStock(type);
       
-      const newStore = {};
-      Object.keys(targetStore).forEach(k => {
-        if (k === currentKey) {
-          newStore[trimmedName] = targetStore[currentKey];
-          newStore[trimmedName].name = trimmedName;
-        } else {
-          newStore[k] = targetStore[k];
-        }
-      });
+      targetStore[trimmedName] = targetStore[currentKey];
+      targetStore[trimmedName].name = trimmedName;
+      delete targetStore[currentKey];
+
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(targetStore);
+      }
+      const idx = cloudData[orderKey].indexOf(currentKey);
+      if (idx !== -1) {
+        cloudData[orderKey][idx] = trimmedName;
+      }
       
       if (type === 'tw') {
-        cloudData.twStocks = newStore;
         currentTwKey = trimmedName;
         localStorage.setItem('calc_current_tw_key', trimmedName);
         document.getElementById('tw_nameInput').value = trimmedName;
       } else {
-        cloudData.usStocks = newStore;
         currentUsKey = trimmedName;
         localStorage.setItem('calc_current_us_key', trimmedName);
         document.getElementById('us_nameInput').value = trimmedName;
@@ -863,6 +854,7 @@
 
     window.addStock = async function(type) {
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       
       let inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AMAT):");
       if (!inputVal || !inputVal.trim()) return;
@@ -887,6 +879,12 @@
         localStorage.setItem('calc_current_us_key', trimmed);
       }
 
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(targetStore);
+      } else {
+        cloudData[orderKey].push(trimmed);
+      }
+
       renderStockSelector(type);
       loadStockToUI(type, trimmed);
       saveData();
@@ -897,20 +895,27 @@
 
     window.deleteStock = function(type) {
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       
       if (confirm(`確定刪除「${currentKey}」嗎？`)) {
         delete targetStore[currentKey];
         
-        const remainingKeys = Object.keys(targetStore);
+        if (cloudData[orderKey]) {
+          cloudData[orderKey] = cloudData[orderKey].filter(k => k !== currentKey);
+        }
+        
+        const remainingKeys = cloudData[orderKey] && cloudData[orderKey].length > 0 ? cloudData[orderKey] : Object.keys(targetStore);
         
         if (remainingKeys.length === 0) {
           if (type === 'tw') {
             cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            cloudData.twOrder = ["台光電"];
             currentTwKey = "台光電";
             localStorage.setItem('calc_current_tw_key', currentTwKey);
           } else {
             cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            cloudData.usOrder = ["應用材料"];
             currentUsKey = "應用材料";
             localStorage.setItem('calc_current_us_key', currentUsKey);
           }
@@ -980,14 +985,24 @@
       const selector = document.getElementById(`${type}StockSelector`);
       if (!selector) return;
       selector.innerHTML = '';
-      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      const store = cloudData[storeKey];
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
 
-      Object.keys(store || {}).forEach(key => {
-        const opt = document.createElement('option');
-        opt.value = key; opt.innerText = key;
-        if (key === currentKey) opt.selected = true;
-        selector.appendChild(opt);
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(store || {});
+      }
+
+      cloudData[orderKey].forEach(key => {
+        if (store[key]) {
+          const opt = document.createElement('option');
+          opt.value = key; 
+          opt.innerText = key;
+          if (key === currentKey) opt.selected = true;
+          selector.appendChild(opt);
+        }
       });
     }
 
@@ -1435,7 +1450,6 @@
       applyUIMode();
       updateConnectionStatusUI();
 
-      // 1. 離線優先：先從本地快取載入畫面，達到秒開效果
       loadFromLocalStorage();
       initDefaultView();
 
@@ -1463,7 +1477,7 @@
             const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (data && data.portfolio_data) {
               parseCloudData(data.portfolio_data);
-              saveToLocalStorage(); // 更新本地快取
+              saveToLocalStorage();
             }
             document.getElementById('syncStatus').innerText = '已同步雲端';
             loadAdminStats();
@@ -1479,7 +1493,7 @@
           const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           if (data && data.portfolio_data) {
             parseCloudData(data.portfolio_data);
-            saveToLocalStorage(); // 更新本地快取
+            saveToLocalStorage();
           }
           document.getElementById('syncStatus').innerText = '已同步雲端';
           loadAdminStats();
@@ -1496,12 +1510,15 @@
     function initDefaultView() {
       renderStockSelector('tw');
       renderStockSelector('us');
+      if (!cloudData.twOrder) cloudData.twOrder = Object.keys(cloudData.twStocks);
+      if (!cloudData.usOrder) cloudData.usOrder = Object.keys(cloudData.usStocks);
+
       if (!cloudData.twStocks[currentTwKey]) {
-        currentTwKey = Object.keys(cloudData.twStocks)[0];
+        currentTwKey = cloudData.twOrder[0];
         localStorage.setItem('calc_current_tw_key', currentTwKey);
       }
       if (!cloudData.usStocks[currentUsKey]) {
-        currentUsKey = Object.keys(cloudData.usStocks)[0];
+        currentUsKey = cloudData.usOrder[0];
         localStorage.setItem('calc_current_us_key', currentUsKey);
       }
       loadStockToUI('tw', currentTwKey);
@@ -1511,26 +1528,28 @@
     function parseCloudData(fetchedData) {
       if (fetchedData.twStocks && fetchedData.usStocks) {
         cloudData = fetchedData;
-      } else if (fetchedData.stocks) {
-        cloudData = { twStocks: {}, usStocks: {} };
-        Object.keys(fetchedData.stocks).forEach(k => {
-          if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
-        });
       }
 
       if (!cloudData.twStocks || Object.keys(cloudData.twStocks).length === 0) {
         cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
+      if (!cloudData.twOrder) {
+        cloudData.twOrder = Object.keys(cloudData.twStocks);
+      }
+
       if (!cloudData.usStocks || Object.keys(cloudData.usStocks).length === 0) {
         cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
+      if (!cloudData.usOrder) {
+        cloudData.usOrder = Object.keys(cloudData.usStocks);
+      }
 
       if (!cloudData.twStocks[currentTwKey]) {
-        currentTwKey = Object.keys(cloudData.twStocks)[0];
+        currentTwKey = cloudData.twOrder[0];
         localStorage.setItem('calc_current_tw_key', currentTwKey);
       }
       if (!cloudData.usStocks[currentUsKey]) {
-        currentUsKey = Object.keys(cloudData.usStocks)[0];
+        currentUsKey = cloudData.usOrder[0];
         localStorage.setItem('calc_current_us_key', currentUsKey);
       }
 
@@ -1562,7 +1581,6 @@
 
     init();
 
-    // 📱 註冊 Service Worker 支援 PWA 離線與安裝 (明確指定 /COSTCAL/ 完整路徑)
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('/COSTCAL/sw.js')
