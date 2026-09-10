@@ -1,4 +1,4 @@
-const CACHE_NAME = 'costcal-cache-v7.8.3';
+const CACHE_NAME = 'costcal-cache-v7.8.4';
 const ASSETS_TO_CACHE = [
   './index.html',
   './manifest.json'
