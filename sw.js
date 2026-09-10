@@ -1,7 +1,7 @@
 const CACHE_NAME = 'costcal-cache-v7.8.3';
 const ASSETS_TO_CACHE = [
   './index.html',
-  'https://cdn.tailwindcss.com'
+  './manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
