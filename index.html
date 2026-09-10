@@ -621,7 +621,6 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          // 💡 確保安全顯示版本號（如果後端有回傳則優先顯示後端版本，否則自動對應前端 v7.8.3）
           const verText = result.apiVersion || 'v7.8.3';
           document.getElementById('backendVersionBadge').innerText = `stock.js: ${verText}`;
 
@@ -1506,6 +1505,12 @@
       }
 
       fetchExchangeRate();
+
+      // 💡 自動在背景帶入目前選定股票的即時行情與版本號
+      setTimeout(() => {
+        const activeTab = localStorage.getItem('calc_current_tab') || 'tw';
+        fetchMarketPrice(activeTab);
+      }, 300);
     }
 
     function initDefaultView() {
