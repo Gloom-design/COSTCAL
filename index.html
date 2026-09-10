@@ -18,7 +18,7 @@
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
           <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.3</span>
-          <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 尚未查詢</span>
+          <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -342,6 +342,7 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     let isInitializing = true;
+    let latestApiVer = ''; // 用來儲存後端帶回的版本號
 
     let cloudData = { 
       twStocks: { 
@@ -579,10 +580,27 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
+    // 💡 根據是否為管理者動態更新版本號顯示內容
+    function updateVersionDisplay() {
+      const badge = document.getElementById('backendVersionBadge');
+      if (!badge) return;
+      const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+      if (!latestApiVer) {
+        badge.innerText = '尚未查詢';
+        return;
+      }
+      if (isAdmin) {
+        badge.innerText = `stock.js: ${latestApiVer}`;
+      } else {
+        badge.innerText = latestApiVer;
+      }
+    }
+
     window.fetchMarketPrice = async function(type) {
       if (!navigator.onLine) {
         document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
-        document.getElementById('backendVersionBadge').innerText = 'stock.js: 離線';
+        latestApiVer = '離線';
+        updateVersionDisplay();
         return;
       }
 
@@ -599,7 +617,8 @@
       fetchController = new AbortController();
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
-      document.getElementById('backendVersionBadge').innerText = 'stock.js: 查詢中...';
+      latestApiVer = '查詢中...';
+      updateVersionDisplay();
 
       try {
         const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
@@ -621,8 +640,8 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          const verText = result.apiVersion || 'v7.8.3';
-          document.getElementById('backendVersionBadge').innerText = `stock.js: ${verText}`;
+          latestApiVer = result.apiVersion || 'v7.8.3';
+          updateVersionDisplay();
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
         } else {
@@ -631,7 +650,8 @@
       } catch (e) {
         if (e.name === 'AbortError') return;
         document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
-        document.getElementById('backendVersionBadge').innerText = 'stock.js: 查詢失敗';
+        latestApiVer = '查詢失敗';
+        updateVersionDisplay();
       }
     };
 
@@ -1469,6 +1489,7 @@
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
           updateAuthUI();
+          updateVersionDisplay(); // 身分改變時同步更新版本號顯示格式
           if (currentUser && navigator.onLine) {
             document.getElementById('syncStatus').innerText = '載入雲端資料中...';
             if (event === 'SIGNED_IN') {
@@ -1487,6 +1508,7 @@
         const { data: { session } } = await sbClient.auth.getSession();
         currentUser = session?.user || null;
         updateAuthUI();
+        updateVersionDisplay();
 
         if (currentUser && navigator.onLine) {
           document.getElementById('syncStatus').innerText = '載入雲端資料中...';
