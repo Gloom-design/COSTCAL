@@ -583,6 +583,7 @@
     window.fetchMarketPrice = async function(type) {
       if (!navigator.onLine) {
         document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
+        document.getElementById('backendVersionBadge').innerText = 'stock.js: 離線';
         return;
       }
 
@@ -600,6 +601,7 @@
       fetchController = new AbortController();
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
+      document.getElementById('backendVersionBadge').innerText = 'stock.js: 載入中...';
 
       try {
         const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
@@ -629,10 +631,13 @@
           }
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
+        } else {
+          throw new Error("查無價格資料");
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
         document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
+        document.getElementById('backendVersionBadge').innerText = 'stock.js: 查詢失敗';
       }
     };
 
