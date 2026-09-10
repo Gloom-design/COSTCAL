@@ -342,7 +342,7 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     let isInitializing = true;
-    let latestApiVer = ''; // 用來儲存後端帶回的版本號
+    let latestApiVer = '';
 
     let cloudData = { 
       twStocks: { 
@@ -580,7 +580,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 💡 根據是否為管理者動態更新版本號顯示內容
+    // 💡 只有管理者會顯示 stock.js: 來源，一般使用者只顯示純版本號
     function updateVersionDisplay() {
       const badge = document.getElementById('backendVersionBadge');
       if (!badge) return;
@@ -1489,7 +1489,7 @@
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
           updateAuthUI();
-          updateVersionDisplay(); // 身分改變時同步更新版本號顯示格式
+          updateVersionDisplay(); // 身分改變時同步切換顯示格式
           if (currentUser && navigator.onLine) {
             document.getElementById('syncStatus').innerText = '載入雲端資料中...';
             if (event === 'SIGNED_IN') {
