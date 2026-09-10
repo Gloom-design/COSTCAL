@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   // 🛡️ 3. 攔截非法來源 (阻擋 Python 腳本或陌生網站盜用 API)
   if (!origin || !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.4.1' });
+    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.4.2' });
   }
 
   // 🛡️ 4. 來源合法，允許通過
@@ -32,7 +32,7 @@ export default async function handler(req, res) {
   // ==========================================
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.4.1' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.4.2' });
   }
 
   let queryTerm = symbol.trim();
@@ -71,7 +71,8 @@ export default async function handler(req, res) {
       } catch (e) {}
     }
 
-    let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
+    // 💡 加入 includePrePost=true 參數以支援盤前與盤後數據
+    let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d&includePrePost=true`;
     let response = await fetch(url, {
       headers: { 
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
@@ -81,23 +82,25 @@ export default async function handler(req, res) {
     
     if (!response.ok && finalSymbol.endsWith('.TW')) {
       finalSymbol = finalSymbol.replace('.TW', '.TWO');
-      url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
+      url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d&includePrePost=true`;
       response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
     }
 
     if (!response.ok) {
-      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.4.1' });
+      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.4.2' });
     }
     
     const data = await response.json();
     const result = data.chart?.result?.[0];
     
     if (!result) {
-      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.4.1' });
+      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.4.2' });
     }
 
     const meta = result.meta;
-    const currentPrice = meta.regularMarketPrice || meta.chartPreviousClose || meta.previousClose;
+    
+    // 💡 優先順序：盤前價 (preMarketPrice) > 盤後價 (postMarketPrice) > 正規盤價 > 收盤/前收價
+    const currentPrice = meta.preMarketPrice || meta.postMarketPrice || meta.regularMarketPrice || meta.chartPreviousClose || meta.previousClose;
     const prevClose = meta.chartPreviousClose || meta.previousClose || currentPrice;
 
     return res.status(200).json({
@@ -105,10 +108,10 @@ export default async function handler(req, res) {
       name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v7.4.1' // 版本號微調，方便你確認 Vercel 已部署最新版
+      apiVersion: 'v7.4.2'
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v7.4.1' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v7.4.2' });
   }
 }
