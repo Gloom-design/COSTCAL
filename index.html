@@ -18,13 +18,12 @@
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
           <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.3</span>
-          <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
+          <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span id="connectionText">即時連線</span>
           </span>
-
         </div>
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">離線優先模式已啟動</div>
       </div>
@@ -580,7 +579,6 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 💡 修正後的 fetchMarketPrice，拿掉會卡住版本號的過濾攔截
     window.fetchMarketPrice = async function(type) {
       if (!navigator.onLine) {
         document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
@@ -601,7 +599,7 @@
       fetchController = new AbortController();
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
-      document.getElementById('backendVersionBadge').innerText = 'stock.js: 載入中...';
+      document.getElementById('backendVersionBadge').innerText = 'stock.js: 查詢中...';
 
       try {
         const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
@@ -623,10 +621,9 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          // 💡 成功取得後端回傳的版本號並即時更新標題
-          if (result.apiVersion) {
-            document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
-          }
+          // 💡 確保安全顯示版本號（如果後端有回傳則優先顯示後端版本，否則自動對應前端 v7.8.3）
+          const verText = result.apiVersion || 'v7.8.3';
+          document.getElementById('backendVersionBadge').innerText = `stock.js: ${verText}`;
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
         } else {
