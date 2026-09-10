@@ -580,7 +580,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 💡 只有管理者會顯示 stock.js: 來源，一般使用者只顯示純版本號
+    // 💡 嚴格控制：只有管理者帳號顯示帶有 stock.js: 前綴，一般用戶只顯示版號
     function updateVersionDisplay() {
       const badge = document.getElementById('backendVersionBadge');
       if (!badge) return;
@@ -641,7 +641,7 @@
           saveData();
 
           latestApiVer = result.apiVersion || 'v7.8.3';
-          updateVersionDisplay();
+          updateVersionDisplay(); // 💡 統一走這裡控制顯示格式
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
         } else {
@@ -1489,7 +1489,7 @@
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
           updateAuthUI();
-          updateVersionDisplay(); // 身分改變時同步切換顯示格式
+          updateVersionDisplay(); 
           if (currentUser && navigator.onLine) {
             document.getElementById('syncStatus').innerText = '載入雲端資料中...';
             if (event === 'SIGNED_IN') {
