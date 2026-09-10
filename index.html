@@ -1589,7 +1589,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/COSTCAL/sw.js')
+        navigator.serviceWorker.register('./sw.js')
           .then((reg) => console.log('Service Worker 註冊成功:', reg.scope))
           .catch((err) => console.error('Service Worker 註冊失敗:', err));
       });
