@@ -1,6 +1,7 @@
-const CACHE_NAME = 'costcal-cache-v7.8.4';
+const CACHE_NAME = 'costcal-cache-v1';
+
+// 💡 不要把 index.html 寫死在強制離線快取裡，改由網路優先
 const ASSETS_TO_CACHE = [
-  './index.html',
   './manifest.json'
 ];
 
@@ -30,15 +31,20 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.url.includes('/api/stock')) {
-    return; // 略過即時 API 請求，確保股價拿最新資料
+    return; // 略過即時 API 
   }
+
+  // 💡 針對網頁頁面改用「網路優先」，確保每次重新整理都抓得到 Vercel 最新版
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html');
-        }
-      });
+      return cachedResponse || fetch(event.request);
     })
   );
 });
