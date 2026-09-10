@@ -580,7 +580,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
-    // 💡 嚴格控制：只有管理者帳號顯示帶有 stock.js: 前綴，一般用戶只顯示版號
+    // 💡 只有管理者顯示完整版本與來源；一般使用者只顯示純版號（自動把括號與來源切掉）
     function updateVersionDisplay() {
       const badge = document.getElementById('backendVersionBadge');
       if (!badge) return;
@@ -589,10 +589,13 @@
         badge.innerText = '尚未查詢';
         return;
       }
+      
       if (isAdmin) {
         badge.innerText = `stock.js: ${latestApiVer}`;
       } else {
-        badge.innerText = latestApiVer;
+        // 一般用戶：只取空白前面的純版號（例如把 "v7.8.3 (Robinhood 24h)" 切成 "v7.8.3"）
+        const pureVersion = latestApiVer.split(' ')[0];
+        badge.innerText = pureVersion;
       }
     }
 
@@ -641,7 +644,7 @@
           saveData();
 
           latestApiVer = result.apiVersion || 'v7.8.3';
-          updateVersionDisplay(); // 💡 統一走這裡控制顯示格式
+          updateVersionDisplay();
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
         } else {
@@ -667,7 +670,7 @@
           <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
