@@ -70,10 +70,10 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (origin && !allowedOrigins.includes(origin)) return res.status(403).json({ error: 'Forbidden', apiVersion: 'v7.6.3' });
+  if (origin && !allowedOrigins.includes(origin)) return res.status(403).json({ error: 'Forbidden', apiVersion: 'v7.8.3' });
 
   let { symbol } = req.query;
-  if (!symbol) return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.6.3' });
+  if (!symbol) return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.8.3' });
 
   let queryTerm = symbol.trim();
   let finalSymbol = queryTerm.toUpperCase();
@@ -101,21 +101,21 @@ export default async function handler(req, res) {
         response = await safeFetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       }
 
-      if (!response || !response.ok) return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.6.3' });
+      if (!response || !response.ok) return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.8.3' });
       
       const data = await response.json();
       const meta = data.chart?.result?.[0]?.meta;
-      if (!meta) return res.status(400).json({ error: '查無資料', apiVersion: 'v7.6.3' });
+      if (!meta) return res.status(400).json({ error: '查無資料', apiVersion: 'v7.8.3' });
 
       const currentPrice = meta.preMarketPrice || meta.postMarketPrice || meta.regularMarketPrice || meta.chartPreviousClose;
-      return res.status(200).json({ symbol: meta.symbol || finalSymbol, name: resolvedName, currentPrice: Number(currentPrice), prevClose: Number(meta.chartPreviousClose || currentPrice), apiVersion: 'v7.6.3 (TW)' });
+      return res.status(200).json({ symbol: meta.symbol || finalSymbol, name: resolvedName, currentPrice: Number(currentPrice), prevClose: Number(meta.chartPreviousClose || currentPrice), apiVersion: 'v7.8.3 (TW)' });
 
     } else {
       const robinhoodData = await fetchRobinhoodPrice(finalSymbol);
-      if (robinhoodData) return res.status(200).json({ ...robinhoodData, apiVersion: 'v7.6.3 (Robinhood 24h)' });
+      if (robinhoodData) return res.status(200).json({ ...robinhoodData, apiVersion: 'v7.8.3 (Robinhood 24h)' });
 
       const webullData = await fetchWebull24hPrice(finalSymbol);
-      if (webullData) return res.status(200).json({ ...webullData, apiVersion: 'v7.6.3 (Webull 24h)' });
+      if (webullData) return res.status(200).json({ ...webullData, apiVersion: 'v7.8.3 (Webull 24h)' });
 
       const searchRes = await safeFetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       if (searchRes && searchRes.ok) {
@@ -128,15 +128,15 @@ export default async function handler(req, res) {
 
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d&includePrePost=true`;
       const response = await safeFetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-      if (!response || !response.ok) return res.status(400).json({ error: `查無資料`, apiVersion: 'v7.6.3' });
+      if (!response || !response.ok) return res.status(400).json({ error: `查無資料`, apiVersion: 'v7.8.3' });
 
       const data = await response.json();
       const meta = data.chart?.result?.[0]?.meta;
       const currentPrice = meta.preMarketPrice || meta.postMarketPrice || meta.regularMarketPrice || meta.chartPreviousClose;
       
-      return res.status(200).json({ symbol: meta.symbol || finalSymbol, name: resolvedName, currentPrice: Number(currentPrice), prevClose: Number(meta.chartPreviousClose || currentPrice), apiVersion: 'v7.6.3 (Yahoo Backup)' });
+      return res.status(200).json({ symbol: meta.symbol || finalSymbol, name: resolvedName, currentPrice: Number(currentPrice), prevClose: Number(meta.chartPreviousClose || currentPrice), apiVersion: 'v7.8.3 (Yahoo Backup)' });
     }
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v7.6.3' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v7.8.3' });
   }
 }
