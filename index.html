@@ -580,6 +580,7 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
+    // 💡 修正後的 fetchMarketPrice，拿掉會卡住版本號的過濾攔截
     window.fetchMarketPrice = async function(type) {
       if (!navigator.onLine) {
         document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
@@ -590,7 +591,6 @@
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
-      const targetKeyWhenFetching = (type === 'tw' ? currentTwKey : currentUsKey);
 
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號';
@@ -609,9 +609,6 @@
 
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
-        const currentActiveKey = (type === 'tw' ? currentTwKey : currentUsKey);
-        if (targetKeyWhenFetching !== currentActiveKey) return;
-
         if (result.currentPrice) {
           if (result.symbol) {
             symbolInput.value = result.symbol;
@@ -626,7 +623,7 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          // 💡 嚴格確保後端有回傳 apiVersion 才更新標籤
+          // 💡 成功取得後端回傳的版本號並即時更新標題
           if (result.apiVersion) {
             document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
           }
