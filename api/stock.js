@@ -7,7 +7,7 @@ async function safeFetch(url, options = {}) {
     ]);
     return response;
   } catch (e) {
-    return null; // 發生任何錯誤或超時，直接回傳 null，讓主程式繼續往下走
+    return null;
   }
 }
 
@@ -58,20 +58,19 @@ export default async function handler(req, res) {
   const allowedOrigins = [
     'https://gloom-design.github.io',
     'https://costcal-peach.vercel.app',
-    'https://costcal-test.vercel.app', // 💡 新增的測試網域
+    'https://costcal-test.vercel.app',
     'http://localhost:3000',
     'http://127.0.0.1:5500'
   ];
 
   const origin = req.headers.origin;
 
-  // 🛡️ 最優先寫入 CORS，確保報錯時前端也看得到詳細訊息
   res.setHeader('Access-Control-Allow-Origin', origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
-  if (!origin || !allowedOrigins.includes(origin)) return res.status(403).json({ error: 'Forbidden', apiVersion: 'v7.6.3' });
+  if (origin && !allowedOrigins.includes(origin)) return res.status(403).json({ error: 'Forbidden', apiVersion: 'v7.6.3' });
 
   let { symbol } = req.query;
   if (!symbol) return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.6.3' });
@@ -82,7 +81,6 @@ export default async function handler(req, res) {
 
   try {
     if (/^\d{4}$/.test(queryTerm) || /[\u4e00-\u9fa5]/.test(queryTerm)) {
-      // 🇹🇼 台股邏輯
       if (/^\d{4}$/.test(queryTerm)) {
         finalSymbol = queryTerm + '.TW';
       } else {
@@ -113,14 +111,12 @@ export default async function handler(req, res) {
       return res.status(200).json({ symbol: meta.symbol || finalSymbol, name: resolvedName, currentPrice: Number(currentPrice), prevClose: Number(meta.chartPreviousClose || currentPrice), apiVersion: 'v7.6.3 (TW)' });
 
     } else {
-      // 🇺🇸 美股三層防護
       const robinhoodData = await fetchRobinhoodPrice(finalSymbol);
       if (robinhoodData) return res.status(200).json({ ...robinhoodData, apiVersion: 'v7.6.3 (Robinhood 24h)' });
 
       const webullData = await fetchWebull24hPrice(finalSymbol);
       if (webullData) return res.status(200).json({ ...webullData, apiVersion: 'v7.6.3 (Webull 24h)' });
 
-      // Yahoo Backup
       const searchRes = await safeFetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
       if (searchRes && searchRes.ok) {
         const searchData = await searchRes.json();
