@@ -1,16 +1,30 @@
-// 💡 1. Robinhood 24小時盤 API
+// 💡 1. 帶有超時控制 (AbortController) 的 fetch 工具函式 (預設 3000ms 逾時)
+async function fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return response;
+  } catch (e) {
+    clearTimeout(timer);
+    return null;
+  }
+}
+
+// 💡 2. Robinhood 24小時盤 API
 async function fetchRobinhoodPrice(symbol) {
   try {
     const url = `https://api.robinhood.com/quotes/?symbols=${encodeURIComponent(symbol)}`;
-    const res = await fetch(url, {
+    const res = await fetchWithTimeout(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-    });
-    if (!res.ok) return null;
+    }, 3000);
+    
+    if (!res || !res.ok) return null;
     const data = await res.json();
     const item = data.results?.[0];
     if (!item) return null;
 
-    // Robinhood 欄位：last_extended_hours_trade_price (夜盤/盤前後最新價) || last_trade_price (正規盤)
     const price = item.last_extended_hours_trade_price || item.last_trade_price;
     const prevClose = item.adjusted_previous_close || item.previous_close;
 
@@ -27,14 +41,15 @@ async function fetchRobinhoodPrice(symbol) {
   }
 }
 
-// 💡 2. Webull 24小時盤 API
+// 💡 3. Webull 24小時盤 API
 async function fetchWebull24hPrice(symbol) {
   try {
     const searchUrl = `https://quotes-gw.webullbroker.com/api/search/pc/tickers?keyword=${encodeURIComponent(symbol)}&regionId=6&pageIndex=1&pageSize=1`;
-    const searchRes = await fetch(searchUrl, {
+    const searchRes = await fetchWithTimeout(searchUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept': 'application/json' }
-    });
-    if (!searchRes.ok) return null;
+    }, 3000);
+
+    if (!searchRes || !searchRes.ok) return null;
     const searchData = await searchRes.json();
     if (!searchData.data || searchData.data.length === 0) return null;
     
@@ -42,10 +57,11 @@ async function fetchWebull24hPrice(symbol) {
     const stockName = searchData.data[0].name;
 
     const quoteUrl = `https://quotes-gw.webullbroker.com/api/quote/pc/tickerRealTime?tickerId=${tickerId}`;
-    const quoteRes = await fetch(quoteUrl, {
+    const quoteRes = await fetchWithTimeout(quoteUrl, {
       headers: { 'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json' }
-    });
-    if (!quoteRes.ok) return null;
+    }, 3000);
+
+    if (!quoteRes || !quoteRes.ok) return null;
     const quoteData = await quoteRes.json();
     
     const latestPrice = quoteData.pPrice || quoteData.close;
@@ -73,24 +89,22 @@ export default async function handler(req, res) {
 
   const origin = req.headers.origin;
 
+  // 🛡️ 強制寫入 CORS Header，避免任何 500/504 錯誤觸發 Failed to fetch
+  res.setHeader('Access-Control-Allow-Origin', origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
+  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     return res.status(200).end();
   }
 
   if (!origin || !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.6.0' });
+    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.6.1' });
   }
-
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.6.0' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.6.1' });
   }
 
   let queryTerm = symbol.trim();
@@ -99,12 +113,12 @@ export default async function handler(req, res) {
 
   try {
     if (/^\d{4}$/.test(queryTerm) || /[\u4e00-\u9fa5]/.test(queryTerm)) {
-      // 🇹🇼 台股邏輯保持不變
+      // 🇹🇼 台股邏輯
       if (/^\d{4}$/.test(queryTerm)) {
         finalSymbol = queryTerm + '.TW';
       } else {
-        const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { headers: { 'User-Agent': 'Mozilla/5.0' } });
-        if (listRes.ok) {
+        const listRes = await fetchWithTimeout('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { headers: { 'User-Agent': 'Mozilla/5.0' } }, 3000);
+        if (listRes && listRes.ok) {
           const stockList = await listRes.json();
           const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
           if (found && found.Code) {
@@ -115,19 +129,19 @@ export default async function handler(req, res) {
       }
 
       let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d&includePrePost=true`;
-      let response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+      let response = await fetchWithTimeout(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, 3000);
       
-      if (!response.ok && finalSymbol.endsWith('.TW')) {
+      if ((!response || !response.ok) && finalSymbol.endsWith('.TW')) {
         finalSymbol = finalSymbol.replace('.TW', '.TWO');
         url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d&includePrePost=true`;
-        response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+        response = await fetchWithTimeout(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, 3000);
       }
 
-      if (!response.ok) return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.6.0' });
+      if (!response || !response.ok) return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.6.1' });
       
       const data = await response.json();
       const meta = data.chart?.result?.[0]?.meta;
-      if (!meta) return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.6.0' });
+      if (!meta) return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.6.1' });
 
       const currentPrice = meta.preMarketPrice || meta.postMarketPrice || meta.regularMarketPrice || meta.chartPreviousClose;
       return res.status(200).json({
@@ -135,33 +149,33 @@ export default async function handler(req, res) {
         name: resolvedName,
         currentPrice: Number(currentPrice),
         prevClose: Number(meta.chartPreviousClose || currentPrice),
-        apiVersion: 'v7.6.0 (TW)'
+        apiVersion: 'v7.6.1 (TW)'
       });
 
     } else {
-      // 🇺🇸 美股三層防護：1. Robinhood 24h -> 2. Webull 24h -> 3. Yahoo Backup
+      // 🇺🇸 美股三層防護 (全部限制 3 秒超時)
 
-      // 1. 優先試用 Robinhood (24小時盤支援度高且極少擋 IP)
+      // 1. Robinhood 24h
       const robinhoodData = await fetchRobinhoodPrice(finalSymbol);
       if (robinhoodData && robinhoodData.currentPrice) {
         return res.status(200).json({
           ...robinhoodData,
-          apiVersion: 'v7.6.0 (Robinhood 24h)'
+          apiVersion: 'v7.6.1 (Robinhood 24h)'
         });
       }
 
-      // 2. 第二備用：Webull
+      // 2. Webull 24h
       const webullData = await fetchWebull24hPrice(finalSymbol);
       if (webullData && webullData.currentPrice) {
         return res.status(200).json({
           ...webullData,
-          apiVersion: 'v7.6.0 (Webull 24h)'
+          apiVersion: 'v7.6.1 (Webull 24h)'
         });
       }
 
-      // 3. 最終備用：Yahoo Finance
-      const searchRes = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-      if (searchRes.ok) {
+      // 3. Yahoo Backup
+      const searchRes = await fetchWithTimeout(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, { headers: { 'User-Agent': 'Mozilla/5.0' } }, 3000);
+      if (searchRes && searchRes.ok) {
         const searchData = await searchRes.json();
         if (searchData && searchData.quotes && searchData.quotes.length > 0) {
           finalSymbol = searchData.quotes[0].symbol;
@@ -170,8 +184,8 @@ export default async function handler(req, res) {
       }
 
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d&includePrePost=true`;
-      const response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-      if (!response.ok) return res.status(400).json({ error: `找不到資料`, apiVersion: 'v7.6.0' });
+      const response = await fetchWithTimeout(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, 3000);
+      if (!response || !response.ok) return res.status(400).json({ error: `找不到資料`, apiVersion: 'v7.6.1' });
 
       const data = await response.json();
       const meta = data.chart?.result?.[0]?.meta;
@@ -182,11 +196,11 @@ export default async function handler(req, res) {
         name: resolvedName,
         currentPrice: Number(currentPrice),
         prevClose: Number(meta.chartPreviousClose || currentPrice),
-        apiVersion: 'v7.6.0 (Yahoo Backup)'
+        apiVersion: 'v7.6.1 (Yahoo Backup)'
       });
     }
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v7.6.0' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v7.6.1' });
   }
 }
