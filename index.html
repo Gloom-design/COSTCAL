@@ -626,6 +626,7 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
+          // 💡 嚴格確保後端有回傳 apiVersion 才更新標籤
           if (result.apiVersion) {
             document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
           }
