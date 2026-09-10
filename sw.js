@@ -1,6 +1,5 @@
 const CACHE_NAME = 'costcal-cache-v1';
 
-// 💡 不要把 index.html 寫死在強制離線快取裡，改由網路優先
 const ASSETS_TO_CACHE = [
   './manifest.json'
 ];
@@ -26,7 +25,8 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  self.clientsClaim();
+  // 💡 修正這裡：改成正確的 self.clients.claim()
+  self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
