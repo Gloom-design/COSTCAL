@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 📱 PWA 支援設定 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
@@ -14,15 +17,20 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.7.8</span>
-          <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">stock.js: 載入中...</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.3</span>
+          <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
+          <!-- 💡 連線模式狀態標籤 -->
+          <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="connectionText">即時連線</span>
+          </span>
         </div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">雲端模組初始化中...</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">離線優先模式已啟動</div>
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
         <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
-          📱 緊湊模式
+          📱 手機介面
         </button>
 
         <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
@@ -321,11 +329,12 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    const API_BACKEND_URL = 'https://costcal-peach.vercel.app/api/stock';
+    const API_BACKEND_URL = 'https://costcal-test.vercel.app/api/stock';
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
+    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v1';
     
     let sbClient = null; 
     let currentUser = null;
@@ -333,11 +342,13 @@
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
     let isInitializing = true;
+    let latestApiVer = '';
 
     let cloudData = { 
       twStocks: { 
         "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } 
       },
+      twOrder: ["台光電"],
       usStocks: {
         "應用材料": { 
           name: "應用材料", 
@@ -347,13 +358,61 @@
           plans: [{ p2: "", n2: "" }],
           ptarget: ""
         }
-      }
+      },
+      usOrder: ["應用材料"]
     };
     
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
     let currentUsKey = localStorage.getItem('calc_current_us_key') || "應用材料";
 
+    function updateConnectionStatusUI() {
+      const badge = document.getElementById('connectionBadge');
+      const dot = document.getElementById('connectionDot');
+      const text = document.getElementById('connectionText');
+      if (!badge || !dot || !text) return;
+
+      if (navigator.onLine) {
+        badge.className = "bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
+        text.innerText = "即時連線";
+      } else {
+        badge.className = "bg-amber-50 text-amber-700 border border-amber-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
+        text.innerText = "離線模式";
+      }
+    }
+
+    window.addEventListener('online', updateConnectionStatusUI);
+    window.addEventListener('offline', updateConnectionStatusUI);
+
+    function loadFromLocalStorage() {
+      try {
+        const localRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw);
+          if (parsed && parsed.twStocks && parsed.usStocks) {
+            cloudData = parsed;
+            return true;
+          }
+        }
+      } catch (err) {
+        console.error("讀取本地快取失敗:", err);
+      }
+      return false;
+    }
+
+    function saveToLocalStorage() {
+      try {
+        saveUIToCurrentStock('tw');
+        saveUIToCurrentStock('us');
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
+      } catch (err) {
+        console.error("寫入本地快取失敗:", err);
+      }
+    }
+
     window.loginWithGoogle = async function() {
+      if (!navigator.onLine) { alert("目前離線中，無法進行Google登入！"); return; }
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
       const { error } = await sbClient.auth.signInWithOAuth({ 
         provider: 'google',
@@ -365,6 +424,7 @@
     window.logout = async function() {
       if (!sbClient) return;
       await sbClient.auth.signOut({ scope: 'local' });
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = window.location.origin + window.location.pathname;
@@ -385,7 +445,8 @@
         const { error: dbError } = await sbClient.from('user_portfolios').delete().eq('user_id', currentUser.id);
         if (dbError) throw dbError;
 
-        alert("帳號資料已成功清除，系統將自動登出。");
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        alert("帳號資料已成功清除系統將自動登出。");
         await logout();
       } catch (err) {
         alert("刪除帳號失敗: " + err.message);
@@ -394,7 +455,7 @@
     };
 
     async function loadAdminStats() {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL || !navigator.onLine) return;
       
       try {
         const { data, error } = await sbClient.rpc('get_admin_stats_v2');
@@ -466,42 +527,41 @@
       }
     };
 
-    // 💡 新增：調整投資組合順序功能 (direction: -1 往上, 1 往下)
     window.moveStockOrder = function(type, direction) {
+      clearTimeout(saveTimeout);
       saveUIToCurrentStock(type);
-      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const keys = Object.keys(store);
+
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(cloudData[storeKey]);
+      }
+
+      const keys = cloudData[orderKey];
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       
       const index = keys.indexOf(currentKey);
       if (index === -1) return;
       
       const targetIndex = index + direction;
-      if (targetIndex < 0 || targetIndex >= keys.length) return; // 已經到頂或到底
+      if (targetIndex < 0 || targetIndex >= keys.length) return;
       
-      // 交換順序
       const temp = keys[index];
       keys[index] = keys[targetIndex];
       keys[targetIndex] = temp;
       
-      // 重新建立排序後的物件
-      const reorderedStore = {};
-      keys.forEach(k => {
-        reorderedStore[k] = store[k];
-      });
-      
-      if (type === 'tw') {
-        cloudData.twStocks = reorderedStore;
-      } else {
-        cloudData.usStocks = reorderedStore;
-      }
-      
       renderStockSelector(type);
       loadStockToUI(type, currentKey);
-      saveData();
+      
+      saveToLocalStorage();
+      if (currentUser && sbClient && navigator.onLine) {
+        manualSaveDataSilent();
+      }
     };
 
     window.fetchExchangeRate = async function() {
+      if (!navigator.onLine) return;
       document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
       try {
         const res = await fetch('https://open.er-api.com/v6/latest/USD');
@@ -520,11 +580,34 @@
       document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
+    function updateVersionDisplay() {
+      const badge = document.getElementById('backendVersionBadge');
+      if (!badge) return;
+      const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+      if (!latestApiVer) {
+        badge.innerText = '尚未查詢';
+        return;
+      }
+      
+      if (isAdmin) {
+        badge.innerText = `stock.js: ${latestApiVer}`;
+      } else {
+        const pureVersion = latestApiVer.split(' ')[0];
+        badge.innerText = pureVersion;
+      }
+    }
+
     window.fetchMarketPrice = async function(type) {
+      if (!navigator.onLine) {
+        document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
+        latestApiVer = '離線';
+        updateVersionDisplay();
+        return;
+      }
+
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
-      const targetKeyWhenFetching = (type === 'tw' ? currentTwKey : currentUsKey);
 
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入股票代號';
@@ -535,15 +618,14 @@
       fetchController = new AbortController();
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
+      latestApiVer = '查詢中...';
+      updateVersionDisplay();
 
       try {
         const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
         const result = await apiRes.json();
 
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
-
-        const currentActiveKey = (type === 'tw' ? currentTwKey : currentUsKey);
-        if (targetKeyWhenFetching !== currentActiveKey) return;
 
         if (result.currentPrice) {
           if (result.symbol) {
@@ -559,15 +641,18 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          if (result.apiVersion) {
-            document.getElementById('backendVersionBadge').innerText = `stock.js: ${result.apiVersion}`;
-          }
+          latestApiVer = result.apiVersion || 'v7.8.3';
+          updateVersionDisplay();
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
+        } else {
+          throw new Error("查無價格資料");
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
         document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
+        latestApiVer = '查詢失敗';
+        updateVersionDisplay();
       }
     };
 
@@ -583,7 +668,7 @@
           <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -743,6 +828,7 @@
     window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       
       let newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
       if (!newName || !newName.trim()) return;
@@ -759,24 +845,23 @@
       
       saveUIToCurrentStock(type);
       
-      // 保持原本的順序進行重新命名
-      const newStore = {};
-      Object.keys(targetStore).forEach(k => {
-        if (k === currentKey) {
-          newStore[trimmedName] = targetStore[currentKey];
-          newStore[trimmedName].name = trimmedName;
-        } else {
-          newStore[k] = targetStore[k];
-        }
-      });
+      targetStore[trimmedName] = targetStore[currentKey];
+      targetStore[trimmedName].name = trimmedName;
+      delete targetStore[currentKey];
+
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(targetStore);
+      }
+      const idx = cloudData[orderKey].indexOf(currentKey);
+      if (idx !== -1) {
+        cloudData[orderKey][idx] = trimmedName;
+      }
       
       if (type === 'tw') {
-        cloudData.twStocks = newStore;
         currentTwKey = trimmedName;
         localStorage.setItem('calc_current_tw_key', trimmedName);
         document.getElementById('tw_nameInput').value = trimmedName;
       } else {
-        cloudData.usStocks = newStore;
         currentUsKey = trimmedName;
         localStorage.setItem('calc_current_us_key', trimmedName);
         document.getElementById('us_nameInput').value = trimmedName;
@@ -790,6 +875,7 @@
 
     window.addStock = async function(type) {
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       
       let inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AMAT):");
       if (!inputVal || !inputVal.trim()) return;
@@ -814,6 +900,12 @@
         localStorage.setItem('calc_current_us_key', trimmed);
       }
 
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(targetStore);
+      } else {
+        cloudData[orderKey].push(trimmed);
+      }
+
       renderStockSelector(type);
       loadStockToUI(type, trimmed);
       saveData();
@@ -824,20 +916,27 @@
 
     window.deleteStock = function(type) {
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       
       if (confirm(`確定刪除「${currentKey}」嗎？`)) {
         delete targetStore[currentKey];
         
-        const remainingKeys = Object.keys(targetStore);
+        if (cloudData[orderKey]) {
+          cloudData[orderKey] = cloudData[orderKey].filter(k => k !== currentKey);
+        }
+        
+        const remainingKeys = cloudData[orderKey] && cloudData[orderKey].length > 0 ? cloudData[orderKey] : Object.keys(targetStore);
         
         if (remainingKeys.length === 0) {
           if (type === 'tw') {
             cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            cloudData.twOrder = ["台光電"];
             currentTwKey = "台光電";
             localStorage.setItem('calc_current_tw_key', currentTwKey);
           } else {
             cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            cloudData.usOrder = ["應用材料"];
             currentUsKey = "應用材料";
             localStorage.setItem('calc_current_us_key', currentUsKey);
           }
@@ -861,9 +960,13 @@
     window.manualSaveData = async function() {
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      if (!currentUser) { alert("請先登入！"); return; }
+      saveToLocalStorage();
+      if (!currentUser || !navigator.onLine) { 
+        alert("目前處於離線模式，資料已成功儲存於本地裝置！"); 
+        return; 
+      }
       await manualSaveDataSilent();
-      alert("儲存成功！");
+      alert("儲存成功並已同步至雲端！");
     };
 
     window.copyPrice = function(type) {
@@ -887,12 +990,12 @@
       const cards = document.querySelectorAll('.card-box');
 
       if (isCompactMode) {
-        btn.innerText = "📱 緊湊模式";
+        btn.innerText = "📱 手機介面";
         body.className = "bg-slate-100 text-slate-800 p-1.5 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
         cards.forEach(card => card.className = "card-box bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2");
       } else {
-        btn.innerText = "💻 標準模式";
+        btn.innerText = "💻 電腦介面";
         body.className = "bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm";
         cards.forEach(card => card.className = "card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5");
@@ -903,14 +1006,24 @@
       const selector = document.getElementById(`${type}StockSelector`);
       if (!selector) return;
       selector.innerHTML = '';
-      const store = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      const store = cloudData[storeKey];
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
 
-      Object.keys(store || {}).forEach(key => {
-        const opt = document.createElement('option');
-        opt.value = key; opt.innerText = key;
-        if (key === currentKey) opt.selected = true;
-        selector.appendChild(opt);
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(store || {});
+      }
+
+      cloudData[orderKey].forEach(key => {
+        if (store[key]) {
+          const opt = document.createElement('option');
+          opt.value = key; 
+          opt.innerText = key;
+          if (key === currentKey) opt.selected = true;
+          selector.appendChild(opt);
+        }
       });
     }
 
@@ -1013,56 +1126,76 @@
       }
     }
 
+    // 💡 修正：改用 upsert 確保資料一定能成功寫入雲端（有則更新、無則新增）
     function saveData() {
       if (isInitializing) return;
-      if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      document.getElementById('syncStatus').innerText = '同步中...';
+      saveToLocalStorage();
+
+      if (!currentUser || !sbClient || !navigator.onLine) {
+        document.getElementById('syncStatus').innerText = '已存至本地 (離線模式)';
+        return;
+      }
+
+      document.getElementById('syncStatus').innerText = '雲端同步中...';
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
         try {
-          const { data: existing } = await sbClient.from('user_portfolios').select('user_id, sync_count').eq('user_id', currentUser.id).maybeSingle();
+          const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
           let newSyncCount = (existing?.sync_count || 0) + 1;
 
-          let error = existing ? 
-            (await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, sync_count: newSyncCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id)).error :
-            (await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, login_count: 0, sync_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() })).error;
-          
-          document.getElementById('syncStatus').innerText = error ? '同步失敗' : '已同步雲端';
+          const { error } = await sbClient.from('user_portfolios').upsert({
+            user_id: currentUser.id,
+            portfolio_data: cloudData,
+            sync_count: newSyncCount,
+            last_active: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+
+          document.getElementById('syncStatus').innerText = error ? '同步失敗 (資料已保存在本地)' : '已同步雲端';
           if (!error) loadAdminStats();
         } catch (err) {
-          document.getElementById('syncStatus').innerText = '同步失敗';
+          document.getElementById('syncStatus').innerText = '同步失敗 (離線模式)';
         }
       }, 500);
     }
 
+    // 💡 修正：手動儲存同步也改用 upsert
     async function manualSaveDataSilent() {
       if (!currentUser || !sbClient) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      const { data: existing } = await sbClient.from('user_portfolios').select('user_id, sync_count').eq('user_id', currentUser.id).maybeSingle();
+      saveToLocalStorage();
+
+      const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
       let newSyncCount = (existing?.sync_count || 0) + 1;
 
-      if (existing) {
-        await sbClient.from('user_portfolios').update({ portfolio_data: cloudData, sync_count: newSyncCount, last_active: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('user_id', currentUser.id);
-      } else {
-        await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, login_count: 0, sync_count: 1, last_active: new Date().toISOString(), updated_at: new Date().toISOString() });
-      }
+      await sbClient.from('user_portfolios').upsert({
+        user_id: currentUser.id,
+        portfolio_data: cloudData,
+        sync_count: newSyncCount,
+        last_active: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
       loadAdminStats();
     }
 
     async function recordLogin() {
-      if (!currentUser || !sbClient) return;
+      if (!currentUser || !sbClient || !navigator.onLine) return;
       try {
-        const { data: existing } = await sbClient.from('user_portfolios').select('user_id, login_count').eq('user_id', currentUser.id).maybeSingle();
+        const { data: existing } = await sbClient.from('user_portfolios').select('login_count').eq('user_id', currentUser.id).maybeSingle();
         let newLoginCount = (existing?.login_count || 0) + 1;
 
-        if (existing) {
-          await sbClient.from('user_portfolios').update({ login_count: newLoginCount, last_active: new Date().toISOString() }).eq('user_id', currentUser.id);
-        } else {
-          await sbClient.from('user_portfolios').insert({ user_id: currentUser.id, portfolio_data: cloudData, login_count: 1, sync_count: 0, last_active: new Date().toISOString(), updated_at: new Date().toISOString() });
-        }
+        await sbClient.from('user_portfolios').upsert({
+          user_id: currentUser.id,
+          portfolio_data: cloudData,
+          login_count: newLoginCount,
+          last_active: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
         loadAdminStats();
       } catch (err) {
         console.error("記錄登入次數失敗:", err);
@@ -1349,6 +1482,9 @@
 
     async function init() {
       applyUIMode();
+      updateConnectionStatusUI();
+
+      loadFromLocalStorage();
       initDefaultView();
 
       const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
@@ -1367,7 +1503,8 @@
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
           updateAuthUI();
-          if (currentUser) {
+          updateVersionDisplay(); 
+          if (currentUser && navigator.onLine) {
             document.getElementById('syncStatus').innerText = '載入雲端資料中...';
             if (event === 'SIGNED_IN') {
               await recordLogin();
@@ -1375,6 +1512,7 @@
             const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (data && data.portfolio_data) {
               parseCloudData(data.portfolio_data);
+              saveToLocalStorage();
             }
             document.getElementById('syncStatus').innerText = '已同步雲端';
             loadAdminStats();
@@ -1384,34 +1522,44 @@
         const { data: { session } } = await sbClient.auth.getSession();
         currentUser = session?.user || null;
         updateAuthUI();
+        updateVersionDisplay();
 
-        if (currentUser) {
+        if (currentUser && navigator.onLine) {
           document.getElementById('syncStatus').innerText = '載入雲端資料中...';
           const { data } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           if (data && data.portfolio_data) {
             parseCloudData(data.portfolio_data);
+            saveToLocalStorage();
           }
           document.getElementById('syncStatus').innerText = '已同步雲端';
           loadAdminStats();
         } else {
-          document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
+          document.getElementById('syncStatus').innerText = currentUser ? '離線模式 (顯示本地庫存)' : '已就緒 (未登入)';
         }
       } catch (err) {
         document.getElementById('syncStatus').innerText = '單機離線模式';
       }
 
       fetchExchangeRate();
+
+      setTimeout(() => {
+        const activeTab = localStorage.getItem('calc_current_tab') || 'tw';
+        fetchMarketPrice(activeTab);
+      }, 300);
     }
 
     function initDefaultView() {
       renderStockSelector('tw');
       renderStockSelector('us');
+      if (!cloudData.twOrder) cloudData.twOrder = Object.keys(cloudData.twStocks);
+      if (!cloudData.usOrder) cloudData.usOrder = Object.keys(cloudData.usStocks);
+
       if (!cloudData.twStocks[currentTwKey]) {
-        currentTwKey = Object.keys(cloudData.twStocks)[0];
+        currentTwKey = cloudData.twOrder[0];
         localStorage.setItem('calc_current_tw_key', currentTwKey);
       }
       if (!cloudData.usStocks[currentUsKey]) {
-        currentUsKey = Object.keys(cloudData.usStocks)[0];
+        currentUsKey = cloudData.usOrder[0];
         localStorage.setItem('calc_current_us_key', currentUsKey);
       }
       loadStockToUI('tw', currentTwKey);
@@ -1421,26 +1569,28 @@
     function parseCloudData(fetchedData) {
       if (fetchedData.twStocks && fetchedData.usStocks) {
         cloudData = fetchedData;
-      } else if (fetchedData.stocks) {
-        cloudData = { twStocks: {}, usStocks: {} };
-        Object.keys(fetchedData.stocks).forEach(k => {
-          if (fetchedData.stocks[k].tw) cloudData.twStocks[k] = fetchedData.stocks[k].tw;
-        });
       }
 
       if (!cloudData.twStocks || Object.keys(cloudData.twStocks).length === 0) {
         cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
+      if (!cloudData.twOrder) {
+        cloudData.twOrder = Object.keys(cloudData.twStocks);
+      }
+
       if (!cloudData.usStocks || Object.keys(cloudData.usStocks).length === 0) {
         cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }], ptarget: "" } };
       }
+      if (!cloudData.usOrder) {
+        cloudData.usOrder = Object.keys(cloudData.usStocks);
+      }
 
       if (!cloudData.twStocks[currentTwKey]) {
-        currentTwKey = Object.keys(cloudData.twStocks)[0];
+        currentTwKey = cloudData.twOrder[0];
         localStorage.setItem('calc_current_tw_key', currentTwKey);
       }
       if (!cloudData.usStocks[currentUsKey]) {
-        currentUsKey = Object.keys(cloudData.usStocks)[0];
+        currentUsKey = cloudData.usOrder[0];
         localStorage.setItem('calc_current_us_key', currentUsKey);
       }
 
@@ -1471,6 +1621,14 @@
     }
 
     init();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Service Worker 註冊成功:', reg.scope))
+          .catch((err) => console.error('Service Worker 註冊失敗:', err));
+      });
+    }
   </script>
 </body>
 </html>
