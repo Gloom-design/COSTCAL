@@ -16,7 +16,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.19</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.20</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -104,7 +104,7 @@
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2330)</label>
-            <input id="tw_symbolInput" type="text" placeholder="輸入代號或名稱" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+            <input id="tw_symbolInput" type="text" placeholder="輸入代號" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
         </div>
 
@@ -399,18 +399,33 @@
 
     window.addEventListener('beforeunload', () => { saveToLocalStorage(); });
 
-    // 💡 淨化資料：確保代號欄位絕對不會存入包含空格或過長的英文公司名稱
+    // 💡 徹底清洗髒資料：修復任何把 Key 變成英文全名的錯誤
     function sanitizeStockData(data) {
       if (!data || !data.twStocks) return data;
-      for (let key in data.twStocks) {
-        let stock = data.twStocks[key];
-        if (stock && stock.symbol) {
-          let cleanSym = String(stock.symbol).trim();
-          // 如果代號含有空格或長度超過 10 個字元（代表誤存成公司英文全名），則自動修正為乾淨代號或 key
-          if (cleanSym.includes(' ') || cleanSym.length > 10) {
-            stock.symbol = key.replace('.TW', '').replace('.TWO', '');
-          }
+      let newTwStocks = {};
+      let newTwOrder = [];
+
+      for (let oldKey in data.twStocks) {
+        let stock = data.twStocks[oldKey];
+        // 如果舊 Key 包含空格或太長（代表被誤存成公司英文全名），試著從 stock.symbol 或原代號還原
+        let cleanKey = oldKey;
+        if (oldKey.includes(' ') || oldKey.length > 10) {
+          cleanKey = (stock.symbol && !stock.symbol.includes(' ') && stock.symbol.length <= 10) ? stock.symbol : '2330';
         }
+        cleanKey = cleanKey.replace('.TW', '').replace('.TWO', '');
+        
+        // 確保 stock 裡面的 symbol 也是乾淨代號
+        if (!stock.symbol || stock.symbol.includes(' ') || stock.symbol.length > 10) {
+          stock.symbol = cleanKey;
+        }
+        newTwStocks[cleanKey] = stock;
+        if (!newTwOrder.includes(cleanKey)) newTwOrder.push(cleanKey);
+      }
+
+      data.twStocks = newTwStocks;
+      data.twOrder = data.twOrder ? data.twOrder.map(k => (k.includes(' ') || k.length > 10 ? '2330' : k.replace('.TW', '').replace('.TWO', ''))).filter((v, i, a) => a.indexOf(v) === i) : newTwOrder;
+      if (data.twOrder.length === 0 && Object.keys(newTwStocks).length > 0) {
+        data.twOrder = Object.keys(newTwStocks);
       }
       return data;
     }
@@ -597,7 +612,7 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
-    // 💡 嚴格確保代號欄位永遠乾淨：絕不填入長串公司英文名稱
+    // 💡 嚴格保護：代號輸入框（symbolInput）絕對只填入乾淨代號，名稱交給 nameInput
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -629,19 +644,17 @@
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
         if (result.currentPrice !== undefined) {
-          // 強制清洗代號：絕不允許填入帶空格或過長的字串
+          // 強制確保代號欄位絕對是乾淨代號
           if (result.symbol) {
-            let cleanSymbol = String(result.symbol).trim();
-            if (cleanSymbol.includes(' ') || cleanSymbol.length > 10) {
-              cleanSymbol = queryVal;
+            let cleanSym = String(result.symbol).trim().replace('.TW', '').replace('.TWO', '');
+            if (!cleanSym.includes(' ') && cleanSym.length <= 10) {
+              symbolInput.value = cleanSym;
+            } else {
+              symbolInput.value = queryVal;
             }
-            cleanSymbol = cleanSymbol.replace('.TW', '').replace('.TWO', '');
-            symbolInput.value = cleanSymbol;
-          } else {
-            symbolInput.value = queryVal;
           }
 
-          // 名稱填入名稱欄位
+          // 正式名稱只放進名稱欄位
           if (result.name && (nameInput.value === '' || nameInput.value === queryVal || nameInput.value.length > 25)) {
             nameInput.value = result.name;
           }
@@ -656,7 +669,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.19';
+          latestApiVer = result.apiVersion || 'v7.8.20';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -679,19 +692,7 @@
       let trimmedName = newName.trim();
       
       saveUIToCurrentStock(type);
-      if (currentKey !== trimmedName) {
-        targetStore[trimmedName] = targetStore[currentKey];
-        targetStore[trimmedName].name = trimmedName;
-        delete targetStore[currentKey];
-
-        if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
-        const idx = cloudData[orderKey].indexOf(currentKey);
-        if (idx !== -1) cloudData[orderKey][idx] = trimmedName;
-        else if (!cloudData[orderKey].includes(trimmedName)) cloudData[orderKey].push(trimmedName);
-
-        if (type === 'tw') { currentTwKey = trimmedName; localStorage.setItem('calc_current_tw_key', trimmedName); }
-        else { currentUsKey = trimmedName; localStorage.setItem('calc_current_us_key', trimmedName); }
-      } else {
+      if (targetStore[currentKey]) {
         targetStore[currentKey].name = trimmedName;
       }
 
@@ -699,7 +700,7 @@
       else document.getElementById('us_nameInput').value = trimmedName;
 
       renderStockSelector(type);
-      loadStockToUI(type, trimmedName);
+      loadStockToUI(type, currentKey);
       saveData();
       if (currentUser && sbClient && navigator.onLine) await manualSaveDataSilent();
       alert(`已成功將名稱更改為「${trimmedName}」！`);
@@ -708,16 +709,16 @@
     window.addStock = async function(type) {
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
-      let inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2330 或 台積電):" : "請輸入美股代號 (例如: AAPL):");
+      let inputVal = prompt(type === 'tw' ? "請輸入台股代號 (例如: 2330):" : "請輸入美股代號 (例如: AAPL):");
       if (!inputVal || !inputVal.trim()) return;
-      let trimmed = inputVal.trim();
+      let trimmed = inputVal.trim().toUpperCase().replace('.TW', '').replace('.TWO', '');
 
       saveUIToCurrentStock(type);
       if (type === 'tw') {
         targetStore[trimmed] = { name: trimmed, symbol: trimmed, discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "" };
         currentTwKey = trimmed; localStorage.setItem('calc_current_tw_key', trimmed);
       } else {
-        targetStore[trimmed] = { name: trimmed, symbol: trimmed.toUpperCase(), rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "" };
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed, rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "" };
         currentUsKey = trimmed; localStorage.setItem('calc_current_us_key', trimmed);
       }
 
@@ -836,7 +837,9 @@
       keys.forEach(key => {
         if (store[key]) {
           const opt = document.createElement('option');
-          opt.value = key; opt.innerText = store[key].name || key;
+          opt.value = key; 
+          const stockName = store[key].name || key;
+          opt.innerText = `${key} ${stockName !== key ? '(' + stockName + ')' : ''}`;
           if (key === currentKey) opt.selected = true;
           selector.appendChild(opt);
         }
@@ -853,12 +856,9 @@
           plans.push({ p2: row.querySelector('.tw-plan-p2').value, n2: row.querySelector('.tw-plan-n2').value });
         });
 
-        let rawSym = document.getElementById('tw_symbolInput').value.trim();
-        if (rawSym.includes(' ') || rawSym.length > 10) rawSym = currentTwKey.replace('.TW', '').replace('.TWO', '');
-
         cloudData.twStocks[currentTwKey] = {
           name: document.getElementById('tw_nameInput').value || currentTwKey,
-          symbol: rawSym,
+          symbol: currentTwKey,
           discount: document.getElementById('twDiscount').value,
           minFee: document.getElementById('twMinFee').value,
           n1: document.getElementById('tw_n1').value,
@@ -878,12 +878,9 @@
           plans.push({ p2: row.querySelector('.us-plan-p2').value, n2: row.querySelector('.us-plan-n2').value });
         });
 
-        let rawSym = document.getElementById('us_symbolInput').value.trim();
-        if (rawSym.includes(' ') || rawSym.length > 15) rawSym = currentUsKey;
-
         cloudData.usStocks[currentUsKey] = {
           name: document.getElementById('us_nameInput').value || currentUsKey,
-          symbol: rawSym,
+          symbol: currentUsKey,
           rate: document.getElementById('us_exchangeRate').value,
           fee: document.getElementById('us_fee').value,
           n1: document.getElementById('us_n1').value,
@@ -903,10 +900,7 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        
-        let cleanSym = tw.symbol || key;
-        if (cleanSym.includes(' ') || cleanSym.length > 10) cleanSym = key.replace('.TW', '').replace('.TWO', '');
-        document.getElementById('tw_symbolInput').value = cleanSym;
+        document.getElementById('tw_symbolInput').value = key; // 永遠強制顯示乾淨代號 Key
 
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
@@ -927,10 +921,7 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_nameInput').value = us.name || key;
-
-        let cleanSym = us.symbol || key;
-        if (cleanSym.includes(' ') || cleanSym.length > 15) cleanSym = key;
-        document.getElementById('us_symbolInput').value = cleanSym;
+        document.getElementById('us_symbolInput').value = key; // 永遠強制顯示乾淨代號 Key
 
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
