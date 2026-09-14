@@ -16,7 +16,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.17</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.18</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -437,6 +437,9 @@
       if (!sbClient) return;
       await sbClient.auth.signOut({ scope: 'local' });
       localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.removeItem('calc_current_tw_key');
+      localStorage.removeItem('calc_current_us_key');
+      localStorage.removeItem('calc_current_tab');
       localStorage.clear();
       sessionStorage.clear();
       window.location.href = window.location.origin + window.location.pathname;
@@ -577,8 +580,10 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
+    // 💡 確保代號欄位永遠乾淨，只保留代號而不填入長串公司英文名稱
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
+      const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
       
       if (type === 'tw') {
@@ -607,9 +612,15 @@
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
         if (result.currentPrice !== undefined) {
-          if (type === 'tw' && result.symbol) {
+          // 強制讓代號欄位保持乾淨簡短的代號
+          if (result.symbol) {
             let cleanSymbol = result.symbol.replace('.TW', '').replace('.TWO', '');
             symbolInput.value = cleanSymbol;
+          }
+
+          // 如果回傳了正式名稱且原本名稱欄位空白或只是代號，則帶入名稱
+          if (result.name && (nameInput.value === '' || nameInput.value === queryVal)) {
+            nameInput.value = result.name;
           }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
@@ -622,7 +633,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.17';
+          latestApiVer = result.apiVersion || 'v7.8.18';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -1439,7 +1450,7 @@
       const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
       switchTab(savedTab);
 
-      const hasLocal = loadFromLocalStorage();
+      loadFromLocalStorage();
       initDefaultView();
 
       try {
@@ -1460,7 +1471,12 @@
             mergeCloudAndLocalData(data.portfolio_data);
             document.getElementById('syncStatus').innerText = '已連線並同步雲端';
           } else {
-            document.getElementById('syncStatus').innerText = '已連線 (雲端無舊資料)';
+            // 💡 若使用者登入後雲端沒有同步過的數據，立即把目前的內容帶入並同步儲存
+            document.getElementById('syncStatus').innerText = '雲端無舊資料，正在自動上傳目前內容...';
+            saveUIToCurrentStock('tw');
+            saveUIToCurrentStock('us');
+            await manualSaveDataSilent();
+            document.getElementById('syncStatus').innerText = '已自動上傳目前內容至雲端';
           }
           loadAdminStats();
         } else {
@@ -1480,6 +1496,11 @@
             if (!error && data && data.portfolio_data) {
               mergeCloudAndLocalData(data.portfolio_data);
               document.getElementById('syncStatus').innerText = '已連線並同步雲端';
+            } else {
+              saveUIToCurrentStock('tw');
+              saveUIToCurrentStock('us');
+              await manualSaveDataSilent();
+              document.getElementById('syncStatus').innerText = '已自動上傳目前內容至雲端';
             }
             loadAdminStats();
           }
