@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
+  <!-- 💡 預防第三方 VPN / 代理擴充功能因抓取不到 M_ID 屬性而引發 Console 報錯的防護標籤 -->
+  <script data-config='{"config":{"properties":{}}}' bis-use="true"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
@@ -575,7 +577,6 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
-    // 💡 自動過濾 .TW / .TWO 並向 Vercel 後端查詢即時行情
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       let queryVal = symbolInput.value.trim();
