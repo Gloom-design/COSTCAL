@@ -38,7 +38,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.29</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.30</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -438,7 +438,7 @@
 
       for (let oldKey in data.twStocks) {
         let stock = data.twStocks[oldKey];
-        let cleanKey = oldKey.trim().toUpperCase().replace('.TW', '').replace('.TWO', '');
+        let cleanKey = (stock.symbol && !stock.symbol.includes(' ')) ? stock.symbol.trim().toUpperCase().replace('.TW', '').replace('.TWO', '') : oldKey.trim().toUpperCase();
         if (!cleanKey) cleanKey = oldKey;
         
         if (!stock.symbol) {
@@ -699,7 +699,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.29';
+          latestApiVer = result.apiVersion || 'v7.8.30';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -901,6 +901,25 @@
       if (isInitializing) return;
       if (type === 'tw') {
         if (!currentTwKey) return;
+        let inputSymbol = document.getElementById('tw_symbolInput').value.trim().toUpperCase().replace('.TW', '').replace('.TWO', '');
+        if (!inputSymbol) inputSymbol = currentTwKey;
+
+        // 💡 智慧代號遷移：若使用者修改了代號輸入框，同步更新資料結構鍵值與順序清單
+        if (inputSymbol !== currentTwKey) {
+          cloudData.twStocks[inputSymbol] = cloudData.twStocks[currentTwKey] || {};
+          delete cloudData.twStocks[currentTwKey];
+          
+          let orderIdx = cloudData.twOrder.indexOf(currentTwKey);
+          if (orderIdx !== -1) {
+            cloudData.twOrder[orderIdx] = inputSymbol;
+          } else {
+            cloudData.twOrder.push(inputSymbol);
+          }
+          currentTwKey = inputSymbol;
+          localStorage.setItem('calc_current_tw_key', currentTwKey);
+          renderStockSelector('tw');
+        }
+
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
         const plans = [];
         document.querySelectorAll('.tw-plan-row').forEach(row => {
@@ -923,6 +942,24 @@
         };
       } else {
         if (!currentUsKey) return;
+        let inputSymbol = document.getElementById('us_symbolInput').value.trim().toUpperCase();
+        if (!inputSymbol) inputSymbol = currentUsKey;
+
+        if (inputSymbol !== currentUsKey) {
+          cloudData.usStocks[inputSymbol] = cloudData.usStocks[currentUsKey] || {};
+          delete cloudData.usStocks[currentUsKey];
+          
+          let orderIdx = cloudData.usOrder.indexOf(currentUsKey);
+          if (orderIdx !== -1) {
+            cloudData.usOrder[orderIdx] = inputSymbol;
+          } else {
+            cloudData.usOrder.push(inputSymbol);
+          }
+          currentUsKey = inputSymbol;
+          localStorage.setItem('calc_current_us_key', currentUsKey);
+          renderStockSelector('us');
+        }
+
         if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
         const plans = [];
         document.querySelectorAll('.us-plan-row').forEach(row => {
