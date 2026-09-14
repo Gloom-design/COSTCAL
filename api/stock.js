@@ -1,114 +1,64 @@
+import yahooFinance from 'yahoo-finance2';
+
 export default async function handler(req, res) {
-  // 🛡️ 1. 設定 CORS 白名單網域
-  const allowedOrigins = [
-    'https://gloom-design.github.io',   // 你的 GitHub Pages 主要網域
-    'https://costcal-peach.vercel.app', // Vercel 專案網域
-    'http://localhost:3000',            // 本地開發測試
-    'http://127.0.0.1:5500'             // 本地 VS Code Live Server 測試
-  ];
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
-  const origin = req.headers.origin;
-
-  // 🛡️ 2. 處理瀏覽器的預檢請求 (Preflight OPTIONS)
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.status(200).end();
+    res.status(200).end();
+    return;
   }
 
-  // 🛡️ 3. 攔截非法來源 (阻擋未授權網域存取 API)
-  if (!origin || !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.8.4' });
-  }
-
-  // 🛡️ 4. 來源合法，允許通過
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-
-  // ==========================================
-  // 股票查詢業務邏輯
-  // ==========================================
-  let { symbol } = req.query;
+  const { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.8.4' });
+    return res.status(400).json({ error: '缺少股票代號參數 (symbol)' });
   }
 
-  let queryTerm = symbol.trim();
-  let finalSymbol = queryTerm.toUpperCase();
-  let resolvedName = queryTerm;
+  let querySymbol = symbol.trim().toUpperCase();
+  
+  // 自動判斷台股代號字尾
+  if (/^\d{4}$/.test(querySymbol)) {
+    querySymbol = `${querySymbol}.TW`;
+  }
 
   try {
-    if (/^\d{4}$/.test(queryTerm)) {
-      finalSymbol = queryTerm + '.TW';
-    } else if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
-      try {
-        const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { 
-          headers: { 'User-Agent': 'Mozilla/5.0' } 
-        });
-        if (listRes.ok) {
-          const stockList = await listRes.json();
-          const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
-          if (found && found.Code) {
-            finalSymbol = found.Code + '.TW';
-            resolvedName = found.Name.trim();
-          }
-        }
-      } catch (e) {}
-    } else {
-      try {
-        const searchRes = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, {
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          if (searchData && searchData.quotes && searchData.quotes.length > 0) {
-            finalSymbol = searchData.quotes[0].symbol;
-            resolvedName = searchData.quotes[0].shortname || searchData.quotes[0].longname || queryTerm;
-          }
-        }
-      } catch (e) {}
+    const quote = await yahooFinance.quote(querySymbol);
+    if (!quote || quote.regularMarketPrice === undefined) {
+      throw new Error(`無法取得代號 ${querySymbol} 的市場報價`);
     }
-
-    let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
-    let response = await fetch(url, {
-      headers: { 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'application/json'
-      }
-    });
-    
-    if (!response.ok && finalSymbol.endsWith('.TW')) {
-      finalSymbol = finalSymbol.replace('.TW', '.TWO');
-      url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
-      response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    }
-
-    if (!response.ok) {
-      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.8.4' });
-    }
-    
-    const data = await response.json();
-    const result = data.chart?.result?.[0];
-    
-    if (!result) {
-      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.8.4' });
-    }
-
-    const meta = result.meta;
-    const currentPrice = meta.regularMarketPrice || meta.chartPreviousClose || meta.previousClose;
-    const prevClose = meta.chartPreviousClose || meta.previousClose || currentPrice;
 
     return res.status(200).json({
-      symbol: meta.symbol || finalSymbol,
-      name: resolvedName,
-      currentPrice: Number(currentPrice),
-      prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v7.8.4'
+      symbol: quote.symbol,
+      name: quote.shortName || quote.longName || querySymbol,
+      currentPrice: quote.regularMarketPrice,
+      prevClose: quote.regularMarketPrice - (quote.regularMarketChange || 0),
+      changePercent: quote.regularMarketChangePercent || 0,
+      apiVersion: 'v7.8.13 (Stable Local-First)'
     });
-
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v7.8.4' });
+    // 若 .TW 失敗嘗試 .TWO (上櫃)
+    if (/^\d{4}\.TW$/.test(querySymbol)) {
+      try {
+        const altSymbol = querySymbol.replace('.TW', '.TWO');
+        const quoteAlt = await yahooFinance.quote(altSymbol);
+        if (quoteAlt && quoteAlt.regularMarketPrice !== undefined) {
+          return res.status(200).json({
+            symbol: quoteAlt.symbol,
+            name: quoteAlt.shortName || quoteAlt.longName || altSymbol,
+            currentPrice: quoteAlt.regularMarketPrice,
+            prevClose: quoteAlt.regularMarketPrice - (quoteAlt.regularMarketChange || 0),
+            changePercent: quoteAlt.regularMarketChangePercent || 0,
+            apiVersion: 'v7.8.13 (Stable Local-First)'
+          });
+        }
+      } catch (err2) {}
+    }
+
+    return res.status(500).json({ 
+      error: `查詢失敗: ${error.message}`,
+      apiVersion: 'v7.8.13 (Error)'
+    });
   }
 }
