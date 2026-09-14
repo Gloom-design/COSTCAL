@@ -16,7 +16,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.20</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.21</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -104,7 +104,7 @@
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2330)</label>
-            <input id="tw_symbolInput" type="text" placeholder="輸入代號" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+            <input id="tw_symbolInput" type="text" placeholder="例: 2330" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
         </div>
 
@@ -399,7 +399,6 @@
 
     window.addEventListener('beforeunload', () => { saveToLocalStorage(); });
 
-    // 💡 徹底清洗髒資料：修復任何把 Key 變成英文全名的錯誤
     function sanitizeStockData(data) {
       if (!data || !data.twStocks) return data;
       let newTwStocks = {};
@@ -407,14 +406,12 @@
 
       for (let oldKey in data.twStocks) {
         let stock = data.twStocks[oldKey];
-        // 如果舊 Key 包含空格或太長（代表被誤存成公司英文全名），試著從 stock.symbol 或原代號還原
         let cleanKey = oldKey;
         if (oldKey.includes(' ') || oldKey.length > 10) {
           cleanKey = (stock.symbol && !stock.symbol.includes(' ') && stock.symbol.length <= 10) ? stock.symbol : '2330';
         }
         cleanKey = cleanKey.replace('.TW', '').replace('.TWO', '');
         
-        // 確保 stock 裡面的 symbol 也是乾淨代號
         if (!stock.symbol || stock.symbol.includes(' ') || stock.symbol.length > 10) {
           stock.symbol = cleanKey;
         }
@@ -612,7 +609,6 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
-    // 💡 嚴格保護：代號輸入框（symbolInput）絕對只填入乾淨代號，名稱交給 nameInput
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -644,7 +640,6 @@
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
         if (result.currentPrice !== undefined) {
-          // 強制確保代號欄位絕對是乾淨代號
           if (result.symbol) {
             let cleanSym = String(result.symbol).trim().replace('.TW', '').replace('.TWO', '');
             if (!cleanSym.includes(' ') && cleanSym.length <= 10) {
@@ -654,7 +649,6 @@
             }
           }
 
-          // 正式名稱只放進名稱欄位
           if (result.name && (nameInput.value === '' || nameInput.value === queryVal || nameInput.value.length > 25)) {
             nameInput.value = result.name;
           }
@@ -669,7 +663,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.20';
+          latestApiVer = result.apiVersion || 'v7.8.21';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -685,7 +679,6 @@
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       if (!currentKey) { alert("目前沒有可更改名稱的項目！"); return; }
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       
       let newName = prompt(`請輸入「${currentKey}」的新名稱 (中文公司名稱)：`, targetStore[currentKey]?.name || currentKey);
       if (!newName || !newName.trim()) return;
@@ -900,7 +893,7 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = key; // 永遠強制顯示乾淨代號 Key
+        document.getElementById('tw_symbolInput').value = key;
 
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
@@ -921,7 +914,7 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_nameInput').value = us.name || key;
-        document.getElementById('us_symbolInput').value = key; // 永遠強制顯示乾淨代號 Key
+        document.getElementById('us_symbolInput').value = key;
 
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
