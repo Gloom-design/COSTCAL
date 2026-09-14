@@ -38,7 +38,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.28</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.29</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -438,13 +438,10 @@
 
       for (let oldKey in data.twStocks) {
         let stock = data.twStocks[oldKey];
-        let cleanKey = oldKey;
-        if (oldKey.includes(' ') || oldKey.length > 10) {
-          cleanKey = (stock.symbol && !stock.symbol.includes(' ') && stock.symbol.length <= 10) ? stock.symbol : '2330';
-        }
-        cleanKey = cleanKey.replace('.TW', '').replace('.TWO', '');
+        let cleanKey = oldKey.trim().toUpperCase().replace('.TW', '').replace('.TWO', '');
+        if (!cleanKey) cleanKey = oldKey;
         
-        if (!stock.symbol || stock.symbol.includes(' ') || stock.symbol.length > 10) {
+        if (!stock.symbol) {
           stock.symbol = cleanKey;
         }
         newTwStocks[cleanKey] = stock;
@@ -452,7 +449,7 @@
       }
 
       data.twStocks = newTwStocks;
-      data.twOrder = data.twOrder ? data.twOrder.map(k => (k.includes(' ') || k.length > 10 ? '2330' : k.replace('.TW', '').replace('.TWO', ''))).filter((v, i, a) => a.indexOf(v) === i) : newTwOrder;
+      data.twOrder = data.twOrder ? data.twOrder.map(k => k.trim().toUpperCase().replace('.TW', '').replace('.TWO', '')).filter((v, i, a) => a.indexOf(v) === i) : newTwOrder;
       if (data.twOrder.length === 0 && Object.keys(newTwStocks).length > 0) {
         data.twOrder = Object.keys(newTwStocks);
       }
@@ -702,7 +699,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.28';
+          latestApiVer = result.apiVersion || 'v7.8.29';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
