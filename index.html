@@ -17,7 +17,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.14</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.15</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -351,7 +351,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
-    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v3';
+    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v4';
     
     let sbClient = null; 
     let currentUser = null;
@@ -578,15 +578,19 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
+    // 💡 修復即時行情抓取與正確帶入數值
     window.fetchMarketPrice = async function(type) {
-      if (!navigator.onLine) {
-        document.getElementById('syncStatus').innerText = '離線模式 (僅查本地)';
+      const symbolInput = document.getElementById(`${type}_symbolInput`);
+      let queryVal = symbolInput.value.trim();
+      if (!queryVal) {
+        document.getElementById('syncStatus').innerText = '請先輸入代號';
         return;
       }
 
-      const symbolInput = document.getElementById(`${type}_symbolInput`);
-      let queryVal = symbolInput.value.trim();
-      if (!queryVal) return;
+      if (!navigator.onLine) {
+        document.getElementById('syncStatus').innerText = '離線模式 (無法聯網查詢)';
+        return;
+      }
 
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
@@ -598,23 +602,29 @@
         const result = await apiRes.json();
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
-        if (result.currentPrice) {
+        if (result.currentPrice !== undefined) {
           let cleanSymbol = result.symbol ? result.symbol.replace('.TW', '').replace('.TWO', '') : queryVal;
-          if (result.symbol) symbolInput.value = cleanSymbol;
+          symbolInput.value = cleanSymbol;
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
-          if (result.prevClose) document.getElementById(`${type}_prevClose`).value = result.prevClose;
+          if (result.prevClose !== undefined) {
+            document.getElementById(`${type}_prevClose`).value = result.prevClose;
+          }
 
-          if (type === 'tw') calculateTw(); else calculateUs();
+          if (type === 'tw') calculateTw(); 
+          else calculateUs();
+
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.14';
+          latestApiVer = result.apiVersion || 'v7.8.15';
           updateVersionDisplay();
-          document.getElementById('syncStatus').innerText = `已載入行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入 ${cleanSymbol} 行情 (${result.currentPrice})`;
+        } else {
+          throw new Error("查無價格");
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
-        document.getElementById('syncStatus').innerText = '行情查詢略過 (維持現狀)';
+        document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
       }
     };
 
@@ -892,7 +902,7 @@
           <span class="font-bold text-[11px] text-indigo-700">補倉批次</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -1423,7 +1433,6 @@
       const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
       switchTab(savedTab);
 
-      // 1. 優先載入本機快取以達成秒開
       const hasLocal = loadFromLocalStorage();
       initDefaultView();
 
@@ -1437,7 +1446,6 @@
         updateAuthUI();
         updateVersionDisplay();
 
-        // 2. 如果有網路且已登入，智慧檢查雲端並同步
         if (currentUser && navigator.onLine) {
           document.getElementById('syncStatus').innerText = '正在同步雲端資料...';
           const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
