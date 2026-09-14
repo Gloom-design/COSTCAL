@@ -17,7 +17,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.8</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.9</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -372,7 +372,6 @@
     let isInitializing = true;
     let latestApiVer = '';
 
-    // 💡 預設改為全空結構，不再寫死任何股票範例
     let cloudData = { 
       twStocks: {},
       twOrder: [],
@@ -613,7 +612,11 @@
 
         if (result.currentPrice) {
           if (result.symbol) symbolInput.value = result.symbol;
-          if (type === 'us' && result.name && nameInput) nameInput.value = result.name;
+          if (result.name && nameInput) {
+            nameInput.value = result.name;
+            // 💡 關鍵更新：若成功查到中文名稱，自動同步更新當前組合的 Key 與名稱
+            updateStockKeyAndName(type, result.name, result.symbol || queryVal);
+          }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
           if (result.prevClose) document.getElementById(`${type}_prevClose`).value = result.prevClose;
@@ -621,9 +624,9 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.8';
+          latestApiVer = result.apiVersion || 'v7.8.9';
           updateVersionDisplay();
-          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入 ${result.name || result.symbol || queryVal} 行情 (${result.currentPrice})`;
         } else {
           throw new Error("查無價格資料");
         }
@@ -635,6 +638,48 @@
       }
     };
 
+    // 💡 輔助函數：當即時行情回傳中文名稱時，自動替換選單與記錄的 Key
+    function updateStockKeyAndName(type, newName, symbol) {
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+
+      if (!currentKey || currentKey === newName) {
+        if (cloudData[storeKey][currentKey]) {
+          cloudData[storeKey][currentKey].name = newName;
+          cloudData[storeKey][currentKey].symbol = symbol;
+        }
+        return;
+      }
+
+      // 若原本的 Key 是代號（如 2330），用中文名稱（如 台積電）替換
+      saveUIToCurrentStock(type);
+      if (cloudData[storeKey][currentKey]) {
+        cloudData[storeKey][currentKey].name = newName;
+        cloudData[storeKey][currentKey].symbol = symbol;
+        cloudData[storeKey][newName] = cloudData[storeKey][currentKey];
+        delete cloudData[storeKey][currentKey];
+      }
+
+      if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(cloudData[storeKey]);
+      const idx = cloudData[orderKey].indexOf(currentKey);
+      if (idx !== -1) {
+        cloudData[orderKey][idx] = newName;
+      } else if (!cloudData[orderKey].includes(newName)) {
+        cloudData[orderKey].push(newName);
+      }
+
+      if (type === 'tw') {
+        currentTwKey = newName;
+        localStorage.setItem('calc_current_tw_key', newName);
+      } else {
+        currentUsKey = newName;
+        localStorage.setItem('calc_current_us_key', newName);
+      }
+
+      renderStockSelector(type);
+    }
+
     window.addTwPlanRow = function(p2 = "", n2 = "") {
       const container = document.getElementById('twPlansContainer');
       const index = container.children.length;
@@ -645,7 +690,7 @@
           <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
