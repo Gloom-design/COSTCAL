@@ -32,7 +32,7 @@ export default async function handler(req, res) {
   // ==========================================
   let { symbol } = req.query;
   if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.8.3' });
+    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.8.4' });
   }
 
   let queryTerm = symbol.trim();
@@ -86,14 +86,14 @@ export default async function handler(req, res) {
     }
 
     if (!response.ok) {
-      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.8.3' });
+      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.8.4' });
     }
     
     const data = await response.json();
     const result = data.chart?.result?.[0];
     
     if (!result) {
-      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.8.3' });
+      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.8.4' });
     }
 
     const meta = result.meta;
@@ -105,10 +105,10 @@ export default async function handler(req, res) {
       name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v7.8.3'
+      apiVersion: 'v7.8.4'
     });
 
   } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v7.8.3' });
+    return res.status(500).json({ error: error.message, apiVersion: 'v7.8.4' });
   }
 }
