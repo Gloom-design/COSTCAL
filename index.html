@@ -16,7 +16,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.18</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.19</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -399,13 +399,29 @@
 
     window.addEventListener('beforeunload', () => { saveToLocalStorage(); });
 
+    // 💡 淨化資料：確保代號欄位絕對不會存入包含空格或過長的英文公司名稱
+    function sanitizeStockData(data) {
+      if (!data || !data.twStocks) return data;
+      for (let key in data.twStocks) {
+        let stock = data.twStocks[key];
+        if (stock && stock.symbol) {
+          let cleanSym = String(stock.symbol).trim();
+          // 如果代號含有空格或長度超過 10 個字元（代表誤存成公司英文全名），則自動修正為乾淨代號或 key
+          if (cleanSym.includes(' ') || cleanSym.length > 10) {
+            stock.symbol = key.replace('.TW', '').replace('.TWO', '');
+          }
+        }
+      }
+      return data;
+    }
+
     function loadFromLocalStorage() {
       try {
         const localRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (localRaw) {
           const parsed = JSON.parse(localRaw);
           if (parsed && parsed.twStocks && parsed.usStocks) {
-            cloudData = parsed;
+            cloudData = sanitizeStockData(parsed);
             return true;
           }
         }
@@ -418,6 +434,7 @@
       try {
         saveUIToCurrentStock('tw');
         saveUIToCurrentStock('us');
+        cloudData = sanitizeStockData(cloudData);
         cloudData.updated_at = Date.now();
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
       } catch (err) { console.error("寫入本地快取失敗:", err); }
@@ -580,7 +597,7 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
-    // 💡 確保代號欄位永遠乾淨，只保留代號而不填入長串公司英文名稱
+    // 💡 嚴格確保代號欄位永遠乾淨：絕不填入長串公司英文名稱
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
@@ -612,14 +629,20 @@
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
         if (result.currentPrice !== undefined) {
-          // 強制讓代號欄位保持乾淨簡短的代號
+          // 強制清洗代號：絕不允許填入帶空格或過長的字串
           if (result.symbol) {
-            let cleanSymbol = result.symbol.replace('.TW', '').replace('.TWO', '');
+            let cleanSymbol = String(result.symbol).trim();
+            if (cleanSymbol.includes(' ') || cleanSymbol.length > 10) {
+              cleanSymbol = queryVal;
+            }
+            cleanSymbol = cleanSymbol.replace('.TW', '').replace('.TWO', '');
             symbolInput.value = cleanSymbol;
+          } else {
+            symbolInput.value = queryVal;
           }
 
-          // 如果回傳了正式名稱且原本名稱欄位空白或只是代號，則帶入名稱
-          if (result.name && (nameInput.value === '' || nameInput.value === queryVal)) {
+          // 名稱填入名稱欄位
+          if (result.name && (nameInput.value === '' || nameInput.value === queryVal || nameInput.value.length > 25)) {
             nameInput.value = result.name;
           }
 
@@ -633,7 +656,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.18';
+          latestApiVer = result.apiVersion || 'v7.8.19';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -829,9 +852,13 @@
         document.querySelectorAll('.tw-plan-row').forEach(row => {
           plans.push({ p2: row.querySelector('.tw-plan-p2').value, n2: row.querySelector('.tw-plan-n2').value });
         });
+
+        let rawSym = document.getElementById('tw_symbolInput').value.trim();
+        if (rawSym.includes(' ') || rawSym.length > 10) rawSym = currentTwKey.replace('.TW', '').replace('.TWO', '');
+
         cloudData.twStocks[currentTwKey] = {
           name: document.getElementById('tw_nameInput').value || currentTwKey,
-          symbol: document.getElementById('tw_symbolInput').value,
+          symbol: rawSym,
           discount: document.getElementById('twDiscount').value,
           minFee: document.getElementById('twMinFee').value,
           n1: document.getElementById('tw_n1').value,
@@ -850,9 +877,13 @@
         document.querySelectorAll('.us-plan-row').forEach(row => {
           plans.push({ p2: row.querySelector('.us-plan-p2').value, n2: row.querySelector('.us-plan-n2').value });
         });
+
+        let rawSym = document.getElementById('us_symbolInput').value.trim();
+        if (rawSym.includes(' ') || rawSym.length > 15) rawSym = currentUsKey;
+
         cloudData.usStocks[currentUsKey] = {
           name: document.getElementById('us_nameInput').value || currentUsKey,
-          symbol: document.getElementById('us_symbolInput').value,
+          symbol: rawSym,
           rate: document.getElementById('us_exchangeRate').value,
           fee: document.getElementById('us_fee').value,
           n1: document.getElementById('us_n1').value,
@@ -872,7 +903,11 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = tw.symbol || key;
+        
+        let cleanSym = tw.symbol || key;
+        if (cleanSym.includes(' ') || cleanSym.length > 10) cleanSym = key.replace('.TW', '').replace('.TWO', '');
+        document.getElementById('tw_symbolInput').value = cleanSym;
+
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
         document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : '';
@@ -892,7 +927,11 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_nameInput').value = us.name || key;
-        document.getElementById('us_symbolInput').value = us.symbol || key;
+
+        let cleanSym = us.symbol || key;
+        if (cleanSym.includes(' ') || cleanSym.length > 15) cleanSym = key;
+        document.getElementById('us_symbolInput').value = cleanSym;
+
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
@@ -1058,6 +1097,7 @@
       if (isInitializing) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
+      cloudData = sanitizeStockData(cloudData);
       saveToLocalStorage();
 
       if (!currentUser || !sbClient || !navigator.onLine) {
@@ -1086,6 +1126,7 @@
       if (!currentUser || !sbClient || isInitializing) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
+      cloudData = sanitizeStockData(cloudData);
       saveToLocalStorage();
       try {
         const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
@@ -1468,10 +1509,9 @@
           const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           
           if (!error && data && data.portfolio_data) {
-            mergeCloudAndLocalData(data.portfolio_data);
+            mergeCloudAndLocalData(sanitizeStockData(data.portfolio_data));
             document.getElementById('syncStatus').innerText = '已連線並同步雲端';
           } else {
-            // 💡 若使用者登入後雲端沒有同步過的數據，立即把目前的內容帶入並同步儲存
             document.getElementById('syncStatus').innerText = '雲端無舊資料，正在自動上傳目前內容...';
             saveUIToCurrentStock('tw');
             saveUIToCurrentStock('us');
@@ -1494,7 +1534,7 @@
             await recordLogin();
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (!error && data && data.portfolio_data) {
-              mergeCloudAndLocalData(data.portfolio_data);
+              mergeCloudAndLocalData(sanitizeStockData(data.portfolio_data));
               document.getElementById('syncStatus').innerText = '已連線並同步雲端';
             } else {
               saveUIToCurrentStock('tw');
@@ -1528,11 +1568,11 @@
       const cloudTime = cloudPayload.updated_at || 0;
 
       if (localTime >= cloudTime) {
-        cloudData = localPayload;
+        cloudData = sanitizeStockData(localPayload);
         parseCloudData(cloudData);
         if (currentUser && navigator.onLine) manualSaveDataSilent();
       } else {
-        cloudData = cloudPayload;
+        cloudData = sanitizeStockData(cloudPayload);
         for (let k in localPayload.twStocks) {
           if (!cloudData.twStocks[k]) cloudData.twStocks[k] = localPayload.twStocks[k];
           else if (localPayload.twStocks[k].name && localPayload.twStocks[k].name !== k) {
@@ -1565,7 +1605,7 @@
 
     function parseCloudData(fetchedData) {
       if (fetchedData && fetchedData.twStocks && fetchedData.usStocks) {
-        cloudData = fetchedData;
+        cloudData = sanitizeStockData(fetchedData);
       }
       if (!cloudData.twOrder) cloudData.twOrder = Object.keys(cloudData.twStocks || {});
       if (!cloudData.usOrder) cloudData.usOrder = Object.keys(cloudData.usStocks || {});
