@@ -1,114 +1,1649 @@
-export default async function handler(req, res) {
-  // 🛡️ 1. 設定 CORS 白名單網域
-  const allowedOrigins = [
-    'https://gloom-design.github.io',   // 你的 GitHub Pages 主要網域 (Origin 不包含路徑)
-    'https://costcal-peach.vercel.app', // Vercel 專案網域
-    'http://localhost:3000',            // 本地開發測試
-    'http://127.0.0.1:5500'             // 本地 VS Code Live Server 測試
-  ];
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>台美股多組合攤平與損益計算器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 📱 PWA 支援設定 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4f46e5">
+</head>
+<body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
+  <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
+    
+    <!-- 頂部標題與版本號 -->
+    <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-25 flex-wrap gap-3">
+      <div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.3</span>
+          <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
+          <!-- 💡 連線模式狀態標籤 -->
+          <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+            <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="connectionText">即時連線</span>
+          </span>
+        </div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">離線優先模式已啟動</div>
+      </div>
+      
+      <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+        <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
+          📱 手機介面
+        </button>
 
-  const origin = req.headers.origin;
+        <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
+          <span id="userInfo" class="text-[10px] sm:text-xs text-slate-500 max-w-[90px] sm:max-w-[140px] truncate hidden sm:inline">未登入</span>
+          <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
+          
+          <div id="loggedOptions" class="hidden flex items-center gap-1.5">
+            <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-semibold border border-rose-200 cursor-pointer shadow-sm">⚠️ 刪除帳號</button>
+            <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
+          </div>
+        </div>
+      </div>
+    </header>
 
-  // 🛡️ 2. 處理瀏覽器的預檢請求 (Preflight OPTIONS)
-  if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', origin && allowedOrigins.includes(origin) ? origin : allowedOrigins[0]);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    return res.status(200).end();
-  }
+    <!-- 👑 管理者專屬統計面板 -->
+    <div id="adminPanel" class="hidden bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-3 border border-slate-700">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
+        <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
+        <div class="flex items-center gap-2 flex-wrap">
+          <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零登入次數</button>
+          <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步次數</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-xs pt-1">
+        <div>總人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
+        <div>總登入次數: <strong id="adminTotalLogins" class="text-indigo-300 font-bold">0 次</strong></div>
+        <div>總同步次數: <strong id="adminTotalSyncs" class="text-emerald-300 font-bold">0 次</strong></div>
+      </div>
+    </div>
 
-  // 🛡️ 3. 攔截非法來源 (阻擋 Python 腳本或陌生網站盜用 API)
-  if (!origin || !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.4.1' });
-  }
+    <!-- ⚠️ 免責聲明提示條 -->
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3.5 py-2.5 rounded-xl text-[10px] sm:text-xs flex items-start gap-2 shadow-sm">
+      <span class="text-amber-600 font-bold text-sm leading-none mt-0.5">⚠️</span>
+      <div>
+        <strong class="font-bold">免責聲明：</strong>本工具提供之試算結果與即時行情僅供輔助參考，不負任何投資盈虧、法律責任或資料誤差之擔保。投資理財有賺有賠，請自行獨立評估風險。
+      </div>
+    </div>
 
-  // 🛡️ 4. 來源合法，允許通過
-  res.setHeader('Access-Control-Allow-Origin', origin);
-  res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    <!-- 分頁切換 -->
+    <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl">
+      <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer">🇹🇼 台股專用</button>
+      <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
+    </div>
 
-  // ==========================================
-  // 以下為原有的股票查詢業務邏輯
-  // ==========================================
-  let { symbol } = req.query;
-  if (!symbol) {
-    return res.status(400).json({ error: 'Missing symbol', apiVersion: 'v7.4.1' });
-  }
+    <!-- 🇹🇼 台股介面 -->
+    <div id="twView" class="space-y-4 sm:space-y-5">
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
+        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
+        </select>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button type="button" onclick="moveStockOrder('tw', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
+          <button type="button" onclick="moveStockOrder('tw', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
+          <button type="button" onclick="renameStock('tw')" class="bg-amber-50 text-amber-600 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
+          <button type="button" onclick="addStock('tw')" class="bg-indigo-50 text-indigo-600 px-2.5 py-2 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
+          <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
+        </div>
+      </div>
 
-  let queryTerm = symbol.trim();
-  let finalSymbol = queryTerm.toUpperCase();
-  let resolvedName = queryTerm;
+      <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
+        <div class="flex justify-between items-center border-b pb-3">
+          <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與代號查詢</span>
+          <div class="flex gap-3 text-[10px] sm:text-xs text-slate-600">
+            <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1" value="0.6"></span>
+            <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1" value="20"></span>
+          </div>
+        </div>
 
-  try {
-    if (/^\d{4}$/.test(queryTerm)) {
-      finalSymbol = queryTerm + '.TW';
-    } else if (/[\u4e00-\u9fa5]/.test(queryTerm)) {
-      try {
-        const listRes = await fetch('https://openapi.twse.com.tw/v1/exchangeReport/STOCK_DAY_ALL', { 
-          headers: { 'User-Agent': 'Mozilla/5.0' } 
-        });
-        if (listRes.ok) {
-          const stockList = await listRes.json();
-          const found = stockList.find(item => item.Name && item.Name.includes(queryTerm));
-          if (found && found.Code) {
-            finalSymbol = found.Code + '.TW';
-            resolvedName = found.Name.trim();
-          }
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股名稱</label>
+            <input id="tw_nameInput" type="text" placeholder="例: 台光電" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2383)</label>
+            <input id="tw_symbolInput" type="text" placeholder="輸入代號或名稱" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="button" onclick="fetchMarketPrice('tw')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
+            🔍 即時行情
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1)</label>
+            <input id="tw_n1" type="number" placeholder="1000" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有均價 (P1)</label>
+            <input id="tw_p1" type="number" step="0.01" placeholder="400" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100">
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">前日收盤價</label>
+            <input id="tw_prevClose" type="number" step="0.01" placeholder="前收價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-1">
+              <label class="text-[10px] sm:text-xs text-slate-600">目前市價</label>
+              <label class="text-[10px] text-slate-400 cursor-pointer"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label>
+            </div>
+            <input id="tw_currentPrice" type="number" step="0.01" placeholder="目前市價" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center">
+          <div>
+            <label class="text-[10px] sm:text-xs text-indigo-600 font-bold block mb-1">手動對齊 App 損益率%</label>
+            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -12.5" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-indigo-700 outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">未實現損益 (現有)</label>
+            <div id="tw_pnlDisplay" class="font-bold text-xs sm:text-base text-slate-400">-%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. 台股分批補倉規劃區 -->
+      <div id="twCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2.5">
+          <h2 class="font-bold text-indigo-600 text-xs sm:text-sm">2. 分批補倉規劃</h2>
+          <button type="button" onclick="addTwPlanRow()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-indigo-200 cursor-pointer shadow-sm">
+            ➕ 新增補倉筆數
+          </button>
+        </div>
+
+        <div id="twPlansContainer" class="space-y-3">
+          <!-- 動態生成台股補倉列 -->
+        </div>
+
+        <div class="pt-2 border-t border-slate-100">
+          <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 (目標均價 - 模式B)</label>
+          <input id="tw_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none bg-slate-50">
+        </div>
+      </div>
+
+      <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
+        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">台股試算結果</h2>
+        
+        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
+          <span class="text-slate-400">原始股數 /分批補倉股數 / 總股數：</span>
+          <span><strong id="tw_resN1" class="text-slate-300">0.0</strong> / <strong id="tw_resN2" class="text-white">0.0</strong> / <strong id="tw_resTotalN" class="text-cyan-300">0.0 股</strong></span>
+        </div>
+        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-800 pb-2.5">
+          <span class="text-slate-400">綜合調整後平均成本：</span>
+          <strong id="tw_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
+        </div>
+
+        <!-- 台股依批次獨立顯示明細容器 -->
+        <div id="twBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3">
+          <!-- 動態填入各批次明細 -->
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
+          <div>原成本總額: <span id="tw_resOriginalCost">$0</span></div>
+          <div>本次補倉總計: <span id="tw_resAddCost" class="text-white">$0</span></div>
+        </div>
+        <div class="pt-2.5">
+          <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
+            💾 即時儲存至雲端
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🇺🇸 美股介面 -->
+    <div id="usView" class="space-y-4 sm:space-y-5 hidden">
+      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
+        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
+        </select>
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <button type="button" onclick="moveStockOrder('us', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
+          <button type="button" onclick="moveStockOrder('us', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
+          <button type="button" onclick="renameStock('us')" class="bg-amber-50 text-amber-600 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
+          <button type="button" onclick="addStock('us')" class="bg-teal-50 text-teal-600 px-2.5 py-2 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
+          <button type="button" onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
+        </div>
+      </div>
+
+      <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
+        <div class="flex justify-between items-center border-b pb-3">
+          <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與代號查詢</span>
+          <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600 items-center">
+            <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5" value="32"></span>
+            <button type="button" onclick="fetchExchangeRate()" class="bg-teal-50 hover:bg-teal-100 text-teal-700 px-2 py-1 rounded-lg text-[10px] font-bold border border-teal-200 cursor-pointer">🔄 即時</button>
+            <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5" value="0"></span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股名稱</label>
+            <input id="us_nameInput" type="text" placeholder="例: 應用材料" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AMAT)</label>
+            <input id="us_symbolInput" type="text" placeholder="例: AMAT" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="button" onclick="fetchMarketPrice('us')" class="bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
+            🔍 即時行情
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5">
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有股數 (N1)</label>
+            <input id="us_n1" type="number" placeholder="100" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">現有均價 ($ P1)</label>
+            <input id="us_p1" type="number" step="0.01" placeholder="150" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100">
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">前日收盤價 ($)</label>
+            <input id="us_prevClose" type="number" step="0.01" placeholder="前收價" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">目前市價 ($)</label>
+            <input id="us_currentPrice" type="number" step="0.01" placeholder="目前市價" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm bg-slate-50 outline-none">
+          </div>
+        </div>
+
+        <div class="text-[10px] sm:text-xs text-slate-600 flex justify-between pt-2.5 border-t border-slate-100">
+          <span>未實現損益(現有): <strong id="us_pnlDisplay" class="text-slate-800">-%</strong></span>
+        </div>
+      </div>
+
+      <!-- 2. 分批補倉規劃區 -->
+      <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2.5">
+          <h2 class="font-bold text-teal-600 text-xs sm:text-sm">2. 分批補倉規劃</h2>
+          <button type="button" onclick="addUsPlanRow()" class="bg-teal-50 hover:bg-teal-100 text-teal-700 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
+            ➕ 新增補倉筆數
+          </button>
+        </div>
+
+        <div id="usPlansContainer" class="space-y-3">
+          <!-- 動態生成 -->
+        </div>
+
+        <div class="pt-2 border-t border-slate-100">
+          <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 ($ Target - 模式B)</label>
+          <input id="us_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm outline-none bg-slate-50">
+        </div>
+      </div>
+
+      <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
+        <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
+        
+        <!-- 整體總結 -->
+        <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
+          <span class="text-slate-400">原始股數 /分批補倉股數 / 總股數：</span>
+          <span><strong id="us_resN1" class="text-slate-300">0.0</strong> / <strong id="us_resN2" class="text-white">0.0</strong> / <strong id="us_resTotalN" class="text-teal-300">0.0 股</strong></span>
+        </div>
+        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
+          <span class="text-slate-400">綜合調整後平均成本：</span>
+          <strong id="us_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
+        </div>
+        <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-800 pb-2.5">
+          <span class="text-slate-400">綜合均價(台幣)：</span>
+          <strong id="us_resAvgPriceTWD" class="text-cyan-300 text-sm sm:text-base font-bold">NT$0.00</strong>
+        </div>
+
+        <!-- 依批次獨立顯示明細容器 -->
+        <div id="usBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3">
+          <!-- 動態填入各批次明細 -->
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
+          <div>原成本總額(美元): <span id="us_resOriginalCostUSD">$0</span></div>
+          <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="text-cyan-300">NT$0</span></div>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-300">
+          <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="text-white">$0</span></div>
+          <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="text-amber-300">NT$0</span></div>
+        </div>
+        <div class="pt-2.5">
+          <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
+            💾 即時儲存至雲端
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+    const API_BACKEND_URL = 'https://costcal-test.vercel.app/api/stock';
+    const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
+    
+    const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
+    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v1';
+    
+    let sbClient = null; 
+    let currentUser = null;
+    let saveTimeout = null;
+    let fetchController = null;
+    let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
+    let isInitializing = true; // 🔒 初始保護鎖
+    let latestApiVer = '';
+
+    let cloudData = { 
+      twStocks: { 
+        "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } 
+      },
+      twOrder: ["台光電"],
+      usStocks: {
+        "應用材料": { 
+          name: "應用材料", 
+          symbol: "AMAT", 
+          rate: "32", 
+          fee: "0",
+          plans: [{ p2: "", n2: "" }],
+          ptarget: ""
         }
-      } catch (e) {}
-    } else {
-      try {
-        const searchRes = await fetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(queryTerm)}&quotesCount=1&newsCount=0`, {
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        if (searchRes.ok) {
-          const searchData = await searchRes.json();
-          if (searchData && searchData.quotes && searchData.quotes.length > 0) {
-            finalSymbol = searchData.quotes[0].symbol;
-            resolvedName = searchData.quotes[0].shortname || searchData.quotes[0].longname || queryTerm;
-          }
-        }
-      } catch (e) {}
-    }
+      },
+      usOrder: ["應用材料"]
+    };
+    
+    let currentTwKey = localStorage.getItem('calc_current_tw_key') || "台光電";
+    let currentUsKey = localStorage.getItem('calc_current_us_key') || "應用材料";
 
-    let url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
-    let response = await fetch(url, {
-      headers: { 
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'application/json'
+    function updateConnectionStatusUI() {
+      const badge = document.getElementById('connectionBadge');
+      const dot = document.getElementById('connectionDot');
+      const text = document.getElementById('connectionText');
+      if (!badge || !dot || !text) return;
+
+      if (navigator.onLine) {
+        badge.className = "bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse";
+        text.innerText = "即時連線";
+      } else {
+        badge.className = "bg-amber-50 text-amber-700 border border-amber-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
+        dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
+        text.innerText = "離線模式";
       }
+    }
+
+    window.addEventListener('online', updateConnectionStatusUI);
+    window.addEventListener('offline', updateConnectionStatusUI);
+
+    function loadFromLocalStorage() {
+      try {
+        const localRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (localRaw) {
+          const parsed = JSON.parse(localRaw);
+          if (parsed && parsed.twStocks && parsed.usStocks) {
+            cloudData = parsed;
+            return true;
+          }
+        }
+      } catch (err) {
+        console.error("讀取本地快取失敗:", err);
+      }
+      return false;
+    }
+
+    function saveToLocalStorage() {
+      try {
+        saveUIToCurrentStock('tw');
+        saveUIToCurrentStock('us');
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
+      } catch (err) {
+        console.error("寫入本地快取失敗:", err);
+      }
+    }
+
+    window.loginWithGoogle = async function() {
+      if (!navigator.onLine) { alert("目前離線中，無法進行Google登入！"); return; }
+      if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
+      const { error } = await sbClient.auth.signInWithOAuth({ 
+        provider: 'google',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) alert("登入失敗: " + error.message);
+    };
+
+    window.logout = async function() {
+      if (!sbClient) return;
+      await sbClient.auth.signOut({ scope: 'local' });
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = window.location.origin + window.location.pathname;
+    };
+
+    window.deleteAccount = async function() {
+      if (!currentUser || !sbClient) { alert("請先登入！"); return; }
+      
+      const confirmText = prompt("⚠️ 警告：刪除帳號將會永久清除你在雲端儲存的所有投資組合與計算資料，且無法復原。\n\n如確定要刪除，請輸入「DELETE」：");
+      if (confirmText !== "DELETE") {
+        alert("已取消刪除帳號操作。");
+        return;
+      }
+
+      document.getElementById('syncStatus').innerText = '正在刪除帳號資料...';
+      
+      try {
+        const { error: dbError } = await sbClient.from('user_portfolios').delete().eq('user_id', currentUser.id);
+        if (dbError) throw dbError;
+
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+        alert("帳號資料已成功清除系統將自動登出。");
+        await logout();
+      } catch (err) {
+        alert("刪除帳號失敗: " + err.message);
+        document.getElementById('syncStatus').innerText = '刪除失敗';
+      }
+    };
+
+    async function loadAdminStats() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL || !navigator.onLine) return;
+      
+      try {
+        const { data, error } = await sbClient.rpc('get_admin_stats_v2');
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const stats = data[0];
+          document.getElementById('adminTotalUsers').innerText = `${stats.total_users || 0} 人`;
+          document.getElementById('adminTotalLogins').innerText = `${stats.total_logins || 0} 次`;
+          document.getElementById('adminTotalSyncs').innerText = `${stats.total_syncs || 0} 次`;
+          document.getElementById('adminPanel').classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error("載入管理者統計失敗:", err);
+      }
+    }
+
+    window.resetLoginCounts = async function() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎？")) return;
+
+      try {
+        const { error } = await sbClient.rpc('admin_reset_login_counts');
+        if (error) throw error;
+        alert("登入次數已全部歸零成功！");
+        loadAdminStats();
+      } catch (err) {
+        alert("歸零失敗: " + err.message);
+      }
+    };
+
+    window.resetSyncCounts = async function() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      if (!confirm("確定要將所有使用者的「同步次數」全部歸零嗎？")) return;
+
+      try {
+        const { error } = await sbClient.rpc('admin_reset_sync_counts');
+        if (error) throw error;
+        alert("同步次數已全部歸零成功！");
+        loadAdminStats();
+      } catch (err) {
+        alert("歸零失敗: " + err.message);
+      }
+    };
+
+    window.toggleUIMode = function() {
+      isCompactMode = !isCompactMode;
+      localStorage.setItem('calc_compact_mode', isCompactMode);
+      applyUIMode();
+    };
+
+    window.switchTab = function(type) {
+      localStorage.setItem('calc_current_tab', type);
+      const twView = document.getElementById('twView');
+      const usView = document.getElementById('usView');
+      const twBtn = document.getElementById('tabTwBtn');
+      const usBtn = document.getElementById('tabUsBtn');
+
+      if (type === 'tw') {
+        twView.classList.remove('hidden');
+        usView.classList.add('hidden');
+        twBtn.className = "py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer";
+        usBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
+      } else {
+        usView.classList.remove('hidden');
+        twView.classList.add('hidden');
+        usBtn.className = "py-2.5 font-semibold rounded-xl transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm cursor-pointer";
+        twBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
+      }
+    };
+
+    window.moveStockOrder = function(type, direction) {
+      clearTimeout(saveTimeout);
+      saveUIToCurrentStock(type);
+
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(cloudData[storeKey]);
+      }
+
+      const keys = cloudData[orderKey];
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      
+      const index = keys.indexOf(currentKey);
+      if (index === -1) return;
+      
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= keys.length) return;
+      
+      const temp = keys[index];
+      keys[index] = keys[targetIndex];
+      keys[targetIndex] = temp;
+      
+      renderStockSelector(type);
+      loadStockToUI(type, currentKey);
+      
+      saveToLocalStorage();
+      if (currentUser && sbClient && navigator.onLine) {
+        manualSaveDataSilent();
+      }
+    };
+
+    window.fetchExchangeRate = async function() {
+      if (!navigator.onLine) return;
+      document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
+      try {
+        const res = await fetch('https://open.er-api.com/v6/latest/USD');
+        if (res.ok) {
+          const data = await res.json();
+          const rate = data?.rates?.TWD;
+          if (rate) {
+            document.getElementById('us_exchangeRate').value = rate.toFixed(2);
+            calculateUs();
+            saveData();
+            document.getElementById('syncStatus').innerText = `已更新即時匯率: ${rate.toFixed(2)}`;
+            return;
+          }
+        }
+      } catch (err) {}
+      document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
+    };
+
+    function updateVersionDisplay() {
+      const badge = document.getElementById('backendVersionBadge');
+      if (!badge) return;
+      const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+      if (!latestApiVer) {
+        badge.innerText = '尚未查詢';
+        return;
+      }
+      
+      if (isAdmin) {
+        badge.innerText = `stock.js: ${latestApiVer}`;
+      } else {
+        const pureVersion = latestApiVer.split(' ')[0];
+        badge.innerText = pureVersion;
+      }
+    }
+
+    window.fetchMarketPrice = async function(type) {
+      if (!navigator.onLine) {
+        document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
+        latestApiVer = '離線';
+        updateVersionDisplay();
+        return;
+      }
+
+      const symbolInput = document.getElementById(`${type}_symbolInput`);
+      const nameInput = document.getElementById(`${type}_nameInput`);
+      let queryVal = symbolInput.value.trim();
+
+      if (!queryVal) {
+        document.getElementById('syncStatus').innerText = '請先輸入股票代號';
+        return;
+      }
+
+      if (fetchController) fetchController.abort();
+      fetchController = new AbortController();
+
+      document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
+      latestApiVer = '查詢中...';
+      updateVersionDisplay();
+
+      try {
+        const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
+        const result = await apiRes.json();
+
+        if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
+
+        if (result.currentPrice) {
+          if (result.symbol) {
+            symbolInput.value = result.symbol;
+          }
+          if (type === 'us' && result.name && nameInput) {
+            nameInput.value = result.name;
+          }
+
+          document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
+          if (result.prevClose) document.getElementById(`${type}_prevClose`).value = result.prevClose;
+
+          if (type === 'tw') calculateTw(); else calculateUs();
+          saveData();
+
+          latestApiVer = result.apiVersion || 'v7.8.3';
+          updateVersionDisplay();
+
+          document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
+        } else {
+          throw new Error("查無價格資料");
+        }
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
+        latestApiVer = '查詢失敗';
+        updateVersionDisplay();
+      }
+    };
+
+    window.addTwPlanRow = function(p2 = "", n2 = "") {
+      const container = document.getElementById('twPlansContainer');
+      const index = container.children.length;
+
+      const div = document.createElement('div');
+      div.className = "tw-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
+
+      div.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <div class="flex justify-between mb-0.5">
+              <label class="text-[10px] text-slate-600">預計買入 (P2)</label>
+              <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] text-indigo-600 underline cursor-pointer">帶入市價</button>
+            </div>
+            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
+            <input type="number" placeholder="加碼股數" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+        </div>
+      `;
+
+      container.appendChild(div);
+      bindTwPlanEvents(div);
+      calculateTw();
+      saveData();
+    }
+
+    window.removeTwPlanRow = function(btn) {
+      const container = document.getElementById('twPlansContainer');
+      if (container.children.length <= 1) {
+        alert("至少需保留一筆補倉規劃！");
+        return;
+      }
+      btn.closest('.tw-plan-row').remove();
+      relabelTwPlans();
+      calculateTw();
+      saveData();
+    }
+
+    window.copyTwPlanRow = function(btn) {
+      const row = btn.closest('.tw-plan-row');
+      const p2 = row.querySelector('.tw-plan-p2').value;
+      const n2 = row.querySelector('.tw-plan-n2').value;
+      addTwPlanRow(p2, n2);
+    }
+
+    window.copyCurrentPriceToTwRow = function(btn) {
+      const cp = document.getElementById('tw_currentPrice').value;
+      if (cp) {
+        const row = btn.closest('.tw-plan-row');
+        row.querySelector('.tw-plan-p2').value = cp;
+        calculateTw();
+        saveData();
+      }
+    }
+
+    function relabelTwPlans() {
+      const rows = document.querySelectorAll('.tw-plan-row');
+      rows.forEach((row, idx) => {
+        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
+      });
+    }
+
+    function bindTwPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => {
+        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
+      });
+    }
+
+    window.addUsPlanRow = function(p2 = "", n2 = "") {
+      const container = document.getElementById('usPlansContainer');
+      const index = container.children.length;
+
+      const div = document.createElement('div');
+      div.className = "us-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
+
+      div.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-[11px] text-teal-700">補倉批次 #${index + 1}</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="copyUsPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
+            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <div class="flex justify-between mb-0.5">
+              <label class="text-[10px] text-slate-600">預計買入 ($ P2)</label>
+              <button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] text-teal-600 underline cursor-pointer">帶入市價</button>
+            </div>
+            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
+            <input type="number" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+        </div>
+      `;
+
+      container.appendChild(div);
+      bindUsPlanEvents(div);
+      calculateUs();
+      saveData();
+    }
+
+    window.removeUsPlanRow = function(btn) {
+      const container = document.getElementById('usPlansContainer');
+      if (container.children.length <= 1) {
+        alert("至少需保留一筆補倉規劃！");
+        return;
+      }
+      btn.closest('.us-plan-row').remove();
+      relabelUsPlans();
+      calculateUs();
+      saveData();
+    }
+
+    window.copyUsPlanRow = function(btn) {
+      const row = btn.closest('.us-plan-row');
+      const p2 = row.querySelector('.us-plan-p2').value;
+      const n2 = row.querySelector('.us-plan-n2').value;
+      addUsPlanRow(p2, n2);
+    }
+
+    window.copyCurrentPriceToRow = function(btn) {
+      const cp = document.getElementById('us_currentPrice').value;
+      if (cp) {
+        const row = btn.closest('.us-plan-row');
+        row.querySelector('.us-plan-p2').value = cp;
+        calculateUs();
+        saveData();
+      }
+    }
+
+    function relabelUsPlans() {
+      const rows = document.querySelectorAll('.us-plan-row');
+      rows.forEach((row, idx) => {
+        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
+      });
+    }
+
+    function bindUsPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => {
+        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
+      });
+    }
+
+    window.switchStock = async function(type, key) {
+      if (type === 'tw') {
+        currentTwKey = key;
+        localStorage.setItem('calc_current_tw_key', key);
+      } else {
+        currentUsKey = key;
+        localStorage.setItem('calc_current_us_key', key);
+      }
+
+      loadStockToUI(type, key);
+      await fetchMarketPrice(type);
+    };
+
+    window.renameStock = async function(type) {
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      
+      let newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
+      if (!newName || !newName.trim()) return;
+      
+      let trimmedName = newName.trim();
+      
+      while (trimmedName !== currentKey && targetStore[trimmedName]) {
+        newName = prompt(`名稱「${trimmedName}」已存在！請輸入其他新名稱：`, currentKey);
+        if (!newName || !newName.trim()) return;
+        trimmedName = newName.trim();
+      }
+
+      if (trimmedName === currentKey) return;
+      
+      saveUIToCurrentStock(type);
+      
+      targetStore[trimmedName] = targetStore[currentKey];
+      targetStore[trimmedName].name = trimmedName;
+      delete targetStore[currentKey];
+
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(targetStore);
+      }
+      const idx = cloudData[orderKey].indexOf(currentKey);
+      if (idx !== -1) {
+        cloudData[orderKey][idx] = trimmedName;
+      }
+      
+      if (type === 'tw') {
+        currentTwKey = trimmedName;
+        localStorage.setItem('calc_current_tw_key', trimmedName);
+        document.getElementById('tw_nameInput').value = trimmedName;
+      } else {
+        currentUsKey = trimmedName;
+        localStorage.setItem('calc_current_us_key', trimmedName);
+        document.getElementById('us_nameInput').value = trimmedName;
+      }
+      
+      renderStockSelector(type);
+      loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
+      saveData();
+      await fetchMarketPrice(type);
+    };
+
+    window.addStock = async function(type) {
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      
+      let inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 1210 或 大成):" : "請輸入美股代號 (例如: AMAT):");
+      if (!inputVal || !inputVal.trim()) return;
+
+      let trimmed = inputVal.trim();
+
+      while (targetStore[trimmed]) {
+        inputVal = prompt(`名稱「${trimmed}」已存在！請重新輸入其他代號或名稱：`, "");
+        if (!inputVal || !inputVal.trim()) return;
+        trimmed = inputVal.trim();
+      }
+
+      saveUIToCurrentStock(type);
+
+      if (type === 'tw') {
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed, discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" };
+        currentTwKey = trimmed;
+        localStorage.setItem('calc_current_tw_key', trimmed);
+      } else {
+        targetStore[trimmed] = { name: trimmed, symbol: trimmed.toUpperCase(), rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "" };
+        currentUsKey = trimmed;
+        localStorage.setItem('calc_current_us_key', trimmed);
+      }
+
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(targetStore);
+      } else {
+        cloudData[orderKey].push(trimmed);
+      }
+
+      renderStockSelector(type);
+      loadStockToUI(type, trimmed);
+      saveData();
+
+      document.getElementById(`${type}_symbolInput`).value = trimmed;
+      await fetchMarketPrice(type);
+    };
+
+    window.deleteStock = function(type) {
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      
+      if (confirm(`確定刪除「${currentKey}」嗎？`)) {
+        delete targetStore[currentKey];
+        
+        if (cloudData[orderKey]) {
+          cloudData[orderKey] = cloudData[orderKey].filter(k => k !== currentKey);
+        }
+        
+        const remainingKeys = cloudData[orderKey] && cloudData[orderKey].length > 0 ? cloudData[orderKey] : Object.keys(targetStore);
+        
+        if (remainingKeys.length === 0) {
+          if (type === 'tw') {
+            cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            cloudData.twOrder = ["台光電"];
+            currentTwKey = "台光電";
+            localStorage.setItem('calc_current_tw_key', currentTwKey);
+          } else {
+            cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+            cloudData.usOrder = ["應用材料"];
+            currentUsKey = "應用材料";
+            localStorage.setItem('calc_current_us_key', currentUsKey);
+          }
+        } else {
+          const nextKey = remainingKeys[0];
+          if (type === 'tw') {
+            currentTwKey = nextKey;
+            localStorage.setItem('calc_current_tw_key', nextKey);
+          } else {
+            currentUsKey = nextKey;
+            localStorage.setItem('calc_current_us_key', nextKey);
+          }
+        }
+        
+        renderStockSelector(type);
+        loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
+        saveData();
+      }
+    };
+
+    window.manualSaveData = async function() {
+      saveUIToCurrentStock('tw');
+      saveUIToCurrentStock('us');
+      saveToLocalStorage();
+      if (!currentUser || !navigator.onLine) { 
+        alert("目前處於離線模式，資料已成功儲存於本地裝置！"); 
+        return; 
+      }
+      await manualSaveDataSilent();
+      alert("儲存成功並已同步至雲端！");
+    };
+
+    window.copyPrice = function(type) {
+      const cp = document.getElementById(`${type}_currentPrice`).value;
+      if (cp) { 
+        if (type === 'tw') {
+          const firstRow = document.querySelector('.tw-plan-row');
+          if (firstRow) {
+            firstRow.querySelector('.tw-plan-p2').value = cp;
+            calculateTw();
+            saveData();
+          }
+        }
+      }
+    };
+
+    function applyUIMode() {
+      const btn = document.getElementById('modeToggleBtn');
+      const body = document.getElementById('bodyBg');
+      const container = document.getElementById('mainContainer');
+      const cards = document.querySelectorAll('.card-box');
+
+      if (isCompactMode) {
+        btn.innerText = "📱 手機介面";
+        body.className = "bg-slate-100 text-slate-800 p-1.5 min-h-screen transition-all";
+        container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
+        cards.forEach(card => card.className = "card-box bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2");
+      } else {
+        btn.innerText = "💻 電腦介面";
+        body.className = "bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all";
+        container.className = "max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm";
+        cards.forEach(card => card.className = "card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5");
+      }
+    }
+
+    function renderStockSelector(type) {
+      const selector = document.getElementById(`${type}StockSelector`);
+      if (!selector) return;
+      selector.innerHTML = '';
+      
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      const store = cloudData[storeKey];
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+
+      if (!cloudData[orderKey]) {
+        cloudData[orderKey] = Object.keys(store || {});
+      }
+
+      cloudData[orderKey].forEach(key => {
+        if (store[key]) {
+          const opt = document.createElement('option');
+          opt.value = key; 
+          opt.innerText = key;
+          if (key === currentKey) opt.selected = true;
+          selector.appendChild(opt);
+        }
+      });
+    }
+
+    function saveUIToCurrentStock(type) {
+      if (type === 'tw') {
+        if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
+        
+        const plans = [];
+        document.querySelectorAll('.tw-plan-row').forEach(row => {
+          plans.push({
+            p2: row.querySelector('.tw-plan-p2').value,
+            n2: row.querySelector('.tw-plan-n2').value
+          });
+        });
+
+        cloudData.twStocks[currentTwKey] = {
+          name: document.getElementById('tw_nameInput').value,
+          symbol: document.getElementById('tw_symbolInput').value,
+          discount: document.getElementById('twDiscount').value,
+          minFee: document.getElementById('twMinFee').value,
+          n1: document.getElementById('tw_n1').value,
+          p1: document.getElementById('tw_p1').value,
+          manualPnlPct: document.getElementById('tw_manualPnlPct').value,
+          prevClose: document.getElementById('tw_prevClose').value,
+          currentPrice: document.getElementById('tw_currentPrice').value,
+          plans: plans,
+          ptarget: document.getElementById('tw_ptarget').value
+        };
+      } else {
+        if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
+        
+        const plans = [];
+        document.querySelectorAll('.us-plan-row').forEach(row => {
+          plans.push({
+            p2: row.querySelector('.us-plan-p2').value,
+            n2: row.querySelector('.us-plan-n2').value
+          });
+        });
+
+        cloudData.usStocks[currentUsKey] = {
+          name: document.getElementById('us_nameInput').value,
+          symbol: document.getElementById('us_symbolInput').value,
+          rate: document.getElementById('us_exchangeRate').value,
+          fee: document.getElementById('us_fee').value,
+          n1: document.getElementById('us_n1').value,
+          p1: document.getElementById('us_p1').value,
+          prevClose: document.getElementById('us_prevClose').value,
+          currentPrice: document.getElementById('us_currentPrice').value,
+          plans: plans,
+          ptarget: document.getElementById('us_ptarget').value
+        };
+      }
+    }
+
+    function loadStockToUI(type, key) {
+      if (type === 'tw') {
+        currentTwKey = key;
+        const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
+        document.getElementById('tw_nameInput').value = tw.name || key;
+        document.getElementById('tw_symbolInput').value = tw.symbol || '';
+
+        document.getElementById('twDiscount').value = tw.discount || '0.6';
+        document.getElementById('twMinFee').value = tw.minFee || '20';
+        document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : '';
+        document.getElementById('tw_p1').value = tw.p1 || '';
+        document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
+        document.getElementById('tw_prevClose').value = tw.prevClose || '';
+        document.getElementById('tw_currentPrice').value = tw.currentPrice || '';
+        document.getElementById('tw_ptarget').value = tw.ptarget || '';
+
+        const container = document.getElementById('twPlansContainer');
+        container.innerHTML = '';
+        const plans = (tw.plans && tw.plans.length > 0) ? tw.plans : [{ p2: "", n2: "" }];
+        plans.forEach(plan => {
+          addTwPlanRow(plan.p2 || "", plan.n2 || "");
+        });
+
+        calculateTw();
+      } else {
+        currentUsKey = key;
+        const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
+        document.getElementById('us_nameInput').value = us.name || key;
+        document.getElementById('us_symbolInput').value = us.symbol || '';
+        document.getElementById('us_exchangeRate').value = us.rate || '32';
+        document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
+        document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
+        document.getElementById('us_p1').value = us.p1 || '';
+        document.getElementById('us_prevClose').value = us.prevClose || '';
+        document.getElementById('us_currentPrice').value = us.currentPrice || '';
+        document.getElementById('us_ptarget').value = us.ptarget || '';
+
+        const container = document.getElementById('usPlansContainer');
+        container.innerHTML = '';
+        const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "" }];
+        plans.forEach(plan => {
+          addUsPlanRow(plan.p2 || "", plan.n2 || "");
+        });
+
+        calculateUs();
+      }
+    }
+
+    // 💡 修正：使用 upsert 與 isInitializing 保護鎖
+    function saveData() {
+      if (isInitializing) return;
+      saveUIToCurrentStock('tw');
+      saveUIToCurrentStock('us');
+      saveToLocalStorage();
+
+      if (!currentUser || !sbClient || !navigator.onLine) {
+        document.getElementById('syncStatus').innerText = '已存至本地 (離線模式)';
+        return;
+      }
+
+      document.getElementById('syncStatus').innerText = '雲端同步中...';
+      clearTimeout(saveTimeout);
+      saveTimeout = setTimeout(async () => {
+        try {
+          const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
+          let newSyncCount = (existing?.sync_count || 0) + 1;
+
+          const { error } = await sbClient.from('user_portfolios').upsert({
+            user_id: currentUser.id,
+            portfolio_data: cloudData,
+            sync_count: newSyncCount,
+            last_active: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' });
+
+          document.getElementById('syncStatus').innerText = error ? '同步失敗 (資料已保存在本地)' : '已同步雲端';
+          if (!error) loadAdminStats();
+        } catch (err) {
+          document.getElementById('syncStatus').innerText = '同步失敗 (離線模式)';
+        }
+      }, 500);
+    }
+
+    async function manualSaveDataSilent() {
+      if (!currentUser || !sbClient) return;
+      saveUIToCurrentStock('tw');
+      saveUIToCurrentStock('us');
+      saveToLocalStorage();
+
+      const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
+      let newSyncCount = (existing?.sync_count || 0) + 1;
+
+      await sbClient.from('user_portfolios').upsert({
+        user_id: currentUser.id,
+        portfolio_data: cloudData,
+        sync_count: newSyncCount,
+        last_active: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+
+      loadAdminStats();
+    }
+
+    async function recordLogin() {
+      if (!currentUser || !sbClient || !navigator.onLine) return;
+      try {
+        const { data: existing } = await sbClient.from('user_portfolios').select('login_count').eq('user_id', currentUser.id).maybeSingle();
+        let newLoginCount = (existing?.login_count || 0) + 1;
+
+        await sbClient.from('user_portfolios').upsert({
+          user_id: currentUser.id,
+          portfolio_data: cloudData,
+          login_count: newLoginCount,
+          last_active: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+
+        loadAdminStats();
+      } catch (err) {
+        console.error("記錄登入次數失敗:", err);
+      }
+    }
+
+    function formatMoney(num) { return isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('en-US'); }
+    function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
+
+    function calculateTw() {
+      const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
+      const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
+      const manualPnlPct = parseFloat(document.getElementById('tw_manualPnlPct').value);
+      let currentPrice = parseFloat(document.getElementById('tw_currentPrice').value) || 0;
+      const prevClose = parseFloat(document.getElementById('tw_prevClose').value) || 0;
+      const sameAsPrev = document.getElementById('tw_sameAsPrev').checked;
+      const ptargetIn = parseFloat(document.getElementById('tw_ptarget').value);
+      const discount = parseFloat(document.getElementById('twDiscount').value) || 0.6;
+      const minFee = parseFloat(document.getElementById('twMinFee').value) || 20;
+
+      const cpEl = document.getElementById('tw_currentPrice');
+      if (sameAsPrev && prevClose > 0) { cpEl.value = prevClose; cpEl.disabled = true; currentPrice = prevClose; }
+      else { cpEl.disabled = false; }
+
+      const totalOriginalCost = n1 * p1;
+      const displayPnlPct = !isNaN(manualPnlPct) ? manualPnlPct : (p1 > 0 && currentPrice > 0 ? ((currentPrice - p1) / p1) * 100 : null);
+      
+      const pnlEl = document.getElementById('tw_pnlDisplay');
+      pnlEl.className = `font-bold text-xs sm:text-base ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+      pnlEl.innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
+
+      const batchContainer = document.getElementById('twBatchResultsContainer');
+      batchContainer.innerHTML = '';
+
+      if (n1 <= 0 || p1 <= 0) {
+        document.getElementById('tw_resN1').innerText = '0.0';
+        document.getElementById('tw_resN2').innerText = '0.0';
+        document.getElementById('tw_resTotalN').innerText = '0.0 股';
+        document.getElementById('tw_resAvgPrice').innerText = '$0.00';
+        document.getElementById('tw_resOriginalCost').innerText = '$0';
+        document.getElementById('tw_resAddCost').innerText = '$0';
+        return;
+      }
+
+      let totalAddShares = 0;
+      let totalAddCost = 0;
+      let finalAvgPrice = p1;
+
+      if (!isNaN(ptargetIn) && ptargetIn > 0) {
+        const firstRow = document.querySelector('.tw-plan-row');
+        const p2 = firstRow ? (parseFloat(firstRow.querySelector('.tw-plan-p2').value) || 0) : 0;
+
+        if (p2 > 0 && ptargetIn > p2) {
+          let roughN2 = (n1 * (p1 - ptargetIn)) / (ptargetIn - p2);
+          if (roughN2 > 0) {
+            totalAddShares = ((n1 * (p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / (ptargetIn - p2);
+            const addFee = calcTwBuyFee(p2, totalAddShares, discount, minFee);
+            totalAddCost = (totalAddShares * p2) + addFee;
+            finalAvgPrice = ptargetIn;
+
+            const totalCost = totalOriginalCost + totalAddCost;
+            const totalShares = n1 + totalAddShares;
+            const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+
+            document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
+            document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
+            document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+            document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
+            document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+
+            const batchDiv = document.createElement('div');
+            batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+            batchDiv.innerHTML = `
+              <div class="font-bold text-indigo-300 border-b border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
+              <div class="grid grid-cols-2 gap-1 text-slate-300">
+                <div>1. 本次所需補倉: <span class="text-white">$${formatMoney(totalAddCost)}</span></div>
+                <div>2. 目前個股總資金: <span class="text-white">$${formatMoney(totalCost)}</span></div>
+                <div>3. 本次所需補倉股數: <span class="text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
+                <div>4. 目前個股總股數: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
+                <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
+                <div class="col-span-2">6. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              </div>
+            `;
+            batchContainer.appendChild(batchDiv);
+            return;
+          }
+        }
+      }
+
+      let cumulativeShares = n1;
+      let cumulativeCost = totalOriginalCost;
+
+      const planRows = document.querySelectorAll('.tw-plan-row');
+      planRows.forEach((row, idx) => {
+        const p2 = parseFloat(row.querySelector('.tw-plan-p2').value) || 0;
+        const n2 = parseFloat(row.querySelector('.tw-plan-n2').value) || 0;
+
+        if (p2 > 0 && n2 > 0) {
+          totalAddShares += n2;
+          const batchFee = calcTwBuyFee(p2, n2, discount, minFee);
+          const batchCost = (p2 * n2) + batchFee;
+          totalAddCost += batchCost;
+
+          cumulativeShares += n2;
+          cumulativeCost += batchCost;
+          const batchAvgPrice = cumulativeCost / cumulativeShares;
+          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          batchDiv.innerHTML = `
+            <div class="font-bold text-indigo-300 border-b border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-300">
+              <div>1. 本次所需補倉: <span class="text-white">$${formatMoney(batchCost)}</span></div>
+              <div>2. 目前個股總資金: <span class="text-white">$${formatMoney(cumulativeCost)}</span></div>
+              <div>3. 本次所需補倉股數: <span class="text-cyan-300">${n2.toFixed(1)} 股</span></div>
+              <div>4. 目前個股總股數: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
+              <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(batchAvgPrice)}</span></div>
+              <div class="col-span-2">6. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>
+          `;
+          batchContainer.appendChild(batchDiv);
+        }
+      });
+
+      const totalShares = n1 + totalAddShares;
+      const totalCost = totalOriginalCost + totalAddCost;
+      finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
+
+      document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
+      document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
+      document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
+      document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+    }
+
+    function calculateUs() {
+      const n1 = parseFloat(document.getElementById('us_n1').value) || 0;
+      const p1 = parseFloat(document.getElementById('us_p1').value) || 0;
+      const fee = parseFloat(document.getElementById('us_fee').value) || 0;
+      const exchangeRate = parseFloat(document.getElementById('us_exchangeRate').value) || 32;
+      const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
+      const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
+
+      const pnlPct = (p1 > 0 && currentPrice > 0) ? ((currentPrice - p1) / p1) * 100 : null;
+      const pnlEl = document.getElementById('us_pnlDisplay');
+      if (pnlEl) {
+        pnlEl.className = `font-bold text-xs sm:text-base ${pnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        pnlEl.innerText = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
+      }
+
+      const batchContainer = document.getElementById('usBatchResultsContainer');
+      batchContainer.innerHTML = '';
+
+      if (n1 <= 0 || p1 <= 0) {
+        document.getElementById('us_resN1').innerText = '0.0';
+        document.getElementById('us_resN2').innerText = '0.0';
+        document.getElementById('us_resTotalN').innerText = '0.0 股';
+        document.getElementById('us_resAvgPrice').innerText = '$0.00';
+        document.getElementById('us_resAvgPriceTWD').innerText = 'NT$0.00';
+        document.getElementById('us_resOriginalCostUSD').innerText = '$0';
+        document.getElementById('us_resOriginalCostTWD').innerText = 'NT$0';
+        document.getElementById('us_resAddCostUSD').innerText = '$0';
+        document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
+        return;
+      }
+
+      const origUSD = n1 * p1;
+      let totalAddShares = 0;
+      let totalAddCostUSD = 0;
+      let finalAvgPrice = p1;
+
+      if (!isNaN(ptargetIn) && ptargetIn > 0) {
+        const firstRow = document.querySelector('.us-plan-row');
+        const p2 = firstRow ? (parseFloat(firstRow.querySelector('.us-plan-p2').value) || 0) : 0;
+
+        if (p2 > 0 && ptargetIn > p2) {
+          totalAddShares = ((n1 * (p1 - ptargetIn)) + fee) / (ptargetIn - p2);
+          if (totalAddShares > 0) {
+            totalAddCostUSD = totalAddShares * p2;
+          }
+          finalAvgPrice = ptargetIn;
+          const totalCostUSD = origUSD + totalAddCostUSD + fee;
+          const totalShares = n1 + totalAddShares;
+
+          document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
+          document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
+          document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+          document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
+          document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+          document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
+          document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
+          document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+
+          const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          batchDiv.innerHTML = `
+            <div class="font-bold text-teal-300 border-b border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-300">
+              <div>1. 本次所需補倉(美元): <span class="text-white">$${formatMoney(totalAddCostUSD)}</span></div>
+              <div>2. 本次所需補倉(台幣): <span class="text-amber-300">NT$${formatMoney(totalAddCostUSD * exchangeRate)}</span></div>
+              <div>3. 目前個股總資金(美元): <span class="text-white">$${formatMoney(totalCostUSD)}</span></div>
+              <div>4. 目前個股總資金(台幣): <span class="text-amber-300">NT$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
+              <div>5. 本次所需補倉股數: <span class="text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
+              <div>6. 目前個股總股數: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
+              <div>7. 調整後平均成本(美元)&(台幣): <span class="text-yellow-300">$${formatPrice(finalAvgPrice)} (NT$${formatPrice(finalAvgPrice * exchangeRate)})</span></div>
+              <div>8. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>
+          `;
+          batchContainer.appendChild(batchDiv);
+          return;
+        }
+      }
+
+      let cumulativeShares = n1;
+      let cumulativeCostUSD = origUSD;
+
+      const planRows = document.querySelectorAll('.us-plan-row');
+      planRows.forEach((row, idx) => {
+        const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
+        const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
+
+        if (p2 > 0 && n2 > 0) {
+          totalAddShares += n2;
+          const batchCostUSD = p2 * n2;
+          totalAddCostUSD += batchCostUSD;
+
+          cumulativeShares += n2;
+          cumulativeCostUSD += batchCostUSD;
+          const batchAvgPrice = cumulativeCostUSD / cumulativeShares;
+          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          batchDiv.innerHTML = `
+            <div class="font-bold text-teal-300 border-b border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-300">
+              <div>1. 本次所需補倉(美元): <span class="text-white">$${formatMoney(batchCostUSD)}</span></div>
+              <div>2. 本次所需補倉(台幣): <span class="text-amber-300">NT$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
+              <div>3. 目前個股總資金(美元): <span class="text-white">$${formatMoney(cumulativeCostUSD)}</span></div>
+              <div>4. 目前個股總資金(台幣): <span class="text-amber-300">NT$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
+              <div>5. 本次所需補倉股數: <span class="text-cyan-300">${n2.toFixed(1)} 股</span></div>
+              <div>6. 目前個股總股數: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
+              <div>7. 調整後平均成本(美元)&(台幣): <span class="text-yellow-300">$${formatPrice(batchAvgPrice)} (NT$${formatPrice(batchAvgPrice * exchangeRate)})</span></div>
+              <div>8. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>
+          `;
+          batchContainer.appendChild(batchDiv);
+        }
+      });
+
+      const totalCostUSD = origUSD + totalAddCostUSD + fee;
+      const totalShares = n1 + totalAddShares;
+      finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
+
+      document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
+      document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
+      document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
+      document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+      document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
+      document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
+      document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+    }
+
+    function batchPnlPropColor(pct) {
+      if (pct === null) return 'text-slate-400';
+      return pct >= 0 ? 'text-emerald-400' : 'text-rose-400';
+    }
+
+    document.querySelectorAll('.save-trigger').forEach(el => {
+      el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
-    
-    if (!response.ok && finalSymbol.endsWith('.TW')) {
-      finalSymbol = finalSymbol.replace('.TW', '.TWO');
-      url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(finalSymbol)}?interval=1d&range=1d`;
-      response = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+
+    const twSamePrev = document.getElementById('tw_sameAsPrev');
+    if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
+
+    async function init() {
+      applyUIMode();
+      updateConnectionStatusUI();
+
+      loadFromLocalStorage();
+      initDefaultView();
+
+      const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
+      switchTab(savedTab);
+
+      try {
+        sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        });
+        
+        sbClient.auth.onAuthStateChange(async (event, session) => {
+          currentUser = session?.user || null;
+          updateAuthUI();
+          updateVersionDisplay(); 
+
+          if (currentUser && navigator.onLine) {
+            document.getElementById('syncStatus').innerText = '載入雲端資料中...';
+            
+            if (event === 'SIGNED_IN') {
+              await recordLogin();
+            }
+
+            const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
+            
+            if (!error && data && data.portfolio_data) {
+              parseCloudData(data.portfolio_data);
+              saveToLocalStorage();
+            } else {
+              isInitializing = false;
+              saveData();
+            }
+
+            document.getElementById('syncStatus').innerText = '已同步雲端';
+            loadAdminStats();
+          } else if (!currentUser) {
+            isInitializing = false;
+          }
+        });
+
+        const { data: { session } } = await sbClient.auth.getSession();
+        currentUser = session?.user || null;
+        updateAuthUI();
+        updateVersionDisplay();
+
+        if (currentUser && navigator.onLine) {
+          document.getElementById('syncStatus').innerText = '載入雲端資料中...';
+          const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
+          
+          if (!error && data && data.portfolio_data) {
+            parseCloudData(data.portfolio_data);
+            saveToLocalStorage();
+          } else {
+            isInitializing = false;
+            saveData();
+          }
+          document.getElementById('syncStatus').innerText = '已同步雲端';
+          loadAdminStats();
+        } else {
+          isInitializing = false;
+          document.getElementById('syncStatus').innerText = currentUser ? '離線模式 (顯示本地庫存)' : '已就緒 (未登入)';
+        }
+      } catch (err) {
+        isInitializing = false;
+        document.getElementById('syncStatus').innerText = '單機離線模式';
+      }
+
+      fetchExchangeRate();
+
+      setTimeout(() => {
+        const activeTab = localStorage.getItem('calc_current_tab') || 'tw';
+        fetchMarketPrice(activeTab);
+      }, 300);
     }
 
-    if (!response.ok) {
-      return res.status(400).json({ error: `找不到代號 ${finalSymbol} 的市場資料`, apiVersion: 'v7.4.1' });
+    function initDefaultView() {
+      renderStockSelector('tw');
+      renderStockSelector('us');
+      if (!cloudData.twOrder) cloudData.twOrder = Object.keys(cloudData.twStocks);
+      if (!cloudData.usOrder) cloudData.usOrder = Object.keys(cloudData.usStocks);
+
+      if (!cloudData.twStocks[currentTwKey]) {
+        currentTwKey = cloudData.twOrder[0];
+        localStorage.setItem('calc_current_tw_key', currentTwKey);
+      }
+      if (!cloudData.usStocks[currentUsKey]) {
+        currentUsKey = cloudData.usOrder[0];
+        localStorage.setItem('calc_current_us_key', currentUsKey);
+      }
+      loadStockToUI('tw', currentTwKey);
+      loadStockToUI('us', currentUsKey);
     }
-    
-    const data = await response.json();
-    const result = data.chart?.result?.[0];
-    
-    if (!result) {
-      return res.status(400).json({ error: '查無市場資料', apiVersion: 'v7.4.1' });
+
+    function parseCloudData(fetchedData) {
+      if (fetchedData && fetchedData.twStocks && fetchedData.usStocks) {
+        cloudData = fetchedData;
+      }
+
+      if (!cloudData.twStocks || Object.keys(cloudData.twStocks).length === 0) {
+        cloudData.twStocks = { "台光電": { name: "台光電", symbol: "2383", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+      }
+      if (!cloudData.twOrder) {
+        cloudData.twOrder = Object.keys(cloudData.twStocks);
+      }
+
+      if (!cloudData.usStocks || Object.keys(cloudData.usStocks).length === 0) {
+        cloudData.usStocks = { "應用材料": { name: "應用材料", symbol: "AMAT", plans: [{ p2: "", n2: "" }], ptarget: "" } };
+      }
+      if (!cloudData.usOrder) {
+        cloudData.usOrder = Object.keys(cloudData.usStocks);
+      }
+
+      if (!cloudData.twStocks[currentTwKey]) {
+        currentTwKey = cloudData.twOrder[0];
+        localStorage.setItem('calc_current_tw_key', currentTwKey);
+      }
+      if (!cloudData.usStocks[currentUsKey]) {
+        currentUsKey = cloudData.usOrder[0];
+        localStorage.setItem('calc_current_us_key', currentUsKey);
+      }
+
+      renderStockSelector('tw');
+      renderStockSelector('us');
+      loadStockToUI('tw', currentTwKey);
+      loadStockToUI('us', currentUsKey);
+
+      isInitializing = false; // 🔓 解除初始化防護鎖
     }
 
-    const meta = result.meta;
-    const currentPrice = meta.regularMarketPrice || meta.chartPreviousClose || meta.previousClose;
-    const prevClose = meta.chartPreviousClose || meta.previousClose || currentPrice;
+    function updateAuthUI() {
+      const userInfoEl = document.getElementById('userInfo');
+      const loginBtn = document.getElementById('loginBtn');
+      const loggedOptions = document.getElementById('loggedOptions');
 
-    return res.status(200).json({
-      symbol: meta.symbol || finalSymbol,
-      name: resolvedName,
-      currentPrice: Number(currentPrice),
-      prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v7.4.1'
-    });
+      if (currentUser) {
+        userInfoEl.innerText = currentUser.email.split('@')[0];
+        loginBtn.classList.add('hidden');
+        loggedOptions.classList.remove('hidden');
+        loadAdminStats();
+      } else {
+        userInfoEl.innerText = '未登入';
+        loginBtn.classList.remove('hidden');
+        loggedOptions.classList.add('hidden');
+        document.getElementById('adminPanel').classList.add('hidden');
+      }
+    }
 
-  } catch (error) {
-    return res.status(500).json({ error: error.message, apiVersion: 'v7.4.1' });
-  }
-}
+    init();
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('Service Worker 註冊成功:', reg.scope))
+          .catch((err) => console.error('Service Worker 註冊失敗:', err));
+      });
+    }
+  </script>
+</body>
+</html>
