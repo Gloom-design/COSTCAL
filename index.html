@@ -38,9 +38,8 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.30</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.33</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
-          <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span id="connectionText">即時連線</span>
@@ -82,14 +81,6 @@
       </div>
     </div>
 
-    <!-- ⚠️ 免責聲明提示條 -->
-    <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3.5 py-2.5 rounded-xl text-[10px] sm:text-xs flex items-start gap-2 shadow-sm">
-      <span class="text-amber-600 font-bold text-sm leading-none mt-0.5">⚠️</span>
-      <div>
-        <strong class="font-bold">免責聲明：</strong>本工具提供之試算結果與即時行情僅供輔助參考，不負任何投資盈虧、法律責任或資料誤差之擔保。投資理財有賺有賠，請自行獨立評估風險。
-      </div>
-    </div>
-
     <!-- 分頁切換 -->
     <div class="grid grid-cols-2 gap-2 bg-slate-200 p-1.5 rounded-2xl">
       <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer">🇹🇼 台股專用</button>
@@ -122,11 +113,11 @@
         <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股名稱</label>
-            <input id="tw_nameInput" type="text" placeholder="例: 台積電" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+            <input id="tw_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2330)</label>
-            <input id="tw_symbolInput" type="text" placeholder="例: 2330" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
+            <input id="tw_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
         </div>
 
@@ -257,11 +248,11 @@
         <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股名稱</label>
-            <input id="us_nameInput" type="text" placeholder="例: AAPL" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
+            <input id="us_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AAPL)</label>
-            <input id="us_symbolInput" type="text" placeholder="例: AAPL" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
+            <input id="us_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
           </div>
         </div>
 
@@ -431,28 +422,45 @@
 
     window.addEventListener('beforeunload', () => { saveToLocalStorage(); });
 
+    // 💡 強化清洗邏輯：清除舊版幽靈資料，讓介面保持最真實狀態
     function sanitizeStockData(data) {
-      if (!data || !data.twStocks) return data;
+      if (!data) return { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
       let newTwStocks = {};
       let newTwOrder = [];
 
-      for (let oldKey in data.twStocks) {
-        let stock = data.twStocks[oldKey];
-        let cleanKey = (stock.symbol && !stock.symbol.includes(' ')) ? stock.symbol.trim().toUpperCase().replace('.TW', '').replace('.TWO', '') : oldKey.trim().toUpperCase();
-        if (!cleanKey) cleanKey = oldKey;
-        
-        if (!stock.symbol) {
-          stock.symbol = cleanKey;
+      if (data.twStocks) {
+        for (let oldKey in data.twStocks) {
+          let stock = data.twStocks[oldKey];
+          let cleanKey = (stock.symbol && !stock.symbol.includes(' ')) ? stock.symbol.trim().toUpperCase().replace('.TW', '').replace('.TWO', '') : oldKey.trim().toUpperCase();
+          if (!cleanKey) cleanKey = oldKey;
+          
+          if (!stock.symbol) stock.symbol = cleanKey;
+          newTwStocks[cleanKey] = stock;
+          if (!newTwOrder.includes(cleanKey)) newTwOrder.push(cleanKey);
         }
-        newTwStocks[cleanKey] = stock;
-        if (!newTwOrder.includes(cleanKey)) newTwOrder.push(cleanKey);
       }
 
       data.twStocks = newTwStocks;
-      data.twOrder = data.twOrder ? data.twOrder.map(k => k.trim().toUpperCase().replace('.TW', '').replace('.TWO', '')).filter((v, i, a) => a.indexOf(v) === i) : newTwOrder;
-      if (data.twOrder.length === 0 && Object.keys(newTwStocks).length > 0) {
-        data.twOrder = Object.keys(newTwStocks);
+      data.twOrder = data.twOrder ? data.twOrder.map(k => k.trim().toUpperCase().replace('.TW', '').replace('.TWO', '')).filter((v, i, a) => a.indexOf(v) === i && newTwStocks[v]) : newTwOrder;
+      
+      if (data.usStocks) {
+        let newUsStocks = {};
+        let newUsOrder = [];
+        for (let oldKey in data.usStocks) {
+          let stock = data.usStocks[oldKey];
+          let cleanKey = (stock.symbol && !stock.symbol.includes(' ')) ? stock.symbol.trim().toUpperCase() : oldKey.trim().toUpperCase();
+          if (!cleanKey) cleanKey = oldKey;
+          if (!stock.symbol) stock.symbol = cleanKey;
+          newUsStocks[cleanKey] = stock;
+          if (!newUsOrder.includes(cleanKey)) newUsOrder.push(cleanKey);
+        }
+        data.usStocks = newUsStocks;
+        data.usOrder = data.usOrder ? data.usOrder.map(k => k.trim().toUpperCase()).filter((v, i, a) => a.indexOf(v) === i && newUsStocks[v]) : newUsOrder;
+      } else {
+        data.usStocks = {};
+        data.usOrder = [];
       }
+
       return data;
     }
 
@@ -461,7 +469,7 @@
         const localRaw = localStorage.getItem(getLocalStorageKey());
         if (localRaw) {
           const parsed = JSON.parse(localRaw);
-          if (parsed && parsed.twStocks && Object.keys(parsed.twStocks).length > 0) {
+          if (parsed && (Object.keys(parsed.twStocks || {}).length > 0 || Object.keys(parsed.usStocks || {}).length > 0)) {
             cloudData = sanitizeStockData(parsed);
             return true;
           }
@@ -481,15 +489,18 @@
       } catch (err) { console.error("寫入本地快取失敗:", err); }
     }
 
+    // 💡 登入時嚴格檢查：只保留真正有意義的訪客資料，不要把空殼 2330 帶進雲端
     window.loginWithGoogle = async function() {
       if (!navigator.onLine) { alert("目前離線中，無法進行Google登入！"); return; }
       if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
       
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
-      const guestRaw = localStorage.getItem(`${LOCAL_STORAGE_BASE_KEY}_guest`);
-      if (guestRaw) {
-        sessionStorage.setItem('pending_guest_data', guestRaw);
+      
+      // 只有當訪客資料庫「真的有實際項目」時，才保留作為待確認的合併項目
+      if (Object.keys(cloudData.twStocks).length > 0 || Object.keys(cloudData.usStocks).length > 0) {
+        localStorage.setItem(`${LOCAL_STORAGE_BASE_KEY}_guest`, JSON.stringify(cloudData));
+        sessionStorage.setItem('pending_guest_data', JSON.stringify(cloudData));
       }
 
       const { error } = await sbClient.auth.signInWithOAuth({ 
@@ -499,14 +510,19 @@
       if (error) alert("登入失敗: " + error.message);
     };
 
+    // 💡 徹底解決登出殘留：登出時將「訪客快取」與所有指標一起摧毀，還原最乾淨狀態
     window.logout = async function() {
       if (!sbClient) return;
       clearTimeout(saveTimeout);
       saveToLocalStorage();
       await sbClient.auth.signOut({ scope: 'local' });
+      
+      // 關鍵修復：清空所有本機切換指標與殘留的訪客快取
       localStorage.removeItem('calc_current_tw_key');
       localStorage.removeItem('calc_current_us_key');
       localStorage.removeItem('calc_current_tab');
+      localStorage.removeItem(`${LOCAL_STORAGE_BASE_KEY}_guest`); 
+      
       window.location.href = window.location.origin + window.location.pathname;
     };
 
@@ -645,15 +661,49 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
+    function commitSymbolChange(type) {
+      const symbolInput = document.getElementById(`${type}_symbolInput`);
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      if (!currentKey || !symbolInput) return;
+
+      let inputSymbol = symbolInput.value.trim().toUpperCase();
+      if (type === 'tw') {
+        inputSymbol = inputSymbol.replace(/\.TW$/i, '').replace(/\.TWO$/i, '');
+      }
+      if (!inputSymbol || inputSymbol === currentKey) return;
+
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+
+      cloudData[storeKey][inputSymbol] = cloudData[storeKey][currentKey] || {};
+      cloudData[storeKey][inputSymbol].symbol = inputSymbol;
+      delete cloudData[storeKey][currentKey];
+
+      let orderIdx = cloudData[orderKey].indexOf(currentKey);
+      if (orderIdx !== -1) {
+        cloudData[orderKey][orderIdx] = inputSymbol;
+      } else {
+        cloudData[orderKey].push(inputSymbol);
+      }
+
+      if (type === 'tw') {
+        currentTwKey = inputSymbol;
+        localStorage.setItem('calc_current_tw_key', currentTwKey);
+      } else {
+        currentUsKey = inputSymbol;
+        localStorage.setItem('calc_current_us_key', currentUsKey);
+      }
+
+      renderStockSelector(type);
+      saveData();
+    }
+
     window.fetchMarketPrice = async function(type) {
+      commitSymbolChange(type);
+
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
-      
-      if (type === 'tw') {
-        queryVal = queryVal.replace(/\.TW$/i, '').replace(/\.TWO$/i, '');
-        symbolInput.value = queryVal;
-      }
 
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入代號';
@@ -680,10 +730,9 @@
             let cleanSym = String(result.symbol).trim().replace('.TW', '').replace('.TWO', '');
             if (!cleanSym.includes(' ') && cleanSym.length <= 10) {
               symbolInput.value = cleanSym;
-            } else {
-              symbolInput.value = queryVal;
             }
           }
+          commitSymbolChange(type);
 
           if (result.name && (nameInput.value === '' || nameInput.value === queryVal || nameInput.value.length > 25)) {
             nameInput.value = result.name;
@@ -699,7 +748,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.30';
+          latestApiVer = result.apiVersion || 'v7.8.33';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -786,6 +835,7 @@
       }
     };
 
+    // 💡 清空畫面顯示，讓使用者清楚知道現在是空的
     function clearStockUI(type) {
       if (type === 'tw') {
         document.getElementById('tw_nameInput').value = '';
@@ -816,6 +866,8 @@
 
     window.manualSaveData = async function() {
       if (isSyncing) return;
+      commitSymbolChange('tw');
+      commitSymbolChange('us');
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
       saveToLocalStorage();
@@ -877,7 +929,7 @@
 
       if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(store);
 
-      const keys = cloudData[orderKey];
+      const keys = cloudData[orderKey].filter(k => store[k]);
       if (keys.length === 0) {
         const opt = document.createElement('option');
         opt.value = ""; opt.innerText = "— 請點右側「+新增」建立項目 —";
@@ -886,14 +938,12 @@
       }
 
       keys.forEach(key => {
-        if (store[key]) {
-          const opt = document.createElement('option');
-          opt.value = key; 
-          const stockName = store[key].name || key;
-          opt.innerText = `${key} ${stockName !== key ? '(' + stockName + ')' : ''}`;
-          if (key === currentKey) opt.selected = true;
-          selector.appendChild(opt);
-        }
+        const opt = document.createElement('option');
+        opt.value = key; 
+        const stockName = store[key].name || key;
+        opt.innerText = `${key} ${stockName !== key ? '(' + stockName + ')' : ''}`;
+        if (key === currentKey) opt.selected = true;
+        selector.appendChild(opt);
       });
     }
 
@@ -901,26 +951,8 @@
       if (isInitializing) return;
       if (type === 'tw') {
         if (!currentTwKey) return;
-        let inputSymbol = document.getElementById('tw_symbolInput').value.trim().toUpperCase().replace('.TW', '').replace('.TWO', '');
-        if (!inputSymbol) inputSymbol = currentTwKey;
-
-        // 💡 智慧代號遷移：若使用者修改了代號輸入框，同步更新資料結構鍵值與順序清單
-        if (inputSymbol !== currentTwKey) {
-          cloudData.twStocks[inputSymbol] = cloudData.twStocks[currentTwKey] || {};
-          delete cloudData.twStocks[currentTwKey];
-          
-          let orderIdx = cloudData.twOrder.indexOf(currentTwKey);
-          if (orderIdx !== -1) {
-            cloudData.twOrder[orderIdx] = inputSymbol;
-          } else {
-            cloudData.twOrder.push(inputSymbol);
-          }
-          currentTwKey = inputSymbol;
-          localStorage.setItem('calc_current_tw_key', currentTwKey);
-          renderStockSelector('tw');
-        }
-
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
+        
         const plans = [];
         document.querySelectorAll('.tw-plan-row').forEach(row => {
           plans.push({ p2: row.querySelector('.tw-plan-p2').value, n2: row.querySelector('.tw-plan-n2').value });
@@ -942,25 +974,8 @@
         };
       } else {
         if (!currentUsKey) return;
-        let inputSymbol = document.getElementById('us_symbolInput').value.trim().toUpperCase();
-        if (!inputSymbol) inputSymbol = currentUsKey;
-
-        if (inputSymbol !== currentUsKey) {
-          cloudData.usStocks[inputSymbol] = cloudData.usStocks[currentUsKey] || {};
-          delete cloudData.usStocks[currentUsKey];
-          
-          let orderIdx = cloudData.usOrder.indexOf(currentUsKey);
-          if (orderIdx !== -1) {
-            cloudData.usOrder[orderIdx] = inputSymbol;
-          } else {
-            cloudData.usOrder.push(inputSymbol);
-          }
-          currentUsKey = inputSymbol;
-          localStorage.setItem('calc_current_us_key', currentUsKey);
-          renderStockSelector('us');
-        }
-
         if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
+
         const plans = [];
         document.querySelectorAll('.us-plan-row').forEach(row => {
           plans.push({ p2: row.querySelector('.us-plan-p2').value, n2: row.querySelector('.us-plan-n2').value });
@@ -1554,6 +1569,19 @@
       el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
     });
 
+    ['tw', 'us'].forEach(type => {
+      const symInput = document.getElementById(`${type}_symbolInput`);
+      if (symInput) {
+        symInput.addEventListener('blur', () => { commitSymbolChange(type); saveData(); });
+        symInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            commitSymbolChange(type);
+            fetchMarketPrice(type);
+          }
+        });
+      }
+    });
+
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
@@ -1694,16 +1722,18 @@
     function initDefaultView() {
       renderStockSelector('tw');
       renderStockSelector('us');
-      if (!cloudData.twOrder) cloudData.twOrder = Object.keys(cloudData.twStocks || {});
-      if (!cloudData.usOrder) cloudData.usOrder = Object.keys(cloudData.usStocks || {});
+      
+      // 💡 安全的預設鍵獲取：不再硬塞，有什麼就選什麼，沒有就留空
+      if (!cloudData.twOrder) cloudData.twOrder = [];
+      if (!cloudData.usOrder) cloudData.usOrder = [];
       
       if (!currentTwKey || !cloudData.twOrder.includes(currentTwKey)) {
         currentTwKey = cloudData.twOrder.length > 0 ? cloudData.twOrder[0] : "";
-        localStorage.setItem('calc_current_tw_key', currentTwKey);
+        if (currentTwKey) localStorage.setItem('calc_current_tw_key', currentTwKey);
       }
       if (!currentUsKey || !cloudData.usOrder.includes(currentUsKey)) {
         currentUsKey = cloudData.usOrder.length > 0 ? cloudData.usOrder[0] : "";
-        localStorage.setItem('calc_current_us_key', currentUsKey);
+        if (currentUsKey) localStorage.setItem('calc_current_us_key', currentUsKey);
       }
 
       loadStockToUI('tw', currentTwKey);
