@@ -17,7 +17,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.13</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.14</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -25,7 +25,7 @@
             <span id="connectionText">即時連線</span>
           </span>
         </div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">本地優先保護模式已啟動</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">系統就緒</div>
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
@@ -351,7 +351,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
-    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v2';
+    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v3';
     
     let sbClient = null; 
     let currentUser = null;
@@ -384,7 +384,7 @@
       } else {
         badge.className = "bg-amber-50 text-amber-700 border border-amber-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
         dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
-        text.innerText = "離線優先模式";
+        text.innerText = "離線模式";
       }
     }
 
@@ -419,7 +419,7 @@
       try {
         saveUIToCurrentStock('tw');
         saveUIToCurrentStock('us');
-        cloudData.updated_at = Date.now(); // 💡 記錄最後修改時間戳記
+        cloudData.updated_at = Date.now();
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
       } catch (err) { console.error("寫入本地快取失敗:", err); }
     }
@@ -478,7 +478,7 @@
 
     window.resetLoginCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎?")) return;
+      if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎？")) return;
       try {
         const { error } = await sbClient.rpc('admin_reset_login_counts');
         if (error) throw error;
@@ -515,12 +515,16 @@
         twView.classList.remove('hidden');
         usView.classList.add('hidden');
         twBtn.className = "py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer";
+        twBtn.innerText = "🇹🇼 台股專用";
         usBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
+        usBtn.innerText = "🇺🇸 美股專用";
       } else {
         usView.classList.remove('hidden');
         twView.classList.add('hidden');
         usBtn.className = "py-2.5 font-semibold rounded-xl transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm cursor-pointer";
+        usBtn.innerText = "🇺🇸 美股專用";
         twBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
+        twBtn.innerText = "🇹🇼 台股專用";
       }
     };
 
@@ -604,7 +608,7 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.13';
+          latestApiVer = result.apiVersion || 'v7.8.14';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已載入行情 (${result.currentPrice})`;
         }
@@ -879,6 +883,150 @@
       }
     }
 
+    window.addTwPlanRow = function(p2 = "", n2 = "") {
+      const container = document.getElementById('twPlansContainer');
+      const div = document.createElement('div');
+      div.className = "tw-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
+      div.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-[11px] text-indigo-700">補倉批次</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <div class="flex justify-between mb-0.5">
+              <label class="text-[10px] text-slate-600">預計買入 (P2)</label>
+              <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] text-indigo-600 underline cursor-pointer">帶入市價</button>
+            </div>
+            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
+            <input type="number" placeholder="加碼股數" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+      relabelTwPlans();
+      bindTwPlanEvents(div);
+      calculateTw();
+      saveData();
+    };
+
+    window.removeTwPlanRow = function(btn) {
+      const container = document.getElementById('twPlansContainer');
+      if (container.children.length <= 1) { alert("至少需保留一筆補倉規劃！"); return; }
+      btn.closest('.tw-plan-row').remove();
+      relabelTwPlans();
+      calculateTw();
+      saveData();
+    };
+
+    window.copyTwPlanRow = function(btn) {
+      const row = btn.closest('.tw-plan-row');
+      addTwPlanRow(row.querySelector('.tw-plan-p2').value, row.querySelector('.tw-plan-n2').value);
+    };
+
+    window.copyCurrentPriceToTwRow = function(btn) {
+      const cp = document.getElementById('tw_currentPrice').value;
+      if (cp) {
+        btn.closest('.tw-plan-row').querySelector('.tw-plan-p2').value = cp;
+        calculateTw();
+        saveData();
+      }
+    };
+
+    function relabelTwPlans() {
+      document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
+        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
+      });
+    }
+
+    function bindTwPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => {
+        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
+      });
+    }
+
+    window.addUsPlanRow = function(p2 = "", n2 = "") {
+      const container = document.getElementById('usPlansContainer');
+      const div = document.createElement('div');
+      div.className = "us-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
+      div.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold text-[11px] text-teal-700">補倉批次</span>
+          <div class="flex gap-1.5">
+            <button type="button" onclick="copyUsPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
+            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <div class="flex justify-between mb-0.5">
+              <label class="text-[10px] text-slate-600">預計買入 ($ P2)</label>
+              <button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] text-teal-600 underline cursor-pointer">帶入市價</button>
+            </div>
+            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+          <div>
+            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
+            <input type="number" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
+          </div>
+        </div>
+      `;
+      container.appendChild(div);
+      relabelUsPlans();
+      bindUsPlanEvents(div);
+      calculateUs();
+      saveData();
+    };
+
+    window.removeUsPlanRow = function(btn) {
+      const container = document.getElementById('usPlansContainer');
+      if (container.children.length <= 1) { alert("至少需保留一筆補倉規劃！"); return; }
+      btn.closest('.us-plan-row').remove();
+      relabelUsPlans();
+      calculateUs();
+      saveData();
+    };
+
+    window.copyUsPlanRow = function(btn) {
+      const row = btn.closest('.us-plan-row');
+      addUsPlanRow(row.querySelector('.us-plan-p2').value, row.querySelector('.us-plan-n2').value);
+    };
+
+    window.copyCurrentPriceToRow = function(btn) {
+      const cp = document.getElementById('us_currentPrice').value;
+      if (cp) {
+        btn.closest('.us-plan-row').querySelector('.us-plan-p2').value = cp;
+        calculateUs();
+        saveData();
+      }
+    };
+
+    function relabelUsPlans() {
+      document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
+        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
+      });
+    }
+
+    function bindUsPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => {
+        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
+      });
+    }
+
+    window.switchStock = async function(type, key) {
+      if (!key) return;
+      if (type === 'tw') { currentTwKey = key; localStorage.setItem('calc_current_tw_key', key); }
+      else { currentUsKey = key; localStorage.setItem('calc_current_us_key', key); }
+      loadStockToUI(type, key);
+      await fetchMarketPrice(type);
+    };
+
     function saveData() {
       if (isInitializing) return;
       saveUIToCurrentStock('tw');
@@ -886,7 +1034,7 @@
       saveToLocalStorage();
 
       if (!currentUser || !sbClient || !navigator.onLine) {
-        document.getElementById('syncStatus').innerText = '已存至本機 (離線保護)';
+        document.getElementById('syncStatus').innerText = '已存至本機';
         return;
       }
 
@@ -1275,7 +1423,7 @@
       const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
       switchTab(savedTab);
 
-      // 1. 優先載入本機快取，確保離線與即時呈現完全秒開，不受雲端延遲影響
+      // 1. 優先載入本機快取以達成秒開
       const hasLocal = loadFromLocalStorage();
       initDefaultView();
 
@@ -1289,18 +1437,20 @@
         updateAuthUI();
         updateVersionDisplay();
 
-        // 2. 若有網路且已登入，安全智慧合併雲端與本地資料（以最新時間戳為準，絕不被舊雲端覆蓋）
+        // 2. 如果有網路且已登入，智慧檢查雲端並同步
         if (currentUser && navigator.onLine) {
-          document.getElementById('syncStatus').innerText = '檢查雲端資料中...';
+          document.getElementById('syncStatus').innerText = '正在同步雲端資料...';
           const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           
           if (!error && data && data.portfolio_data) {
             mergeCloudAndLocalData(data.portfolio_data);
-            document.getElementById('syncStatus').innerText = '雲端已同步';
+            document.getElementById('syncStatus').innerText = '已連線並同步雲端';
+          } else {
+            document.getElementById('syncStatus').innerText = '已連線 (雲端無舊資料)';
           }
           loadAdminStats();
         } else {
-          document.getElementById('syncStatus').innerText = hasLocal ? '已載入本機快取 (離線模式)' : '已就緒';
+          document.getElementById('syncStatus').innerText = navigator.onLine ? '已連線 (未登入)' : '離線模式';
         }
 
         isInitializing = false;
@@ -1315,19 +1465,18 @@
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (!error && data && data.portfolio_data) {
               mergeCloudAndLocalData(data.portfolio_data);
-              document.getElementById('syncStatus').innerText = '雲端已同步';
+              document.getElementById('syncStatus').innerText = '已連線並同步雲端';
             }
             loadAdminStats();
           }
         });
       } catch (err) {
         isInitializing = false;
-        document.getElementById('syncStatus').innerText = '單機離線模式執行中';
+        document.getElementById('syncStatus').innerText = '單機離線模式';
       }
       fetchExchangeRate();
     }
 
-    // 💡 智慧時間戳合併：比較本地與雲端資料的 updated_at，確保手動改的中文名稱與資料永遠保留最新的一份
     function mergeCloudAndLocalData(cloudPayload) {
       let localPayload = null;
       try {
@@ -1343,18 +1492,22 @@
       const localTime = localPayload.updated_at || 0;
       const cloudTime = cloudPayload.updated_at || 0;
 
-      // 如果本機比較新或時間一樣，以本機為準並推回雲端
       if (localTime >= cloudTime) {
         cloudData = localPayload;
         parseCloudData(cloudData);
         if (currentUser && navigator.onLine) manualSaveDataSilent();
       } else {
-        // 雲端較新，但為了防止覆蓋手動命名的股票，進行字典層級合併
         cloudData = cloudPayload;
         for (let k in localPayload.twStocks) {
           if (!cloudData.twStocks[k]) cloudData.twStocks[k] = localPayload.twStocks[k];
           else if (localPayload.twStocks[k].name && localPayload.twStocks[k].name !== k) {
-            cloudData.twStocks[k].name = localPayload.twStocks[k].name; // 保留本機自訂中文名稱
+            cloudData.twStocks[k].name = localPayload.twStocks[k].name;
+          }
+        }
+        for (let k in localPayload.usStocks) {
+          if (!cloudData.usStocks[k]) cloudData.usStocks[k] = localPayload.usStocks[k];
+          else if (localPayload.usStocks[k].name && localPayload.usStocks[k].name !== k) {
+            cloudData.usStocks[k].name = localPayload.usStocks[k].name;
           }
         }
         parseCloudData(cloudData);
