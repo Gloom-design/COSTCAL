@@ -105,7 +105,7 @@ export default async function handler(req, res) {
       name: resolvedName,
       currentPrice: Number(currentPrice),
       prevClose: Number(prevClose || currentPrice),
-      apiVersion: 'v7.4.1' // 版本號微調，方便你確認 Vercel 已部署最新版
+      apiVersion: 'v7.4.1'
     });
 
   } catch (error) {
