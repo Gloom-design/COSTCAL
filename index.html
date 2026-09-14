@@ -17,7 +17,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.4</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -641,7 +641,7 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.3';
+          latestApiVer = result.apiVersion || 'v7.8.4';
           updateVersionDisplay();
 
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
@@ -1126,7 +1126,6 @@
       }
     }
 
-    // 💡 修正：整合詳細錯誤捕捉，將 Supabase 錯誤訊息印出到 UI 與 Console
     function saveData() {
       if (isInitializing) return;
       saveUIToCurrentStock('tw');
@@ -1495,6 +1494,12 @@
       const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
       switchTab(savedTab);
 
+      // 🛡️ 輔助函式：確保雲端資料完整載入到畫面後，才執行第一次即時查價
+      const safeFetchMarketPrice = () => {
+        const activeTab = localStorage.getItem('calc_current_tab') || 'tw';
+        fetchMarketPrice(activeTab);
+      };
+
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
           auth: {
@@ -1505,6 +1510,7 @@
           }
         });
         
+        // 💡 統一交由 onAuthStateChange 處理，移除重複的 getSession 邏輯
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
           updateAuthUI();
@@ -1519,54 +1525,44 @@
 
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             
-            if (!error && data && data.portfolio_data) {
-              parseCloudData(data.portfolio_data);
+            // 💡 如果網路錯誤，絕對不觸發覆蓋，僅解鎖防護
+            if (error) {
+              console.error("雲端讀取錯誤:", error);
+              document.getElementById('syncStatus').innerText = '雲端讀取失敗，請重新整理';
+              isInitializing = false;
+              safeFetchMarketPrice();
+              return;
+            }
+
+            if (data && data.portfolio_data) {
+              // ✅ 成功取得雲端資料
+              parseCloudData(data.portfolio_data); // 函式內部會解開 isInitializing = false
               saveToLocalStorage();
+              document.getElementById('syncStatus').innerText = '已同步雲端';
             } else {
+              // 🆕 確定是全新用戶 (data為空) 才上傳本地資料
               isInitializing = false;
               saveData();
             }
 
-            document.getElementById('syncStatus').innerText = '已同步雲端';
             loadAdminStats();
+            // 💡 在資料安全落地後，才觸發查價
+            safeFetchMarketPrice();
+            
           } else if (!currentUser) {
             isInitializing = false;
+            document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
+            safeFetchMarketPrice();
           }
         });
 
-        const { data: { session } } = await sbClient.auth.getSession();
-        currentUser = session?.user || null;
-        updateAuthUI();
-        updateVersionDisplay();
-
-        if (currentUser && navigator.onLine) {
-          document.getElementById('syncStatus').innerText = '載入雲端資料中...';
-          const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
-          
-          if (!error && data && data.portfolio_data) {
-            parseCloudData(data.portfolio_data);
-            saveToLocalStorage();
-          } else {
-            isInitializing = false;
-            saveData();
-          }
-          document.getElementById('syncStatus').innerText = '已同步雲端';
-          loadAdminStats();
-        } else {
-          isInitializing = false;
-          document.getElementById('syncStatus').innerText = currentUser ? '離線模式 (顯示本地庫存)' : '已就緒 (未登入)';
-        }
       } catch (err) {
         isInitializing = false;
         document.getElementById('syncStatus').innerText = '單機離線模式';
+        safeFetchMarketPrice();
       }
 
       fetchExchangeRate();
-
-      setTimeout(() => {
-        const activeTab = localStorage.getItem('calc_current_tab') || 'tw';
-        fetchMarketPrice(activeTab);
-      }, 300);
     }
 
     function initDefaultView() {
