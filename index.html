@@ -17,7 +17,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.9</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.13</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -25,7 +25,7 @@
             <span id="connectionText">即時連線</span>
           </span>
         </div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">離線優先模式已啟動</div>
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">本地優先保護模式已啟動</div>
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
@@ -39,7 +39,7 @@
           
           <div id="loggedOptions" class="hidden flex items-center gap-1.5">
             <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-semibold border border-rose-200 cursor-pointer shadow-sm">⚠️ 刪除帳號</button>
-            <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-semibold cursor-pointer shadow">登出</button>
+            <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-semibold cursor-pointer shadow">登出</button>
           </div>
         </div>
       </div>
@@ -175,9 +175,7 @@
           </button>
         </div>
 
-        <div id="twPlansContainer" class="space-y-3">
-          <!-- 動態生成台股補倉列 -->
-        </div>
+        <div id="twPlansContainer" class="space-y-3"></div>
 
         <div class="pt-2 border-t border-slate-100">
           <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 (目標均價 - 模式B)</label>
@@ -197,10 +195,7 @@
           <strong id="tw_resAvgPrice" class="text-yellow-300 text-base sm:text-xl font-bold">$0.00</strong>
         </div>
 
-        <!-- 台股依批次獨立顯示明細容器 -->
-        <div id="twBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3">
-          <!-- 動態填入各批次明細 -->
-        </div>
+        <div id="twBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3"></div>
 
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
           <div>原成本總額: <span id="tw_resOriginalCost">$0</span></div>
@@ -241,7 +236,7 @@
         <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股名稱</label>
-            <input id="us_nameInput" type="text" placeholder="例: 蘋果" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
+            <input id="us_nameInput" type="text" placeholder="例: AAPL" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AAPL)</label>
@@ -305,9 +300,7 @@
           </button>
         </div>
 
-        <div id="usPlansContainer" class="space-y-3">
-          <!-- 動態生成 -->
-        </div>
+        <div id="usPlansContainer" class="space-y-3"></div>
 
         <div class="pt-2 border-t border-slate-100">
           <label class="text-[10px] sm:text-xs text-slate-600 block mb-1">或目標攤平均價 ($ Target - 模式B)</label>
@@ -318,7 +311,6 @@
       <div class="bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3">
         <h2 class="text-[10px] sm:text-xs text-slate-400 font-semibold uppercase tracking-wider mb-1">美股試算結果</h2>
         
-        <!-- 整體總結 -->
         <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-800 pb-2.5">
           <span class="text-slate-400">原始股數 /分批補倉股數 / 總股數：</span>
           <span><strong id="us_resN1" class="text-slate-300">0.0</strong> / <strong id="us_resN2" class="text-white">0.0</strong> / <strong id="us_resTotalN" class="text-teal-300">0.0 股</strong></span>
@@ -332,10 +324,7 @@
           <strong id="us_resAvgPriceTWD" class="text-cyan-300 text-sm sm:text-base font-bold">NT$0.00</strong>
         </div>
 
-        <!-- 依批次獨立顯示明細容器 -->
-        <div id="usBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3">
-          <!-- 動態填入各批次明細 -->
-        </div>
+        <div id="usBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-800 pb-3"></div>
 
         <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-300">
           <div>原成本總額(美元): <span id="us_resOriginalCostUSD">$0</span></div>
@@ -362,7 +351,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
-    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v1';
+    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v2';
     
     let sbClient = null; 
     let currentUser = null;
@@ -395,12 +384,21 @@
       } else {
         badge.className = "bg-amber-50 text-amber-700 border border-amber-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1";
         dot.className = "w-1.5 h-1.5 rounded-full bg-amber-500";
-        text.innerText = "離線模式";
+        text.innerText = "離線優先模式";
       }
     }
 
-    window.addEventListener('online', updateConnectionStatusUI);
+    window.addEventListener('online', () => { updateConnectionStatusUI(); syncLocalToCloud(); });
     window.addEventListener('offline', updateConnectionStatusUI);
+
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') {
+        saveToLocalStorage();
+        if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
+      }
+    });
+
+    window.addEventListener('beforeunload', () => { saveToLocalStorage(); });
 
     function loadFromLocalStorage() {
       try {
@@ -412,9 +410,7 @@
             return true;
           }
         }
-      } catch (err) {
-        console.error("讀取本地快取失敗:", err);
-      }
+      } catch (err) { console.error("讀取本地快取失敗:", err); }
       return false;
     }
 
@@ -423,10 +419,9 @@
       try {
         saveUIToCurrentStock('tw');
         saveUIToCurrentStock('us');
+        cloudData.updated_at = Date.now(); // 💡 記錄最後修改時間戳記
         localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(cloudData));
-      } catch (err) {
-        console.error("寫入本地快取失敗:", err);
-      }
+      } catch (err) { console.error("寫入本地快取失敗:", err); }
     }
 
     window.loginWithGoogle = async function() {
@@ -450,7 +445,6 @@
 
     window.deleteAccount = async function() {
       if (!currentUser || !sbClient) { alert("請先登入！"); return; }
-      
       const confirmText = prompt("⚠️ 警告：刪除帳號將會永久清除你在雲端儲存的所有投資組合與計算資料，且無法復原。\n\n如確定要刪除，請輸入「DELETE」：");
       if (confirmText !== "DELETE") { alert("已取消刪除帳號操作。"); return; }
 
@@ -484,7 +478,7 @@
 
     window.resetLoginCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎？")) return;
+      if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎?")) return;
       try {
         const { error } = await sbClient.rpc('admin_reset_login_counts');
         if (error) throw error;
@@ -558,7 +552,6 @@
 
     window.fetchExchangeRate = async function() {
       if (!navigator.onLine) return;
-      document.getElementById('syncStatus').innerText = '正在更新美金匯率...';
       try {
         const res = await fetch('https://open.er-api.com/v6/latest/USD');
         if (res.ok) {
@@ -568,12 +561,9 @@
             document.getElementById('us_exchangeRate').value = rate.toFixed(2);
             calculateUs();
             saveData();
-            document.getElementById('syncStatus').innerText = `已更新即時匯率: ${rate.toFixed(2)}`;
-            return;
           }
         }
       } catch (err) {}
-      document.getElementById('syncStatus').innerText = '即時匯率查詢失敗，維持目前設定';
     };
 
     function updateVersionDisplay() {
@@ -586,24 +576,18 @@
 
     window.fetchMarketPrice = async function(type) {
       if (!navigator.onLine) {
-        document.getElementById('syncStatus').innerText = '目前離線中，無法查詢即時行情';
-        latestApiVer = '離線';
-        updateVersionDisplay();
+        document.getElementById('syncStatus').innerText = '離線模式 (僅查本地)';
         return;
       }
 
       const symbolInput = document.getElementById(`${type}_symbolInput`);
-      const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
-
-      if (!queryVal) { document.getElementById('syncStatus').innerText = '請先輸入股票代號'; return; }
+      if (!queryVal) return;
 
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
 
       document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
-      latestApiVer = '查詢中...';
-      updateVersionDisplay();
 
       try {
         const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
@@ -611,12 +595,8 @@
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
         if (result.currentPrice) {
-          if (result.symbol) symbolInput.value = result.symbol;
-          if (result.name && nameInput) {
-            nameInput.value = result.name;
-            // 💡 關鍵更新：若成功查到中文名稱，自動同步更新當前組合的 Key 與名稱
-            updateStockKeyAndName(type, result.name, result.symbol || queryVal);
-          }
+          let cleanSymbol = result.symbol ? result.symbol.replace('.TW', '').replace('.TWO', '') : queryVal;
+          if (result.symbol) symbolInput.value = cleanSymbol;
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
           if (result.prevClose) document.getElementById(`${type}_prevClose`).value = result.prevClose;
@@ -624,239 +604,51 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.9';
+          latestApiVer = result.apiVersion || 'v7.8.13';
           updateVersionDisplay();
-          document.getElementById('syncStatus').innerText = `已成功載入 ${result.name || result.symbol || queryVal} 行情 (${result.currentPrice})`;
-        } else {
-          throw new Error("查無價格資料");
+          document.getElementById('syncStatus').innerText = `已載入行情 (${result.currentPrice})`;
         }
       } catch (e) {
         if (e.name === 'AbortError') return;
-        document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
-        latestApiVer = '查詢失敗';
-        updateVersionDisplay();
+        document.getElementById('syncStatus').innerText = '行情查詢略過 (維持現狀)';
       }
-    };
-
-    // 💡 輔助函數：當即時行情回傳中文名稱時，自動替換選單與記錄的 Key
-    function updateStockKeyAndName(type, newName, symbol) {
-      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
-      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
-      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
-
-      if (!currentKey || currentKey === newName) {
-        if (cloudData[storeKey][currentKey]) {
-          cloudData[storeKey][currentKey].name = newName;
-          cloudData[storeKey][currentKey].symbol = symbol;
-        }
-        return;
-      }
-
-      // 若原本的 Key 是代號（如 2330），用中文名稱（如 台積電）替換
-      saveUIToCurrentStock(type);
-      if (cloudData[storeKey][currentKey]) {
-        cloudData[storeKey][currentKey].name = newName;
-        cloudData[storeKey][currentKey].symbol = symbol;
-        cloudData[storeKey][newName] = cloudData[storeKey][currentKey];
-        delete cloudData[storeKey][currentKey];
-      }
-
-      if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(cloudData[storeKey]);
-      const idx = cloudData[orderKey].indexOf(currentKey);
-      if (idx !== -1) {
-        cloudData[orderKey][idx] = newName;
-      } else if (!cloudData[orderKey].includes(newName)) {
-        cloudData[orderKey].push(newName);
-      }
-
-      if (type === 'tw') {
-        currentTwKey = newName;
-        localStorage.setItem('calc_current_tw_key', newName);
-      } else {
-        currentUsKey = newName;
-        localStorage.setItem('calc_current_us_key', newName);
-      }
-
-      renderStockSelector(type);
-    }
-
-    window.addTwPlanRow = function(p2 = "", n2 = "") {
-      const container = document.getElementById('twPlansContainer');
-      const index = container.children.length;
-      const div = document.createElement('div');
-      div.className = "tw-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
-      div.innerHTML = `
-        <div class="flex justify-between items-center">
-          <span class="font-bold text-[11px] text-indigo-700">補倉批次 #${index + 1}</span>
-          <div class="flex gap-1.5">
-            <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <div class="flex justify-between mb-0.5">
-              <label class="text-[10px] text-slate-600">預計買入 (P2)</label>
-              <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] text-indigo-600 underline cursor-pointer">帶入市價</button>
-            </div>
-            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
-            <input type="number" placeholder="加碼股數" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-        </div>
-      `;
-      container.appendChild(div);
-      bindTwPlanEvents(div);
-      calculateTw();
-      saveData();
-    };
-
-    window.removeTwPlanRow = function(btn) {
-      const container = document.getElementById('twPlansContainer');
-      if (container.children.length <= 1) { alert("至少需保留一筆補倉規劃！"); return; }
-      btn.closest('.tw-plan-row').remove();
-      relabelTwPlans();
-      calculateTw();
-      saveData();
-    };
-
-    window.copyTwPlanRow = function(btn) {
-      const row = btn.closest('.tw-plan-row');
-      addTwPlanRow(row.querySelector('.tw-plan-p2').value, row.querySelector('.tw-plan-n2').value);
-    };
-
-    window.copyCurrentPriceToTwRow = function(btn) {
-      const cp = document.getElementById('tw_currentPrice').value;
-      if (cp) {
-        btn.closest('.tw-plan-row').querySelector('.tw-plan-p2').value = cp;
-        calculateTw();
-        saveData();
-      }
-    };
-
-    function relabelTwPlans() {
-      document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
-        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
-      });
-    }
-
-    function bindTwPlanEvents(rowEl) {
-      rowEl.querySelectorAll('.save-trigger').forEach(el => {
-        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
-      });
-    }
-
-    window.addUsPlanRow = function(p2 = "", n2 = "") {
-      const container = document.getElementById('usPlansContainer');
-      const index = container.children.length;
-      const div = document.createElement('div');
-      div.className = "us-plan-row bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 relative";
-      div.innerHTML = `
-        <div class="flex justify-between items-center">
-          <span class="font-bold text-[11px] text-teal-700">補倉批次 #${index + 1}</span>
-          <div class="flex gap-1.5">
-            <button type="button" onclick="copyUsPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <div class="flex justify-between mb-0.5">
-              <label class="text-[10px] text-slate-600">預計買入 ($ P2)</label>
-              <button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] text-teal-600 underline cursor-pointer">帶入市價</button>
-            </div>
-            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
-            <input type="number" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-        </div>
-      `;
-      container.appendChild(div);
-      bindUsPlanEvents(div);
-      calculateUs();
-      saveData();
-    };
-
-    window.removeUsPlanRow = function(btn) {
-      const container = document.getElementById('usPlansContainer');
-      if (container.children.length <= 1) { alert("至少需保留一筆補倉規劃！"); return; }
-      btn.closest('.us-plan-row').remove();
-      relabelUsPlans();
-      calculateUs();
-      saveData();
-    };
-
-    window.copyUsPlanRow = function(btn) {
-      const row = btn.closest('.us-plan-row');
-      addUsPlanRow(row.querySelector('.us-plan-p2').value, row.querySelector('.us-plan-n2').value);
-    };
-
-    window.copyCurrentPriceToRow = function(btn) {
-      const cp = document.getElementById('us_currentPrice').value;
-      if (cp) {
-        btn.closest('.us-plan-row').querySelector('.us-plan-p2').value = cp;
-        calculateUs();
-        saveData();
-      }
-    };
-
-    function relabelUsPlans() {
-      document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
-        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
-      });
-    }
-
-    function bindUsPlanEvents(rowEl) {
-      rowEl.querySelectorAll('.save-trigger').forEach(el => {
-        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
-      });
-    }
-
-    window.switchStock = async function(type, key) {
-      if (!key) return;
-      if (type === 'tw') { currentTwKey = key; localStorage.setItem('calc_current_tw_key', key); }
-      else { currentUsKey = key; localStorage.setItem('calc_current_us_key', key); }
-      loadStockToUI(type, key);
-      await fetchMarketPrice(type);
     };
 
     window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
-      if (!currentKey) { alert("目前沒有可更改名稱的項目！請先新增。"); return; }
+      if (!currentKey) { alert("目前沒有可更改名稱的項目！"); return; }
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       
-      let newName = prompt(`請輸入「${currentKey}」的新名稱：`, currentKey);
+      let newName = prompt(`請輸入「${currentKey}」的新名稱 (中文公司名稱)：`, targetStore[currentKey]?.name || currentKey);
       if (!newName || !newName.trim()) return;
       let trimmedName = newName.trim();
       
-      while (trimmedName !== currentKey && targetStore[trimmedName]) {
-        newName = prompt(`名稱「${trimmedName}」已存在！請輸入其他新名稱：`, currentKey);
-        if (!newName || !newName.trim()) return;
-        trimmedName = newName.trim();
-      }
-      if (trimmedName === currentKey) return;
-      
       saveUIToCurrentStock(type);
-      targetStore[trimmedName] = targetStore[currentKey];
-      targetStore[trimmedName].name = trimmedName;
-      delete targetStore[currentKey];
+      if (currentKey !== trimmedName) {
+        targetStore[trimmedName] = targetStore[currentKey];
+        targetStore[trimmedName].name = trimmedName;
+        delete targetStore[currentKey];
 
-      if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
-      const idx = cloudData[orderKey].indexOf(currentKey);
-      if (idx !== -1) cloudData[orderKey][idx] = trimmedName;
-      
-      if (type === 'tw') { currentTwKey = trimmedName; localStorage.setItem('calc_current_tw_key', trimmedName); document.getElementById('tw_nameInput').value = trimmedName; }
-      else { currentUsKey = trimmedName; localStorage.setItem('calc_current_us_key', trimmedName); document.getElementById('us_nameInput').value = trimmedName; }
-      
+        if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
+        const idx = cloudData[orderKey].indexOf(currentKey);
+        if (idx !== -1) cloudData[orderKey][idx] = trimmedName;
+        else if (!cloudData[orderKey].includes(trimmedName)) cloudData[orderKey].push(trimmedName);
+
+        if (type === 'tw') { currentTwKey = trimmedName; localStorage.setItem('calc_current_tw_key', trimmedName); }
+        else { currentUsKey = trimmedName; localStorage.setItem('calc_current_us_key', trimmedName); }
+      } else {
+        targetStore[currentKey].name = trimmedName;
+      }
+
+      if (type === 'tw') document.getElementById('tw_nameInput').value = trimmedName;
+      else document.getElementById('us_nameInput').value = trimmedName;
+
       renderStockSelector(type);
-      loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
+      loadStockToUI(type, trimmedName);
       saveData();
-      await fetchMarketPrice(type);
+      if (currentUser && sbClient && navigator.onLine) await manualSaveDataSilent();
+      alert(`已成功將名稱更改為「${trimmedName}」！`);
     };
 
     window.addStock = async function(type) {
@@ -865,12 +657,6 @@
       let inputVal = prompt(type === 'tw' ? "請輸入台股代號或名稱 (例如: 2330 或 台積電):" : "請輸入美股代號 (例如: AAPL):");
       if (!inputVal || !inputVal.trim()) return;
       let trimmed = inputVal.trim();
-
-      while (targetStore[trimmed]) {
-        inputVal = prompt(`名稱「${trimmed}」已存在！請重新輸入其他代號或名稱：`, "");
-        if (!inputVal || !inputVal.trim()) return;
-        trimmed = inputVal.trim();
-      }
 
       saveUIToCurrentStock(type);
       if (type === 'tw') {
@@ -882,7 +668,7 @@
       }
 
       if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
-      else cloudData[orderKey].push(trimmed);
+      else if (!cloudData[orderKey].includes(trimmed)) cloudData[orderKey].push(trimmed);
 
       renderStockSelector(type);
       loadStockToUI(type, trimmed);
@@ -903,11 +689,8 @@
         const remainingKeys = cloudData[orderKey] && cloudData[orderKey].length > 0 ? cloudData[orderKey] : Object.keys(targetStore);
         
         if (remainingKeys.length === 0) {
-          if (type === 'tw') {
-            currentTwKey = ""; localStorage.setItem('calc_current_tw_key', "");
-          } else {
-            currentUsKey = ""; localStorage.setItem('calc_current_us_key', "");
-          }
+          if (type === 'tw') { currentTwKey = ""; localStorage.setItem('calc_current_tw_key', ""); }
+          else { currentUsKey = ""; localStorage.setItem('calc_current_us_key', ""); }
           clearStockUI(type);
         } else {
           const nextKey = remainingKeys[0];
@@ -952,9 +735,9 @@
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
       saveToLocalStorage();
-      if (!currentUser || !navigator.onLine) { alert("目前處於離線模式，資料已成功儲存於本地裝置！"); return; }
+      if (!currentUser || !navigator.onLine) { alert("目前離線，資料已安全儲存於本機裝置！"); return; }
       await manualSaveDataSilent();
-      alert("儲存成功並已同步至雲端！");
+      alert("儲存成功並已強制同步至雲端！");
     };
 
     function applyUIMode() {
@@ -999,7 +782,7 @@
       keys.forEach(key => {
         if (store[key]) {
           const opt = document.createElement('option');
-          opt.value = key; opt.innerText = key;
+          opt.value = key; opt.innerText = store[key].name || key;
           if (key === currentKey) opt.selected = true;
           selector.appendChild(opt);
         }
@@ -1016,7 +799,7 @@
           plans.push({ p2: row.querySelector('.tw-plan-p2').value, n2: row.querySelector('.tw-plan-n2').value });
         });
         cloudData.twStocks[currentTwKey] = {
-          name: document.getElementById('tw_nameInput').value,
+          name: document.getElementById('tw_nameInput').value || currentTwKey,
           symbol: document.getElementById('tw_symbolInput').value,
           discount: document.getElementById('twDiscount').value,
           minFee: document.getElementById('twMinFee').value,
@@ -1037,7 +820,7 @@
           plans.push({ p2: row.querySelector('.us-plan-p2').value, n2: row.querySelector('.us-plan-n2').value });
         });
         cloudData.usStocks[currentUsKey] = {
-          name: document.getElementById('us_nameInput').value,
+          name: document.getElementById('us_nameInput').value || currentUsKey,
           symbol: document.getElementById('us_symbolInput').value,
           rate: document.getElementById('us_exchangeRate').value,
           fee: document.getElementById('us_fee').value,
@@ -1058,7 +841,7 @@
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
         document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = tw.symbol || '';
+        document.getElementById('tw_symbolInput').value = tw.symbol || key;
         document.getElementById('twDiscount').value = tw.discount || '0.6';
         document.getElementById('twMinFee').value = tw.minFee || '20';
         document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : '';
@@ -1078,7 +861,7 @@
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
         document.getElementById('us_nameInput').value = us.name || key;
-        document.getElementById('us_symbolInput').value = us.symbol || '';
+        document.getElementById('us_symbolInput').value = us.symbol || key;
         document.getElementById('us_exchangeRate').value = us.rate || '32';
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
@@ -1103,7 +886,7 @@
       saveToLocalStorage();
 
       if (!currentUser || !sbClient || !navigator.onLine) {
-        document.getElementById('syncStatus').innerText = '已存至本地 (離線模式)';
+        document.getElementById('syncStatus').innerText = '已存至本機 (離線保護)';
         return;
       }
 
@@ -1118,10 +901,10 @@
             last_active: new Date().toISOString(), updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' });
 
-          if (error) document.getElementById('syncStatus').innerText = `同步失敗: ${error.message}`;
+          if (error) document.getElementById('syncStatus').innerText = `同步警告: ${error.message}`;
           else { document.getElementById('syncStatus').innerText = '已同步雲端'; loadAdminStats(); }
         } catch (err) { document.getElementById('syncStatus').innerText = `同步失敗: ${err.message}`; }
-      }, 500);
+      }, 300);
     }
 
     async function manualSaveDataSilent() {
@@ -1129,13 +912,19 @@
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
       saveToLocalStorage();
-      const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
-      let newSyncCount = (existing?.sync_count || 0) + 1;
-      await sbClient.from('user_portfolios').upsert({
-        user_id: currentUser.id, portfolio_data: cloudData, sync_count: newSyncCount,
-        last_active: new Date().toISOString(), updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id' });
-      loadAdminStats();
+      try {
+        const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
+        let newSyncCount = (existing?.sync_count || 0) + 1;
+        await sbClient.from('user_portfolios').upsert({
+          user_id: currentUser.id, portfolio_data: cloudData, sync_count: newSyncCount,
+          last_active: new Date().toISOString(), updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' });
+      } catch (err) {}
+    }
+
+    async function syncLocalToCloud() {
+      if (!currentUser || !sbClient || !navigator.onLine || isInitializing) return;
+      await manualSaveDataSilent();
     }
 
     async function recordLogin() {
@@ -1148,7 +937,7 @@
           last_active: new Date().toISOString(), updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
         loadAdminStats();
-      } catch (err) { console.error("記錄登入次數失敗:", err); }
+      } catch (err) {}
     }
 
     function formatMoney(num) { return isNaN(num) || !isFinite(num) ? '0' : Math.round(num).toLocaleString('en-US'); }
@@ -1486,11 +1275,9 @@
       const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
       switchTab(savedTab);
 
-      const safeFetchMarketPrice = () => {
-        const activeTab = localStorage.getItem('calc_current_tab') || 'tw';
-        const currentKey = activeTab === 'tw' ? currentTwKey : currentUsKey;
-        if (currentKey) fetchMarketPrice(activeTab);
-      };
+      // 1. 優先載入本機快取，確保離線與即時呈現完全秒開，不受雲端延遲影響
+      const hasLocal = loadFromLocalStorage();
+      initDefaultView();
 
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -1502,31 +1289,21 @@
         updateAuthUI();
         updateVersionDisplay();
 
-        let dataLoadedFromCloud = false;
-
+        // 2. 若有網路且已登入，安全智慧合併雲端與本地資料（以最新時間戳為準，絕不被舊雲端覆蓋）
         if (currentUser && navigator.onLine) {
-          document.getElementById('syncStatus').innerText = '載入雲端資料中...';
+          document.getElementById('syncStatus').innerText = '檢查雲端資料中...';
           const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
           
           if (!error && data && data.portfolio_data) {
-            parseCloudData(data.portfolio_data);
-            saveToLocalStorage();
-            document.getElementById('syncStatus').innerText = '已同步雲端';
-            dataLoadedFromCloud = true;
+            mergeCloudAndLocalData(data.portfolio_data);
+            document.getElementById('syncStatus').innerText = '雲端已同步';
           }
           loadAdminStats();
+        } else {
+          document.getElementById('syncStatus').innerText = hasLocal ? '已載入本機快取 (離線模式)' : '已就緒';
         }
 
-        if (!dataLoadedFromCloud) {
-          const hasLocal = loadFromLocalStorage();
-          initDefaultView();
-          isInitializing = false;
-          if (hasLocal) {
-            document.getElementById('syncStatus').innerText = '已載入本地快取';
-          } else {
-            document.getElementById('syncStatus').innerText = '已就緒 (請點擊 +新增 建立項目)';
-          }
-        }
+        isInitializing = false;
 
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
@@ -1535,26 +1312,54 @@
 
           if (event === 'SIGNED_IN' && currentUser && navigator.onLine) {
             await recordLogin();
-            document.getElementById('syncStatus').innerText = '載入雲端資料中...';
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
             if (!error && data && data.portfolio_data) {
-              parseCloudData(data.portfolio_data);
-              saveToLocalStorage();
-              document.getElementById('syncStatus').innerText = '已同步雲端';
+              mergeCloudAndLocalData(data.portfolio_data);
+              document.getElementById('syncStatus').innerText = '雲端已同步';
             }
             loadAdminStats();
           }
         });
-
-        safeFetchMarketPrice();
       } catch (err) {
         isInitializing = false;
-        loadFromLocalStorage();
-        initDefaultView();
-        document.getElementById('syncStatus').innerText = '單機離線模式';
-        safeFetchMarketPrice();
+        document.getElementById('syncStatus').innerText = '單機離線模式執行中';
       }
       fetchExchangeRate();
+    }
+
+    // 💡 智慧時間戳合併：比較本地與雲端資料的 updated_at，確保手動改的中文名稱與資料永遠保留最新的一份
+    function mergeCloudAndLocalData(cloudPayload) {
+      let localPayload = null;
+      try {
+        const localRaw = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (localRaw) localPayload = JSON.parse(localRaw);
+      } catch (e) {}
+
+      if (!localPayload || !localPayload.twStocks) {
+        parseCloudData(cloudPayload);
+        return;
+      }
+
+      const localTime = localPayload.updated_at || 0;
+      const cloudTime = cloudPayload.updated_at || 0;
+
+      // 如果本機比較新或時間一樣，以本機為準並推回雲端
+      if (localTime >= cloudTime) {
+        cloudData = localPayload;
+        parseCloudData(cloudData);
+        if (currentUser && navigator.onLine) manualSaveDataSilent();
+      } else {
+        // 雲端較新，但為了防止覆蓋手動命名的股票，進行字典層級合併
+        cloudData = cloudPayload;
+        for (let k in localPayload.twStocks) {
+          if (!cloudData.twStocks[k]) cloudData.twStocks[k] = localPayload.twStocks[k];
+          else if (localPayload.twStocks[k].name && localPayload.twStocks[k].name !== k) {
+            cloudData.twStocks[k].name = localPayload.twStocks[k].name; // 保留本機自訂中文名稱
+          }
+        }
+        parseCloudData(cloudData);
+        saveToLocalStorage();
+      }
     }
 
     function initDefaultView() {
@@ -1590,7 +1395,6 @@
       renderStockSelector('us');
       loadStockToUI('tw', currentTwKey);
       loadStockToUI('us', currentUsKey);
-      isInitializing = false;
     }
 
     function updateAuthUI() {
