@@ -1126,7 +1126,7 @@
       }
     }
 
-    // 💡 修正：使用 upsert 與 isInitializing 保護鎖
+    // 💡 修正：整合詳細錯誤捕捉，將 Supabase 錯誤訊息印出到 UI 與 Console
     function saveData() {
       if (isInitializing) return;
       saveUIToCurrentStock('tw');
@@ -1153,10 +1153,16 @@
             updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' });
 
-          document.getElementById('syncStatus').innerText = error ? '同步失敗 (資料已保存在本地)' : '已同步雲端';
-          if (!error) loadAdminStats();
+          if (error) {
+            console.error("Supabase 同步錯誤細節:", error);
+            document.getElementById('syncStatus').innerText = `同步失敗: ${error.message}`;
+          } else {
+            document.getElementById('syncStatus').innerText = '已同步雲端';
+            loadAdminStats();
+          }
         } catch (err) {
-          document.getElementById('syncStatus').innerText = '同步失敗 (離線模式)';
+          console.error("網路或執行例外錯誤:", err);
+          document.getElementById('syncStatus').innerText = `同步失敗: ${err.message}`;
         }
       }, 500);
     }
