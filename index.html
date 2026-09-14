@@ -17,7 +17,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.4</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.6</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -154,7 +154,6 @@
           </div>
         </div>
 
-        <!-- 💡 新增：目標價格與目標損益試算欄位 -->
         <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center bg-indigo-50/40 p-3 rounded-xl border border-indigo-100">
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">🎯 設定目標價格</label>
@@ -285,7 +284,6 @@
           </span>
         </div>
 
-        <!-- 💡 新增：美股目標價格與目標損益試算欄位 -->
         <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center bg-teal-50/40 p-3 rounded-xl border border-teal-100">
           <div>
             <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">🎯 設定目標價格 ($)</label>
@@ -371,12 +369,12 @@
     let saveTimeout = null;
     let fetchController = null;
     let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
-    let isInitializing = true;
+    let isInitializing = true; // 🔒 絕對鎖定：初始化完成前禁止任何資料上傳與覆蓋
     let latestApiVer = '';
 
     let cloudData = { 
       twStocks: { 
-        "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "" } 
+        "台光電": { name: "台光電", symbol: "2383", discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "" } 
       },
       twOrder: ["台光電"],
       usStocks: {
@@ -386,7 +384,8 @@
           rate: "32", 
           fee: "0",
           plans: [{ p2: "", n2: "" }],
-          ptarget: ""
+          ptarget: "",
+          targetPrice: ""
         }
       },
       usOrder: ["應用材料"]
@@ -432,6 +431,7 @@
     }
 
     function saveToLocalStorage() {
+      if (isInitializing) return; // 🔒 初始化未完成不寫入快取防覆蓋
       try {
         saveUIToCurrentStock('tw');
         saveUIToCurrentStock('us');
@@ -632,7 +632,7 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.4';
+          latestApiVer = result.apiVersion || 'v7.8.6';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入 ${result.symbol || queryVal} 行情 (${result.currentPrice})`;
         } else {
@@ -935,6 +935,7 @@
     }
 
     function saveUIToCurrentStock(type) {
+      if (isInitializing) return; // 🔒 初始化尚未解鎖前嚴禁寫入
       if (type === 'tw') {
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
         const plans = [];
@@ -1021,7 +1022,7 @@
     }
 
     function saveData() {
-      if (isInitializing) return;
+      if (isInitializing) return; // 🔒 初始化未完成絕對不上傳
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
       saveToLocalStorage();
@@ -1049,7 +1050,7 @@
     }
 
     async function manualSaveDataSilent() {
-      if (!currentUser || !sbClient) return;
+      if (!currentUser || !sbClient || isInitializing) return;
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
       saveToLocalStorage();
@@ -1406,6 +1407,8 @@
     async function init() {
       applyUIMode();
       updateConnectionStatusUI();
+      
+      // 1. 先讀取本地快取，確保畫面有資料
       loadFromLocalStorage();
       initDefaultView();
 
@@ -1422,37 +1425,52 @@
           auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
         });
         
+        // 💡 關鍵修復：主動檢查當前是否有已登入的 Session，優先抓雲端資料
+        const { data: sessionData } = await sbClient.auth.getSession();
+        currentUser = sessionData?.session?.user || null;
+        updateAuthUI();
+        updateVersionDisplay();
+
+        if (currentUser && navigator.onLine) {
+          document.getElementById('syncStatus').innerText = '載入雲端資料中...';
+          const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
+          
+          if (!error && data && data.portfolio_data) {
+            parseCloudData(data.portfolio_data);
+            saveToLocalStorage();
+            document.getElementById('syncStatus').innerText = '已同步雲端';
+          } else {
+            // 雲端無資料才解除鎖定並上傳目前本機資料
+            isInitializing = false;
+            saveData();
+          }
+          loadAdminStats();
+        } else {
+          // 未登入直接解除初始化鎖定
+          isInitializing = false;
+          document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
+        }
+
+        // 監聽後續登入登出狀態
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null;
           updateAuthUI();
           updateVersionDisplay(); 
 
-          if (currentUser && navigator.onLine) {
+          if (event === 'SIGNED_IN' && currentUser && navigator.onLine) {
+            await recordLogin();
             document.getElementById('syncStatus').innerText = '載入雲端資料中...';
-            if (event === 'SIGNED_IN') await recordLogin();
-
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data').eq('user_id', currentUser.id).maybeSingle();
-            if (error) {
-              document.getElementById('syncStatus').innerText = '雲端讀取失敗，請重新整理';
-              isInitializing = false; safeFetchMarketPrice(); return;
-            }
-
-            if (data && data.portfolio_data) {
+            if (!error && data && data.portfolio_data) {
               parseCloudData(data.portfolio_data);
               saveToLocalStorage();
               document.getElementById('syncStatus').innerText = '已同步雲端';
-            } else {
-              isInitializing = false;
-              saveData();
             }
             loadAdminStats();
-            safeFetchMarketPrice();
-          } else if (!currentUser) {
-            isInitializing = false;
-            document.getElementById('syncStatus').innerText = '已就緒 (未登入)';
-            safeFetchMarketPrice();
           }
         });
+
+        safeFetchMarketPrice();
       } catch (err) {
         isInitializing = false;
         document.getElementById('syncStatus').innerText = '單機離線模式';
@@ -1490,7 +1508,7 @@
       renderStockSelector('us');
       loadStockToUI('tw', currentTwKey);
       loadStockToUI('us', currentUsKey);
-      isInitializing = false;
+      isInitializing = false; // 💡 只有在雲端資料完全解析並填入介面後，才正式解除初始化鎖定
     }
 
     function updateAuthUI() {
