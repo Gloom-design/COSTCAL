@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
   // 🛡️ 3. 攔截非法來源 (阻擋未授權網域存取 API)
   if (!origin || !allowedOrigins.includes(origin)) {
-    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.8.3' });
+    return res.status(403).json({ error: 'Forbidden: 拒絕外部網域存取 API', apiVersion: 'v7.8.4' });
   }
 
   // 🛡️ 4. 來源合法，允許通過
