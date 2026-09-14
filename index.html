@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 📱 PWA 支援設定 -->
-  <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4f46e5">
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
@@ -17,7 +14,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.15</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.17</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <!-- 💡 連線模式狀態標籤 -->
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
@@ -351,7 +348,7 @@
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
-    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v4';
+    const LOCAL_STORAGE_KEY = 'costcal_offline_portfolio_v5';
     
     let sbClient = null; 
     let currentUser = null;
@@ -578,10 +575,16 @@
       badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
     }
 
-    // 💡 修復即時行情抓取與正確帶入數值
+    // 💡 自動過濾 .TW / .TWO 並向 Vercel 後端查詢即時行情
     window.fetchMarketPrice = async function(type) {
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       let queryVal = symbolInput.value.trim();
+      
+      if (type === 'tw') {
+        queryVal = queryVal.replace(/\.TW$/i, '').replace(/\.TWO$/i, '');
+        symbolInput.value = queryVal;
+      }
+
       if (!queryVal) {
         document.getElementById('syncStatus').innerText = '請先輸入代號';
         return;
@@ -603,8 +606,10 @@
         if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
 
         if (result.currentPrice !== undefined) {
-          let cleanSymbol = result.symbol ? result.symbol.replace('.TW', '').replace('.TWO', '') : queryVal;
-          symbolInput.value = cleanSymbol;
+          if (type === 'tw' && result.symbol) {
+            let cleanSymbol = result.symbol.replace('.TW', '').replace('.TWO', '');
+            symbolInput.value = cleanSymbol;
+          }
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
           if (result.prevClose !== undefined) {
@@ -616,9 +621,9 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.15';
+          latestApiVer = result.apiVersion || 'v7.8.17';
           updateVersionDisplay();
-          document.getElementById('syncStatus').innerText = `已成功載入 ${cleanSymbol} 行情 (${result.currentPrice})`;
+          document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
           throw new Error("查無價格");
         }
@@ -902,7 +907,7 @@
           <span class="font-bold text-[11px] text-indigo-700">補倉批次</span>
           <div class="flex gap-1.5">
             <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-rose-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
@@ -1577,14 +1582,6 @@
     }
 
     init();
-
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then((reg) => console.log('Service Worker 註冊成功:', reg.scope))
-          .catch((err) => console.error('Service Worker 註冊失敗:', err));
-      });
-    }
   </script>
 </body>
 </html>
