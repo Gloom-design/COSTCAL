@@ -9,14 +9,71 @@
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   
-  <!-- 貼心的資料衝突/保留選擇對話框 -->
+  <!-- 💡 新增：單檔快速建立彈出視窗 -->
+  <div id="addStockModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 id="addModalTitle" class="font-bold text-base text-slate-900">➕ 新增投資組合項目</h3>
+        <button type="button" onclick="closeAddStockModal()" class="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer">✕</button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">股票代號 (必填)</label>
+          <input id="modal_symbol" type="text" placeholder="例: 2330 或 AAPL" class="w-full border rounded-xl p-2.5 font-bold uppercase outline-none focus:border-indigo-500">
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">股票名稱 (選填)</label>
+          <input id="modal_name" type="text" placeholder="例: 台積電" class="w-full border rounded-xl p-2.5 outline-none focus:border-indigo-500">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">現有股數 (N1)</label>
+            <input id="modal_n1" type="number" placeholder="0" class="w-full border rounded-xl p-2.5 outline-none focus:border-indigo-500">
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">現有均價 (P1)</label>
+            <input id="modal_p1" type="number" step="0.01" placeholder="0.00" class="w-full border rounded-xl p-2.5 outline-none focus:border-indigo-500">
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeAddStockModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">取消</button>
+        <button type="button" onclick="confirmAddStock()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow cursor-pointer">確認新增</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 💡 新增：批次匯入多組投資組合彈出視窗 -->
+  <div id="bulkImportModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 id="bulkModalTitle" class="font-bold text-base text-slate-900">📦 批次快速輸入投資組合</h3>
+        <button type="button" onclick="closeBulkImportModal()" class="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer">✕</button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed">
+        請在下方直接貼上您的多筆資料（支援從 Excel 或記事本複製）。每行一檔，格式範例：<br>
+        <code class="bg-slate-100 text-indigo-600 px-1 py-0.5 rounded font-bold">代號 股數 均價</code> (可用空格、逗號或 Tab 分隔)<br>
+        例如：<br>
+        <span class="text-[11px] text-slate-500">2330 1000 600<br>2317 2000 105<br>2454 500 950</span>
+      </p>
+      <div>
+        <textarea id="bulkTextArea" rows="6" placeholder="2330 1000 600&#10;2317 2000 105" class="w-full border rounded-xl p-3 text-xs font-mono outline-none focus:border-indigo-500 bg-slate-50"></textarea>
+      </div>
+      <div class="flex gap-2 pt-2">
+        <button type="button" onclick="closeBulkImportModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">取消</button>
+        <button type="button" onclick="confirmBulkImport()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow cursor-pointer">📥 開始批量匯入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 資料衝突對話框 -->
   <div id="dataChoiceModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in duration-200">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="flex items-center gap-3">
         <span class="text-2xl">✨</span>
-        <h3 id="modalTitle" class="font-bold text-base sm:text-lg text-slate-900">發現您剛才輸入的未登入資料</h3>
+        <h3 class="font-bold text-base sm:text-lg text-slate-900">發現您剛才輸入的未登入資料</h3>
       </div>
-      <p id="modalDesc" class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
         您在登入前已經在本機填寫並計算了投資組合資料。請問您希望如何處理這筆資料？
       </p>
       <div class="space-y-2.5 pt-2">
@@ -36,7 +93,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.34</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.35</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -78,7 +135,6 @@
       </div>
     </div>
 
-    <!-- ⚠️ 免責聲明提示條 -->
     <div class="bg-amber-50 border border-amber-200 text-amber-800 px-3.5 py-2.5 rounded-xl text-[10px] sm:text-xs flex items-start gap-2 shadow-sm">
       <span class="text-amber-600 font-bold text-sm leading-none mt-0.5">⚠️</span>
       <div>
@@ -100,9 +156,17 @@
           <button type="button" onclick="moveStockOrder('tw', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
           <button type="button" onclick="moveStockOrder('tw', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
           <button type="button" onclick="renameStock('tw')" class="bg-amber-50 text-amber-600 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
-          <button type="button" onclick="addStock('tw')" class="bg-indigo-50 text-indigo-600 px-2.5 py-2 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
+          <button type="button" onclick="openAddStockModal('tw')" class="bg-indigo-50 text-indigo-600 px-2.5 py-2 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
           <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
         </div>
+      </div>
+
+      <!-- 💡 新增：台股批次匯入快捷按鈕 -->
+      <div class="flex justify-between items-center px-1">
+        <span class="text-[11px] text-slate-500 font-bold">💡 支援多組投資組合管理</span>
+        <button type="button" onclick="openBulkImportModal('tw')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] px-3 py-1.5 rounded-xl font-bold shadow-sm transition cursor-pointer flex items-center gap-1">
+          📦 批次快速輸入多組台股
+        </button>
       </div>
 
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -233,9 +297,17 @@
           <button type="button" onclick="moveStockOrder('us', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
           <button type="button" onclick="moveStockOrder('us', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
           <button type="button" onclick="renameStock('us')" class="bg-amber-50 text-amber-600 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
-          <button type="button" onclick="addStock('us')" class="bg-teal-50 text-teal-600 px-2.5 py-2 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
+          <button type="button" onclick="openAddStockModal('us')" class="bg-teal-50 text-teal-600 px-2.5 py-2 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
           <button type="button" onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
         </div>
+      </div>
+
+      <!-- 💡 新增：美股批次匯入快捷按鈕 -->
+      <div class="flex justify-between items-center px-1">
+        <span class="text-[11px] text-slate-500 font-bold">💡 支援多組投資組合管理</span>
+        <button type="button" onclick="openBulkImportModal('us')" class="bg-teal-600 hover:bg-teal-700 text-white text-[11px] px-3 py-1.5 rounded-xl font-bold shadow-sm transition cursor-pointer flex items-center gap-1">
+          📦 批次快速輸入多組美股
+        </button>
       </div>
 
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -386,6 +458,7 @@
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "";
     let currentUsKey = localStorage.getItem('calc_current_us_key') || "";
     let pendingGuestData = null;
+    let currentModalType = 'tw';
 
     function getLocalStorageKey() {
       if (!currentUser) return `${LOCAL_STORAGE_BASE_KEY}_guest`;
@@ -421,7 +494,6 @@
 
     window.addEventListener('beforeunload', () => { saveToLocalStorage(); });
 
-    // 💡 防護 1：激進清除器，斬除雲端隱藏的空殼預設資料
     function sanitizeStockData(data) {
       if (!data) return { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
       let newTwStocks = {};
@@ -438,10 +510,7 @@
           let hasN2 = stock.plans && stock.plans.length > 0 && stock.plans.some(p => p.n2 && parseFloat(p.n2) > 0);
           let isDefaultName = !stock.name || stock.name === cleanKey || stock.name === '台積電';
 
-          // 🔪 將殘留在 DB 裡的無用空殼 2330 徹底清除
-          if (cleanKey === '2330' && !hasN1 && !hasP1 && !hasN2 && isDefaultName) {
-            continue; 
-          }
+          if (cleanKey === '2330' && !hasN1 && !hasP1 && !hasN2 && isDefaultName) continue;
           
           if (!stock.symbol) stock.symbol = cleanKey;
           newTwStocks[cleanKey] = stock;
@@ -465,10 +534,7 @@
           let hasN2 = stock.plans && stock.plans.length > 0 && stock.plans.some(p => p.n2 && parseFloat(p.n2) > 0);
           let isDefaultName = !stock.name || stock.name === cleanKey || stock.name === '蘋果' || stock.name.toUpperCase() === 'APPLE';
 
-          // 🔪 將無用空殼 AAPL 徹底清除
-          if (cleanKey === 'AAPL' && !hasN1 && !hasP1 && !hasN2 && isDefaultName) {
-            continue;
-          }
+          if (cleanKey === 'AAPL' && !hasN1 && !hasP1 && !hasN2 && isDefaultName) continue;
 
           if (!stock.symbol) stock.symbol = cleanKey;
           newUsStocks[cleanKey] = stock;
@@ -528,17 +594,13 @@
       if (error) alert("登入失敗: " + error.message);
     };
 
-    // 💡 防護 2：登出前強制上推資料，並清除所有舊指針
     window.logout = async function() {
       if (!sbClient) return;
       clearTimeout(saveTimeout);
-      
-      // 🔒 登出前最後一刻，強制將目前畫面推送到雲端，確保不漏存！
       if (currentUser && navigator.onLine) {
         document.getElementById('syncStatus').innerText = '正在安全登出與儲存...';
         await manualSaveDataSilent(); 
       }
-      
       saveToLocalStorage();
       await sbClient.auth.signOut({ scope: 'local' });
       
@@ -720,8 +782,6 @@
 
       renderStockSelector(type);
       saveData();
-      
-      // 💡 防護 3：改代號等重大動作，強制背景儲存，繞過延遲！
       if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
     }
 
@@ -775,7 +835,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.34';
+          latestApiVer = result.apiVersion || 'v7.8.35';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -811,29 +871,163 @@
       alert(`已成功將名稱更改為「${trimmedName}」！`);
     };
 
-    window.addStock = async function(type) {
-      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
-      let inputVal = prompt(type === 'tw' ? "請輸入台股代號 (例如: 2330):" : "請輸入美股代號 (例如: AAPL):");
-      if (!inputVal || !inputVal.trim()) return;
-      let trimmed = inputVal.trim().toUpperCase().replace('.TW', '').replace('.TWO', '');
+    // 💡 彈出式新增視窗控制
+    window.openAddStockModal = function(type) {
+      currentModalType = type;
+      document.getElementById('addModalTitle').innerText = type === 'tw' ? '➕ 新增台股投資組合' : '➕ 新增美股投資組合';
+      document.getElementById('modal_symbol').value = '';
+      document.getElementById('modal_name').value = '';
+      document.getElementById('modal_n1').value = '';
+      document.getElementById('modal_p1').value = '';
+      document.getElementById('addStockModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('modal_symbol').focus(), 100);
+    };
+
+    window.closeAddStockModal = function() {
+      document.getElementById('addStockModal').classList.add('hidden');
+    };
+
+    window.confirmAddStock = async function() {
+      const type = currentModalType;
+      const symbolVal = document.getElementById('modal_symbol').value.trim();
+      const nameVal = document.getElementById('modal_name').value.trim();
+      const n1Val = document.getElementById('modal_n1').value.trim();
+      const p1Val = document.getElementById('modal_p1').value.trim();
+
+      if (!symbolVal) { alert("請輸入股票代號！"); return; }
+      let trimmed = symbolVal.toUpperCase().replace('.TW', '').replace('.TWO', '');
 
       saveUIToCurrentStock(type);
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+
       if (type === 'tw') {
-        targetStore[trimmed] = { name: trimmed, symbol: trimmed, discount: "0.6", minFee: "20", plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "" };
-        currentTwKey = trimmed; localStorage.setItem('calc_current_tw_key', trimmed);
+        targetStore[trimmed] = {
+          name: nameVal || trimmed,
+          symbol: trimmed,
+          discount: "0.6",
+          minFee: "20",
+          n1: n1Val,
+          p1: p1Val,
+          plans: [{ p2: "", n2: "" }],
+          ptarget: "",
+          targetPrice: ""
+        };
+        currentTwKey = trimmed;
+        localStorage.setItem('calc_current_tw_key', trimmed);
       } else {
-        targetStore[trimmed] = { name: trimmed, symbol: trimmed, rate: "32", fee: "0", plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "" };
-        currentUsKey = trimmed; localStorage.setItem('calc_current_us_key', trimmed);
+        targetStore[trimmed] = {
+          name: nameVal || trimmed,
+          symbol: trimmed,
+          rate: "32",
+          fee: "0",
+          n1: n1Val,
+          p1: p1Val,
+          plans: [{ p2: "", n2: "" }],
+          ptarget: "",
+          targetPrice: ""
+        };
+        currentUsKey = trimmed;
+        localStorage.setItem('calc_current_us_key', trimmed);
       }
 
       if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
       else if (!cloudData[orderKey].includes(trimmed)) cloudData[orderKey].push(trimmed);
 
+      closeAddStockModal();
       renderStockSelector(type);
       loadStockToUI(type, trimmed);
+      saveData();
+      
+      // 自動連網抓取最新行情
       document.getElementById(`${type}_symbolInput`).value = trimmed;
       await fetchMarketPrice(type);
+    };
+
+    // 💡 批次快速匯入控制
+    window.openBulkImportModal = function(type) {
+      currentModalType = type;
+      document.getElementById('bulkModalTitle').innerText = type === 'tw' ? '📦 批次快速輸入多組台股' : '📦 批次快速輸入多組美股';
+      document.getElementById('bulkTextArea').value = type === 'tw' ? '2330 1000 600\n2317 2000 105' : 'AAPL 50 185.5\nTSLA 100 220';
+      document.getElementById('bulkImportModal').classList.remove('hidden');
+    };
+
+    window.closeBulkImportModal = function() {
+      document.getElementById('bulkImportModal').classList.add('hidden');
+    };
+
+    window.confirmBulkImport = async function() {
+      const type = currentModalType;
+      const text = document.getElementById('bulkTextArea').value.trim();
+      if (!text) { alert("請輸入或貼上資料！"); return; }
+
+      const lines = text.split('\n');
+      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
+
+      let importedCount = 0;
+      let lastValidKey = "";
+
+      lines.forEach(line => {
+        // 支援空格、逗號、Tab 分隔
+        const parts = line.trim().split(/[\s,]+/);
+        if (parts.length >= 1 && parts[0]) {
+          let symbol = parts[0].toUpperCase().replace('.TW', '').replace('.TWO', '');
+          let n1 = parts[1] !== undefined ? parts[1] : "";
+          let p1 = parts[2] !== undefined ? parts[2] : "";
+
+          if (type === 'tw') {
+            targetStore[symbol] = {
+              name: symbol,
+              symbol: symbol,
+              discount: "0.6",
+              minFee: "20",
+              n1: n1,
+              p1: p1,
+              plans: [{ p2: "", n2: "" }],
+              ptarget: "",
+              targetPrice: ""
+            };
+          } else {
+            targetStore[symbol] = {
+              name: symbol,
+              symbol: symbol,
+              rate: "32",
+              fee: "0",
+              n1: n1,
+              p1: p1,
+              plans: [{ p2: "", n2: "" }],
+              ptarget: "",
+              targetPrice: ""
+            };
+          }
+
+          if (!cloudData[orderKey].includes(symbol)) {
+            cloudData[orderKey].push(symbol);
+          }
+          lastValidKey = symbol;
+          importedCount++;
+        }
+      });
+
+      if (importedCount > 0 && lastValidKey) {
+        if (type === 'tw') {
+          currentTwKey = lastValidKey;
+          localStorage.setItem('calc_current_tw_key', lastValidKey);
+        } else {
+          currentUsKey = lastValidKey;
+          localStorage.setItem('calc_current_us_key', lastValidKey);
+        }
+      }
+
+      closeBulkImportModal();
+      renderStockSelector(type);
+      loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
+      saveData();
+      if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
+
+      alert(`成功批量匯入 ${importedCount} 筆投資組合資料！`);
     };
 
     window.deleteStock = function(type) {
@@ -859,7 +1053,6 @@
         }
         renderStockSelector(type);
         saveData();
-        // 💡 刪除後強力推播
         if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
       }
     };
@@ -1647,8 +1840,6 @@
           const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
           
           if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0)) {
-            
-            // 💡 防護 4：智慧解決衝突，若您本機還沒上傳的資料比較新，則捨棄舊雲端資料！
             let localParsed = null;
             try {
               const localRaw = localStorage.getItem(getLocalStorageKey());
@@ -1661,7 +1852,7 @@
             if (localParsed && localTime > cloudTime) {
               cloudData = sanitizeStockData(localParsed);
               document.getElementById('syncStatus').innerText = '已恢復本機最新進度';
-              manualSaveDataSilent(); // 推回雲端
+              manualSaveDataSilent();
             } else {
               cloudData = sanitizeStockData(data.portfolio_data);
               saveToLocalStorage();
@@ -1705,7 +1896,6 @@
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
             
             if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0)) {
-              
               let localParsed = null;
               try {
                 const localRaw = localStorage.getItem(getLocalStorageKey());
