@@ -9,7 +9,7 @@
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   
-  <!-- 💡 新增：單檔快速建立彈出視窗 -->
+  <!-- 💡 支援單筆與連續多筆新增的彈出視窗 -->
   <div id="addStockModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
       <div class="flex items-center justify-between border-b pb-2">
@@ -18,12 +18,12 @@
       </div>
       <div class="space-y-3 text-xs">
         <div>
-          <label class="font-bold text-slate-700 block mb-1">股票代號 (必填)</label>
-          <input id="modal_symbol" type="text" placeholder="例: 2330 或 AAPL" class="w-full border rounded-xl p-2.5 font-bold uppercase outline-none focus:border-indigo-500">
+          <label class="font-bold text-slate-700 block mb-1">股票代號/名稱 (必填)</label>
+          <input id="modal_symbol" type="text" placeholder="例: 台積電或2330" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-indigo-500">
         </div>
         <div>
-          <label class="font-bold text-slate-700 block mb-1">股票名稱 (選填)</label>
-          <input id="modal_name" type="text" placeholder="例: 台積電" class="w-full border rounded-xl p-2.5 outline-none focus:border-indigo-500">
+          <label class="font-bold text-slate-700 block mb-1">自訂股票名稱 (選填)</label>
+          <input id="modal_name" type="text" placeholder="例: 我的長期存股" class="w-full border rounded-xl p-2.5 outline-none focus:border-indigo-500">
         </div>
         <div class="grid grid-cols-2 gap-2">
           <div>
@@ -36,32 +36,12 @@
           </div>
         </div>
       </div>
-      <div class="flex gap-2 pt-2">
-        <button type="button" onclick="closeAddStockModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">取消</button>
-        <button type="button" onclick="confirmAddStock()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow cursor-pointer">確認新增</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 💡 新增：批次匯入多組投資組合彈出視窗 -->
-  <div id="bulkImportModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-5 shadow-2xl border border-slate-200 space-y-4">
-      <div class="flex items-center justify-between border-b pb-2">
-        <h3 id="bulkModalTitle" class="font-bold text-base text-slate-900">📦 批次快速輸入投資組合</h3>
-        <button type="button" onclick="closeBulkImportModal()" class="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer">✕</button>
-      </div>
-      <p class="text-xs text-slate-600 leading-relaxed">
-        請在下方直接貼上您的多筆資料（支援從 Excel 或記事本複製）。每行一檔，格式範例：<br>
-        <code class="bg-slate-100 text-indigo-600 px-1 py-0.5 rounded font-bold">代號 股數 均價</code> (可用空格、逗號或 Tab 分隔)<br>
-        例如：<br>
-        <span class="text-[11px] text-slate-500">2330 1000 600<br>2317 2000 105<br>2454 500 950</span>
-      </p>
-      <div>
-        <textarea id="bulkTextArea" rows="6" placeholder="2330 1000 600&#10;2317 2000 105" class="w-full border rounded-xl p-3 text-xs font-mono outline-none focus:border-indigo-500 bg-slate-50"></textarea>
-      </div>
-      <div class="flex gap-2 pt-2">
-        <button type="button" onclick="closeBulkImportModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl transition cursor-pointer">取消</button>
-        <button type="button" onclick="confirmBulkImport()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow cursor-pointer">📥 開始批量匯入</button>
+      <div class="space-y-2 pt-2">
+        <div class="flex gap-2">
+          <button type="button" onclick="confirmAddStock(false)" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow cursor-pointer text-xs">確認新增 (單筆)</button>
+          <button type="button" onclick="confirmAddStock(true)" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow cursor-pointer text-xs">確認並新增下一筆 ➕</button>
+        </div>
+        <button type="button" onclick="closeAddStockModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2 rounded-xl transition cursor-pointer text-xs">取消離開</button>
       </div>
     </div>
   </div>
@@ -93,7 +73,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.35</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.36</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -159,14 +139,6 @@
           <button type="button" onclick="openAddStockModal('tw')" class="bg-indigo-50 text-indigo-600 px-2.5 py-2 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
           <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
         </div>
-      </div>
-
-      <!-- 💡 新增：台股批次匯入快捷按鈕 -->
-      <div class="flex justify-between items-center px-1">
-        <span class="text-[11px] text-slate-500 font-bold">💡 支援多組投資組合管理</span>
-        <button type="button" onclick="openBulkImportModal('tw')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] px-3 py-1.5 rounded-xl font-bold shadow-sm transition cursor-pointer flex items-center gap-1">
-          📦 批次快速輸入多組台股
-        </button>
       </div>
 
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -300,14 +272,6 @@
           <button type="button" onclick="openAddStockModal('us')" class="bg-teal-50 text-teal-600 px-2.5 py-2 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
           <button type="button" onclick="deleteStock('us')" class="bg-rose-50 text-rose-600 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
         </div>
-      </div>
-
-      <!-- 💡 新增：美股批次匯入快捷按鈕 -->
-      <div class="flex justify-between items-center px-1">
-        <span class="text-[11px] text-slate-500 font-bold">💡 支援多組投資組合管理</span>
-        <button type="button" onclick="openBulkImportModal('us')" class="bg-teal-600 hover:bg-teal-700 text-white text-[11px] px-3 py-1.5 rounded-xl font-bold shadow-sm transition cursor-pointer flex items-center gap-1">
-          📦 批次快速輸入多組美股
-        </button>
       </div>
 
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
@@ -835,7 +799,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.35';
+          latestApiVer = result.apiVersion || 'v7.8.36';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -871,10 +835,11 @@
       alert(`已成功將名稱更改為「${trimmedName}」！`);
     };
 
-    // 💡 彈出式新增視窗控制
+    // 💡 彈出式新增視窗控制 (依台美股動態調整說明文字)
     window.openAddStockModal = function(type) {
       currentModalType = type;
       document.getElementById('addModalTitle').innerText = type === 'tw' ? '➕ 新增台股投資組合' : '➕ 新增美股投資組合';
+      document.getElementById('modal_symbol').placeholder = type === 'tw' ? '例: 台積電或2330' : '例: 蘋果或AAPL';
       document.getElementById('modal_symbol').value = '';
       document.getElementById('modal_name').value = '';
       document.getElementById('modal_n1').value = '';
@@ -887,14 +852,15 @@
       document.getElementById('addStockModal').classList.add('hidden');
     };
 
-    window.confirmAddStock = async function() {
+    // 💡 支援單筆或連續多筆新增的處理邏輯
+    window.confirmAddStock = async function(keepAdding) {
       const type = currentModalType;
       const symbolVal = document.getElementById('modal_symbol').value.trim();
       const nameVal = document.getElementById('modal_name').value.trim();
       const n1Val = document.getElementById('modal_n1').value.trim();
       const p1Val = document.getElementById('modal_p1').value.trim();
 
-      if (!symbolVal) { alert("請輸入股票代號！"); return; }
+      if (!symbolVal) { alert("請輸入股票代號或名稱！"); return; }
       let trimmed = symbolVal.toUpperCase().replace('.TW', '').replace('.TWO', '');
 
       saveUIToCurrentStock(type);
@@ -934,100 +900,25 @@
       if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
       else if (!cloudData[orderKey].includes(trimmed)) cloudData[orderKey].push(trimmed);
 
-      closeAddStockModal();
       renderStockSelector(type);
       loadStockToUI(type, trimmed);
       saveData();
-      
-      // 自動連網抓取最新行情
+
+      // 背景自動抓取行情
       document.getElementById(`${type}_symbolInput`).value = trimmed;
-      await fetchMarketPrice(type);
-    };
+      fetchMarketPrice(type);
 
-    // 💡 批次快速匯入控制
-    window.openBulkImportModal = function(type) {
-      currentModalType = type;
-      document.getElementById('bulkModalTitle').innerText = type === 'tw' ? '📦 批次快速輸入多組台股' : '📦 批次快速輸入多組美股';
-      document.getElementById('bulkTextArea').value = type === 'tw' ? '2330 1000 600\n2317 2000 105' : 'AAPL 50 185.5\nTSLA 100 220';
-      document.getElementById('bulkImportModal').classList.remove('hidden');
-    };
-
-    window.closeBulkImportModal = function() {
-      document.getElementById('bulkImportModal').classList.add('hidden');
-    };
-
-    window.confirmBulkImport = async function() {
-      const type = currentModalType;
-      const text = document.getElementById('bulkTextArea').value.trim();
-      if (!text) { alert("請輸入或貼上資料！"); return; }
-
-      const lines = text.split('\n');
-      const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
-      if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
-
-      let importedCount = 0;
-      let lastValidKey = "";
-
-      lines.forEach(line => {
-        // 支援空格、逗號、Tab 分隔
-        const parts = line.trim().split(/[\s,]+/);
-        if (parts.length >= 1 && parts[0]) {
-          let symbol = parts[0].toUpperCase().replace('.TW', '').replace('.TWO', '');
-          let n1 = parts[1] !== undefined ? parts[1] : "";
-          let p1 = parts[2] !== undefined ? parts[2] : "";
-
-          if (type === 'tw') {
-            targetStore[symbol] = {
-              name: symbol,
-              symbol: symbol,
-              discount: "0.6",
-              minFee: "20",
-              n1: n1,
-              p1: p1,
-              plans: [{ p2: "", n2: "" }],
-              ptarget: "",
-              targetPrice: ""
-            };
-          } else {
-            targetStore[symbol] = {
-              name: symbol,
-              symbol: symbol,
-              rate: "32",
-              fee: "0",
-              n1: n1,
-              p1: p1,
-              plans: [{ p2: "", n2: "" }],
-              ptarget: "",
-              targetPrice: ""
-            };
-          }
-
-          if (!cloudData[orderKey].includes(symbol)) {
-            cloudData[orderKey].push(symbol);
-          }
-          lastValidKey = symbol;
-          importedCount++;
-        }
-      });
-
-      if (importedCount > 0 && lastValidKey) {
-        if (type === 'tw') {
-          currentTwKey = lastValidKey;
-          localStorage.setItem('calc_current_tw_key', lastValidKey);
-        } else {
-          currentUsKey = lastValidKey;
-          localStorage.setItem('calc_current_us_key', lastValidKey);
-        }
+      if (keepAdding) {
+        // 清空輸入欄位，保留視窗讓使用者繼續輸入下一筆
+        document.getElementById('modal_symbol').value = '';
+        document.getElementById('modal_name').value = '';
+        document.getElementById('modal_n1').value = '';
+        document.getElementById('modal_p1').value = '';
+        document.getElementById('modal_symbol').focus();
+        document.getElementById('syncStatus').innerText = `已成功新增「${trimmed}」，請繼續輸入下一筆`;
+      } else {
+        closeAddStockModal();
       }
-
-      closeBulkImportModal();
-      renderStockSelector(type);
-      loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
-      saveData();
-      if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
-
-      alert(`成功批量匯入 ${importedCount} 筆投資組合資料！`);
     };
 
     window.deleteStock = function(type) {
