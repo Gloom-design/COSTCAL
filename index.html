@@ -2,21 +2,16 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <!-- PWA 必須的 viewport 與主題色設定 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#4f46e5">
   <title>台美股多組合攤平與損益計算器</title>
-  
-  <!-- 💡 匯入 PWA Manifest -->
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-
   <script data-config='{"config":{"properties":{}}}' bis-use="true"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   
-  <!-- 💡 支援單筆與連續多筆新增的彈出視窗 -->
   <div id="addStockModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
       <div class="flex items-center justify-between border-b pb-2">
@@ -53,7 +48,6 @@
     </div>
   </div>
 
-  <!-- 資料衝突對話框 -->
   <div id="dataChoiceModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
       <div class="flex items-center gap-3">
@@ -80,7 +74,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v7.8.38 PWA</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -91,7 +85,6 @@
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-        <!-- 💡 PWA 原生安裝按鈕 (系統判斷可安裝時才會顯示) -->
         <button id="installAppBtn" type="button" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-emerald-300 transition shadow-sm cursor-pointer">
           📲 安裝 App
         </button>
@@ -116,14 +109,29 @@
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
         <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
         <div class="flex items-center gap-2 flex-wrap">
-          <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零登入次數</button>
-          <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步次數</button>
+          <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零登入</button>
+          <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步</button>
         </div>
       </div>
       <div class="grid grid-cols-3 gap-2 text-xs pt-1">
         <div>總人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
-        <div>總登入次數: <strong id="adminTotalLogins" class="text-indigo-300 font-bold">0 次</strong></div>
-        <div>總同步次數: <strong id="adminTotalSyncs" class="text-emerald-300 font-bold">0 次</strong></div>
+        <div>總登入: <strong id="adminTotalLogins" class="text-indigo-300 font-bold">0 次</strong></div>
+        <div>總同步: <strong id="adminTotalSyncs" class="text-emerald-300 font-bold">0 次</strong></div>
+      </div>
+      <!-- 💡 新增的動態版本監控區塊 -->
+      <div class="border-t border-slate-700 pt-3 mt-2">
+        <div class="flex justify-between items-center pb-2">
+          <span class="font-bold text-xs text-amber-400">📄 系統檔案版本監控 (無快取連線)</span>
+          <button type="button" onclick="checkSystemVersions()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-[10px] px-2 py-1.5 rounded cursor-pointer border border-slate-500 transition">
+            🔍 重新偵測
+          </button>
+        </div>
+        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[11px] text-slate-300">
+          <div>index.html: <strong id="adminVerIndex" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+          <div>stock.js: <strong id="adminVerStock" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+          <div>manifest.json: <strong id="adminVerManifest" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+          <div>sw.js: <strong id="adminVerSw" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+        </div>
       </div>
     </div>
 
@@ -139,7 +147,6 @@
       <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
     </div>
 
-    <!-- 🇹🇼 台股介面 -->
     <div id="twView" class="space-y-4 sm:space-y-5">
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
         <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-bold text-indigo-600 bg-slate-50 outline-none">
@@ -272,7 +279,6 @@
       </div>
     </div>
 
-    <!-- 🇺🇸 美股介面 -->
     <div id="usView" class="space-y-4 sm:space-y-5 hidden">
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
         <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-bold text-teal-600 bg-slate-50 outline-none">
@@ -411,9 +417,11 @@
     const API_BACKEND_URL = 'https://costcal-peach.vercel.app/api/stock';
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
-    
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
+    
+    // 💡 定義前端版本
+    const FRONTEND_VERSION = 'v0';
     
     let sbClient = null; 
     let currentUser = null;
@@ -424,19 +432,12 @@
     let isSyncing = false;
     let latestApiVer = '';
 
-    let cloudData = { 
-      twStocks: {},
-      twOrder: [],
-      usStocks: {},
-      usOrder: []
-    };
-    
+    let cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "";
     let currentUsKey = localStorage.getItem('calc_current_us_key') || "";
     let pendingGuestData = null;
     let currentModalType = 'tw';
 
-    // 💡 PWA 安裝按鈕邏輯
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -448,18 +449,14 @@
       if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          document.getElementById('installAppBtn').classList.add('hidden');
-        }
+        if (outcome === 'accepted') document.getElementById('installAppBtn').classList.add('hidden');
         deferredPrompt = null;
       }
     });
 
-    // 💡 註冊 Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker 註冊成功:', reg.scope))
           .catch(err => console.log('Service Worker 註冊失敗:', err));
       });
     }
@@ -490,9 +487,8 @@
     window.addEventListener('offline', updateConnectionStatusUI);
 
     window.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        fetchExchangeRate();
-      } else if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === 'visible') fetchExchangeRate();
+      else if (document.visibilityState === 'hidden') {
         saveToLocalStorage();
         if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
       }
@@ -566,7 +562,7 @@
             return true;
           }
         }
-      } catch (err) { console.error("讀取本地快取失敗:", err); }
+      } catch (err) {}
       return false;
     }
 
@@ -578,12 +574,12 @@
         cloudData = sanitizeStockData(cloudData);
         cloudData.updated_at = Date.now();
         localStorage.setItem(getLocalStorageKey(), JSON.stringify(cloudData));
-      } catch (err) { console.error("寫入本地快取失敗:", err); }
+      } catch (err) {}
     }
 
     window.loginWithGoogle = async function() {
       if (!navigator.onLine) { alert("目前離線中，無法進行Google登入！"); return; }
-      if (!sbClient) { alert("雲端模組尚未準備好！"); return; }
+      if (!sbClient) return;
       
       saveUIToCurrentStock('tw');
       saveUIToCurrentStock('us');
@@ -614,26 +610,21 @@
       localStorage.removeItem('calc_current_us_key');
       localStorage.removeItem('calc_current_tab');
       localStorage.removeItem(`${LOCAL_STORAGE_BASE_KEY}_guest`); 
-      
       window.location.href = window.location.origin + window.location.pathname;
     };
 
     window.deleteAccount = async function() {
-      if (!currentUser || !sbClient) { alert("請先登入！"); return; }
-      const confirmText = prompt("⚠️ 警告：刪除帳號將會永久清除你在雲端儲存的所有投資組合與計算資料，且無法復原。\n\n如確定要刪除，請輸入「DELETE」：");
-      if (confirmText !== "DELETE") { alert("已取消刪除帳號操作。"); return; }
-
-      document.getElementById('syncStatus').innerText = '正在刪除帳號資料...';
+      if (!currentUser || !sbClient) return;
+      const confirmText = prompt("⚠️ 警告：刪除帳號將會永久清除你在雲端儲存的所有資料。\n輸入「DELETE」：");
+      if (confirmText !== "DELETE") return;
+      document.getElementById('syncStatus').innerText = '正在刪除...';
       try {
-        const { error: dbError } = await sbClient.from('user_portfolios').delete().eq('user_id', currentUser.id);
-        if (dbError) throw dbError;
+        const { error } = await sbClient.from('user_portfolios').delete().eq('user_id', currentUser.id);
+        if (error) throw error;
         localStorage.removeItem(getLocalStorageKey());
-        alert("帳號資料已成功清除，系統將自動登出。");
+        alert("資料已清除。");
         await logout();
-      } catch (err) {
-        alert("刪除帳號失敗: " + err.message);
-        document.getElementById('syncStatus').innerText = '刪除失敗';
-      }
+      } catch (err) { alert("刪除失敗: " + err.message); }
     };
 
     async function loadAdminStats() {
@@ -647,30 +638,65 @@
           document.getElementById('adminTotalLogins').innerText = `${stats.total_logins || 0} 次`;
           document.getElementById('adminTotalSyncs').innerText = `${stats.total_syncs || 0} 次`;
           document.getElementById('adminPanel').classList.remove('hidden');
+          // 初始化時順便抓取一次版本號
+          checkSystemVersions();
         }
-      } catch (err) { console.error("載入管理者統計失敗:", err); }
+      } catch (err) {}
     }
+
+    // 💡 非同步動態檢查所有檔案版本 (加上 cache-buster 防止快取)
+    window.checkSystemVersions = async function() {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
+      const ts = Date.now(); // Cache Buster
+      
+      // 1. index.html (讀取前端常數)
+      document.getElementById('adminVerIndex').innerText = FRONTEND_VERSION;
+      
+      // 2. manifest.json
+      try {
+        const res = await fetch(`./manifest.json?t=${ts}`);
+        const data = await res.json();
+        document.getElementById('adminVerManifest').innerText = data.version || '未標示';
+      } catch (e) {
+        document.getElementById('adminVerManifest').innerText = '讀取失敗';
+      }
+      
+      // 3. sw.js (抓純文字用正則取出常數)
+      try {
+        const res = await fetch(`./sw.js?t=${ts}`);
+        const text = await res.text();
+        const match = text.match(/const\s+SW_VERSION\s*=\s*['"]([^'"]+)['"]/);
+        document.getElementById('adminVerSw').innerText = match ? match[1] : '未標示';
+      } catch (e) {
+        document.getElementById('adminVerSw').innerText = '讀取失敗';
+      }
+      
+      // 4. stock.js (直接呼叫後端 API)
+      try {
+        const res = await fetch(`${API_BACKEND_URL}?symbol=2330&t=${ts}`);
+        const data = await res.json();
+        document.getElementById('adminVerStock').innerText = data.apiVersion || '未標示';
+      } catch (e) {
+        document.getElementById('adminVerStock').innerText = '連線失敗';
+      }
+    };
 
     window.resetLoginCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("確定要將所有使用者的「登入次數」全部歸零嗎？")) return;
+      if (!confirm("歸零登入次數？")) return;
       try {
-        const { error } = await sbClient.rpc('admin_reset_login_counts');
-        if (error) throw error;
-        alert("登入次數已全部歸零成功！");
+        await sbClient.rpc('admin_reset_login_counts');
         loadAdminStats();
-      } catch (err) { alert("歸零失敗: " + err.message); }
+      } catch (err) {}
     };
 
     window.resetSyncCounts = async function() {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) return;
-      if (!confirm("確定要將所有使用者的「同步次數」全部歸零嗎？")) return;
+      if (!confirm("歸零同步次數？")) return;
       try {
-        const { error } = await sbClient.rpc('admin_reset_sync_counts');
-        if (error) throw error;
-        alert("同步次數已全部歸零成功！");
+        await sbClient.rpc('admin_reset_sync_counts');
         loadAdminStats();
-      } catch (err) { alert("歸零失敗: " + err.message); }
+      } catch (err) {}
     };
 
     window.toggleUIMode = function() {
@@ -687,20 +713,13 @@
       const usBtn = document.getElementById('tabUsBtn');
 
       if (type === 'tw') {
-        twView.classList.remove('hidden');
-        usView.classList.add('hidden');
+        twView.classList.remove('hidden'); usView.classList.add('hidden');
         twBtn.className = "py-2.5 font-semibold rounded-xl transition-all bg-white text-indigo-600 shadow-sm text-xs sm:text-sm cursor-pointer";
-        twBtn.innerText = "🇹🇼 台股專用";
         usBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
-        usBtn.innerText = "🇺🇸 美股專用";
       } else {
-        usView.classList.remove('hidden');
-        twView.classList.add('hidden');
+        usView.classList.remove('hidden'); twView.classList.add('hidden');
         usBtn.className = "py-2.5 font-semibold rounded-xl transition-all bg-white text-teal-600 shadow-sm text-xs sm:text-sm cursor-pointer";
-        usBtn.innerText = "🇺🇸 美股專用";
         twBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
-        twBtn.innerText = "🇹🇼 台股專用";
-        
         fetchExchangeRate();
       }
     };
@@ -708,7 +727,6 @@
     window.moveStockOrder = function(type, direction) {
       clearTimeout(saveTimeout);
       saveUIToCurrentStock(type);
-
       const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
       if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(cloudData[storeKey]);
@@ -717,7 +735,6 @@
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       const index = keys.indexOf(currentKey);
       if (index === -1) return;
-      
       const targetIndex = index + direction;
       if (targetIndex < 0 || targetIndex >= keys.length) return;
       
@@ -739,12 +756,8 @@
           const data = await res.json();
           const rate = data?.rates?.TWD;
           if (rate) {
-            const rateInput = document.getElementById('us_exchangeRate');
-            if (rateInput) {
-              rateInput.value = rate.toFixed(2);
-              calculateUs();
-              saveData();
-            }
+            document.getElementById('us_exchangeRate').value = rate.toFixed(2);
+            calculateUs(); saveData();
           }
         }
       } catch (err) {}
@@ -755,7 +768,7 @@
       if (!badge) return;
       const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
       if (!latestApiVer) { badge.innerText = '尚未查詢'; return; }
-      badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer.split(' ')[0];
+      badge.innerText = isAdmin ? `stock.js: ${latestApiVer}` : latestApiVer;
     }
 
     function commitSymbolChange(type) {
@@ -764,9 +777,7 @@
       if (!currentKey || !symbolInput) return;
 
       let inputSymbol = symbolInput.value.trim().toUpperCase();
-      if (type === 'tw') {
-        inputSymbol = inputSymbol.replace(/\.TW$/i, '').replace(/\.TWO$/i, '');
-      }
+      if (type === 'tw') inputSymbol = inputSymbol.replace(/\.TW$/i, '').replace(/\.TWO$/i, '');
       if (!inputSymbol || inputSymbol === currentKey) return;
 
       const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
@@ -777,19 +788,11 @@
       delete cloudData[storeKey][currentKey];
 
       let orderIdx = cloudData[orderKey].indexOf(currentKey);
-      if (orderIdx !== -1) {
-        cloudData[orderKey][orderIdx] = inputSymbol;
-      } else {
-        cloudData[orderKey].push(inputSymbol);
-      }
+      if (orderIdx !== -1) cloudData[orderKey][orderIdx] = inputSymbol;
+      else cloudData[orderKey].push(inputSymbol);
 
-      if (type === 'tw') {
-        currentTwKey = inputSymbol;
-        localStorage.setItem('calc_current_tw_key', currentTwKey);
-      } else {
-        currentUsKey = inputSymbol;
-        localStorage.setItem('calc_current_us_key', currentUsKey);
-      }
+      if (type === 'tw') { currentTwKey = inputSymbol; localStorage.setItem('calc_current_tw_key', currentTwKey); }
+      else { currentUsKey = inputSymbol; localStorage.setItem('calc_current_us_key', currentUsKey); }
 
       renderStockSelector(type);
       saveData();
@@ -798,106 +801,70 @@
 
     window.fetchMarketPrice = async function(type) {
       commitSymbolChange(type);
-
       const symbolInput = document.getElementById(`${type}_symbolInput`);
       const nameInput = document.getElementById(`${type}_nameInput`);
       let queryVal = symbolInput.value.trim();
-
-      if (!queryVal) {
-        document.getElementById('syncStatus').innerText = '請先輸入代號';
-        return;
-      }
-
-      if (!navigator.onLine) {
-        document.getElementById('syncStatus').innerText = '離線模式 (無法聯網查詢)';
-        return;
-      }
+      if (!queryVal) return;
+      if (!navigator.onLine) return;
 
       if (fetchController) fetchController.abort();
       fetchController = new AbortController();
-
       document.getElementById('syncStatus').innerText = `正在查詢 ${queryVal}...`;
 
       try {
         const apiRes = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(queryVal)}`, { signal: fetchController.signal });
         const result = await apiRes.json();
-        if (!apiRes.ok) throw new Error(result.error || "後端查詢失敗");
+        if (!apiRes.ok) throw new Error(result.error);
 
         if (result.currentPrice !== undefined) {
           if (result.symbol) {
             let cleanSym = String(result.symbol).trim().replace('.TW', '').replace('.TWO', '');
-            if (!cleanSym.includes(' ') && cleanSym.length <= 10) {
-              symbolInput.value = cleanSym;
-            }
+            if (!cleanSym.includes(' ') && cleanSym.length <= 10) symbolInput.value = cleanSym;
           }
           commitSymbolChange(type);
-
-          if (result.name && (nameInput.value === '' || nameInput.value === queryVal || nameInput.value.length > 25)) {
-            nameInput.value = result.name;
-          }
+          if (result.name && (nameInput.value === '' || nameInput.value === queryVal || nameInput.value.length > 25)) nameInput.value = result.name;
 
           document.getElementById(`${type}_currentPrice`).value = result.currentPrice;
-          if (result.prevClose !== undefined) {
-            document.getElementById(`${type}_prevClose`).value = result.prevClose;
-          }
+          if (result.prevClose !== undefined) document.getElementById(`${type}_prevClose`).value = result.prevClose;
 
-          if (type === 'tw') calculateTw(); 
-          else calculateUs();
-
+          if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.38 PWA';
+          latestApiVer = result.apiVersion || 'v0';
           updateVersionDisplay();
-          document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
-        } else {
-          throw new Error("查無價格");
+          document.getElementById('syncStatus').innerText = `已成功載入行情`;
         }
-      } catch (e) {
-        if (e.name === 'AbortError') return;
-        document.getElementById('syncStatus').innerText = `查詢失敗: ${e.message}`;
-      }
+      } catch (e) {}
     };
 
     window.renameStock = async function(type) {
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
-      if (!currentKey) { alert("目前沒有可更改名稱的項目！"); return; }
+      if (!currentKey) return;
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
-      
-      let newName = prompt(`請輸入「${currentKey}」的新名稱 (中文公司名稱)：`, targetStore[currentKey]?.name || currentKey);
+      let newName = prompt(`新名稱：`, targetStore[currentKey]?.name || currentKey);
       if (!newName || !newName.trim()) return;
       let trimmedName = newName.trim();
       
       saveUIToCurrentStock(type);
-      if (targetStore[currentKey]) {
-        targetStore[currentKey].name = trimmedName;
-      }
-
+      if (targetStore[currentKey]) targetStore[currentKey].name = trimmedName;
       if (type === 'tw') document.getElementById('tw_nameInput').value = trimmedName;
       else document.getElementById('us_nameInput').value = trimmedName;
 
-      renderStockSelector(type);
-      loadStockToUI(type, currentKey);
-      saveData();
+      renderStockSelector(type); loadStockToUI(type, currentKey); saveData();
       if (currentUser && sbClient && navigator.onLine) await manualSaveDataSilent();
-      alert(`已成功將名稱更改為「${trimmedName}」！`);
     };
 
     window.openAddStockModal = function(type) {
       currentModalType = type;
       document.getElementById('addModalTitle').innerText = type === 'tw' ? '➕ 新增台股投資組合' : '➕ 新增美股投資組合';
-      document.getElementById('modalSymbolLabel').innerText = type === 'tw' ? '台股代號/名稱 (必填)' : '美股代號/名稱 (必填)';
-      document.getElementById('modal_symbol').placeholder = type === 'tw' ? '例: 台積電或2330' : '例: 蘋果或AAPL';
-      document.getElementById('modal_symbol').value = '';
-      document.getElementById('modal_name').value = '';
-      document.getElementById('modal_n1').value = '';
-      document.getElementById('modal_p1').value = '';
+      document.getElementById('modalSymbolLabel').innerText = type === 'tw' ? '台股代號/名稱' : '美股代號/名稱';
+      document.getElementById('modal_symbol').value = ''; document.getElementById('modal_name').value = '';
+      document.getElementById('modal_n1').value = ''; document.getElementById('modal_p1').value = '';
       document.getElementById('addStockModal').classList.remove('hidden');
       setTimeout(() => document.getElementById('modal_symbol').focus(), 100);
     };
 
-    window.closeAddStockModal = function() {
-      document.getElementById('addStockModal').classList.add('hidden');
-    };
+    window.closeAddStockModal = function() { document.getElementById('addStockModal').classList.add('hidden'); };
 
     window.confirmAddStock = async function(keepAdding) {
       const type = currentModalType;
@@ -905,64 +872,33 @@
       const nameVal = document.getElementById('modal_name').value.trim();
       const n1Val = document.getElementById('modal_n1').value.trim();
       const p1Val = document.getElementById('modal_p1').value.trim();
-
-      if (!symbolVal) { alert("請輸入股票代號或名稱！"); return; }
+      if (!symbolVal) return;
       let trimmed = symbolVal.toUpperCase().replace('.TW', '').replace('.TWO', '');
 
       saveUIToCurrentStock(type);
       const targetStore = type === 'tw' ? cloudData.twStocks : cloudData.usStocks;
       const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
 
-      if (type === 'tw') {
-        targetStore[trimmed] = {
-          name: nameVal || trimmed,
-          symbol: trimmed,
-          discount: "0.6",
-          minFee: "20",
-          n1: n1Val,
-          p1: p1Val,
-          plans: [{ p2: "", n2: "" }],
-          ptarget: "",
-          targetPrice: ""
-        };
-        currentTwKey = trimmed;
-        localStorage.setItem('calc_current_tw_key', trimmed);
-      } else {
-        targetStore[trimmed] = {
-          name: nameVal || trimmed,
-          symbol: trimmed,
-          rate: document.getElementById('us_exchangeRate').value || "32",
-          fee: "0",
-          n1: n1Val,
-          p1: p1Val,
-          plans: [{ p2: "", n2: "" }],
-          ptarget: "",
-          targetPrice: ""
-        };
-        currentUsKey = trimmed;
-        localStorage.setItem('calc_current_us_key', trimmed);
-      }
+      targetStore[trimmed] = {
+        name: nameVal || trimmed, symbol: trimmed,
+        n1: n1Val, p1: p1Val, plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "",
+        ...(type === 'tw' ? { discount: "0.6", minFee: "20" } : { rate: document.getElementById('us_exchangeRate').value || "32", fee: "0" })
+      };
+
+      if (type === 'tw') { currentTwKey = trimmed; localStorage.setItem('calc_current_tw_key', trimmed); }
+      else { currentUsKey = trimmed; localStorage.setItem('calc_current_us_key', trimmed); }
 
       if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(targetStore);
       else if (!cloudData[orderKey].includes(trimmed)) cloudData[orderKey].push(trimmed);
 
-      renderStockSelector(type);
-      loadStockToUI(type, trimmed);
-      saveData();
-
-      document.getElementById(`${type}_symbolInput`).value = trimmed;
-      fetchMarketPrice(type);
+      renderStockSelector(type); loadStockToUI(type, trimmed); saveData();
+      document.getElementById(`${type}_symbolInput`).value = trimmed; fetchMarketPrice(type);
 
       if (keepAdding) {
-        document.getElementById('modal_symbol').value = '';
-        document.getElementById('modal_name').value = '';
-        document.getElementById('modal_n1').value = '';
-        document.getElementById('modal_p1').value = '';
+        document.getElementById('modal_symbol').value = ''; document.getElementById('modal_name').value = '';
+        document.getElementById('modal_n1').value = ''; document.getElementById('modal_p1').value = '';
         document.getElementById('modal_symbol').focus();
-        document.getElementById('syncStatus').innerText = `已成功新增「${trimmed}」，請繼續輸入下一筆`;
-      } else {
-        closeAddStockModal();
-      }
+      } else { closeAddStockModal(); }
     };
 
     window.deleteStock = function(type) {
@@ -970,8 +906,7 @@
       const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
       if (!currentKey) return;
-      
-      if (confirm(`確定刪除「${currentKey}」嗎？`)) {
+      if (confirm(`刪除？`)) {
         delete targetStore[currentKey];
         if (cloudData[orderKey]) cloudData[orderKey] = cloudData[orderKey].filter(k => k !== currentKey);
         const remainingKeys = cloudData[orderKey] && cloudData[orderKey].length > 0 ? cloudData[orderKey] : Object.keys(targetStore);
@@ -984,74 +919,47 @@
           const nextKey = remainingKeys[0];
           if (type === 'tw') { currentTwKey = nextKey; localStorage.setItem('calc_current_tw_key', nextKey); }
           else { currentUsKey = nextKey; localStorage.setItem('calc_current_us_key', nextKey); }
-          loadStockToUI(type, type === 'tw' ? currentTwKey : currentUsKey);
+          loadStockToUI(type, nextKey);
         }
-        renderStockSelector(type);
-        saveData();
+        renderStockSelector(type); saveData();
         if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
       }
     };
 
     function clearStockUI(type) {
       if (type === 'tw') {
-        document.getElementById('tw_nameInput').value = '';
-        document.getElementById('tw_symbolInput').value = '';
-        document.getElementById('tw_n1').value = '';
-        document.getElementById('tw_p1').value = '';
-        document.getElementById('tw_manualPnlPct').value = '';
-        document.getElementById('tw_prevClose').value = '';
-        document.getElementById('tw_currentPrice').value = '';
-        document.getElementById('tw_targetPrice').value = '';
-        document.getElementById('tw_ptarget').value = '';
-        document.getElementById('twPlansContainer').innerHTML = '';
+        document.getElementById('tw_nameInput').value = ''; document.getElementById('tw_symbolInput').value = '';
+        document.getElementById('tw_n1').value = ''; document.getElementById('tw_p1').value = '';
+        document.getElementById('tw_manualPnlPct').value = ''; document.getElementById('tw_prevClose').value = '';
+        document.getElementById('tw_currentPrice').value = ''; document.getElementById('tw_targetPrice').value = '';
+        document.getElementById('tw_ptarget').value = ''; document.getElementById('twPlansContainer').innerHTML = '';
         calculateTw();
       } else {
-        document.getElementById('us_nameInput').value = '';
-        document.getElementById('us_symbolInput').value = '';
-        document.getElementById('us_fee').value = '0';
-        document.getElementById('us_n1').value = '';
-        document.getElementById('us_p1').value = '';
-        document.getElementById('us_prevClose').value = '';
-        document.getElementById('us_currentPrice').value = '';
-        document.getElementById('us_targetPrice').value = '';
-        document.getElementById('us_ptarget').value = '';
-        document.getElementById('usPlansContainer').innerHTML = '';
+        document.getElementById('us_nameInput').value = ''; document.getElementById('us_symbolInput').value = '';
+        document.getElementById('us_fee').value = '0'; document.getElementById('us_n1').value = '';
+        document.getElementById('us_p1').value = ''; document.getElementById('us_prevClose').value = '';
+        document.getElementById('us_currentPrice').value = ''; document.getElementById('us_targetPrice').value = '';
+        document.getElementById('us_ptarget').value = ''; document.getElementById('usPlansContainer').innerHTML = '';
         calculateUs();
       }
     }
 
     window.manualSaveData = async function() {
       if (isSyncing) return;
-      commitSymbolChange('tw');
-      commitSymbolChange('us');
-      saveUIToCurrentStock('tw');
-      saveUIToCurrentStock('us');
-      saveToLocalStorage();
-      if (!currentUser || !navigator.onLine) { alert("目前離線，資料已安全儲存於本機裝置！"); return; }
-      
+      commitSymbolChange('tw'); commitSymbolChange('us');
+      saveUIToCurrentStock('tw'); saveUIToCurrentStock('us'); saveToLocalStorage();
+      if (!currentUser || !navigator.onLine) { alert("已存至本機！"); return; }
       isSyncing = true;
-      document.getElementById('syncStatus').innerText = '正在強制上傳雲端...';
       try {
         const { data: sessionCheck } = await sbClient.auth.getSession();
-        if (!sessionCheck?.session?.user) throw new Error("登入階段已過期，請重新登入");
-
+        if (!sessionCheck?.session?.user) throw new Error("登入過期");
         const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
-        let newSyncCount = (existing?.sync_count || 0) + 1;
-        const { error } = await sbClient.from('user_portfolios').upsert({
-          user_id: currentUser.id, portfolio_data: cloudData, sync_count: newSyncCount,
+        await sbClient.from('user_portfolios').upsert({
+          user_id: currentUser.id, portfolio_data: cloudData, sync_count: (existing?.sync_count || 0) + 1,
           last_active: new Date().toISOString(), updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
-
-        if (error) throw error;
-        document.getElementById('syncStatus').innerText = '已成功儲存至雲端';
-        alert("💾 儲存成功！您的資料已完整同步至雲端資料庫。");
         loadAdminStats();
-      } catch (err) {
-        alert("❌ 儲存至雲端失敗: " + err.message);
-        document.getElementById('syncStatus').innerText = '儲存失敗';
-      } finally {
-        isSyncing = false;
-      }
+      } catch (err) {} finally { isSyncing = false; }
     };
 
     function applyUIMode() {
@@ -1059,7 +967,6 @@
       const body = document.getElementById('bodyBg');
       const container = document.getElementById('mainContainer');
       const cards = document.querySelectorAll('.card-box');
-
       if (isCompactMode) {
         btn.innerText = "📱 手機介面";
         body.className = "bg-slate-100 text-slate-800 p-1.5 min-h-screen transition-all";
@@ -1077,22 +984,16 @@
       const selector = document.getElementById(`${type}StockSelector`);
       if (!selector) return;
       selector.innerHTML = '';
-      
       const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
       const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
       const store = cloudData[storeKey] || {};
       const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
-
       if (!cloudData[orderKey]) cloudData[orderKey] = Object.keys(store);
-
       const keys = cloudData[orderKey].filter(k => store[k]);
       if (keys.length === 0) {
-        const opt = document.createElement('option');
-        opt.value = ""; opt.innerText = "— 請點右側「+新增」建立項目 —";
-        selector.appendChild(opt);
-        return;
+        const opt = document.createElement('option'); opt.value = ""; opt.innerText = "— 新增 —";
+        selector.appendChild(opt); return;
       }
-
       keys.forEach(key => {
         const opt = document.createElement('option');
         opt.value = key; 
@@ -1108,47 +1009,27 @@
       if (type === 'tw') {
         if (!currentTwKey) return;
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
-        
         const plans = [];
-        document.querySelectorAll('.tw-plan-row').forEach(row => {
-          plans.push({ p2: row.querySelector('.tw-plan-p2').value, n2: row.querySelector('.tw-plan-n2').value });
-        });
-
+        document.querySelectorAll('.tw-plan-row').forEach(row => plans.push({ p2: row.querySelector('.tw-plan-p2').value, n2: row.querySelector('.tw-plan-n2').value }));
         cloudData.twStocks[currentTwKey] = {
-          name: document.getElementById('tw_nameInput').value || currentTwKey,
-          symbol: currentTwKey,
-          discount: document.getElementById('twDiscount').value,
-          minFee: document.getElementById('twMinFee').value,
-          n1: document.getElementById('tw_n1').value,
-          p1: document.getElementById('tw_p1').value,
-          manualPnlPct: document.getElementById('tw_manualPnlPct').value,
-          prevClose: document.getElementById('tw_prevClose').value,
-          currentPrice: document.getElementById('tw_currentPrice').value,
-          targetPrice: document.getElementById('tw_targetPrice').value,
-          plans: plans,
-          ptarget: document.getElementById('tw_ptarget').value
+          name: document.getElementById('tw_nameInput').value || currentTwKey, symbol: currentTwKey,
+          discount: document.getElementById('twDiscount').value, minFee: document.getElementById('twMinFee').value,
+          n1: document.getElementById('tw_n1').value, p1: document.getElementById('tw_p1').value,
+          manualPnlPct: document.getElementById('tw_manualPnlPct').value, prevClose: document.getElementById('tw_prevClose').value,
+          currentPrice: document.getElementById('tw_currentPrice').value, targetPrice: document.getElementById('tw_targetPrice').value,
+          plans: plans, ptarget: document.getElementById('tw_ptarget').value
         };
       } else {
         if (!currentUsKey) return;
         if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
-
         const plans = [];
-        document.querySelectorAll('.us-plan-row').forEach(row => {
-          plans.push({ p2: row.querySelector('.us-plan-p2').value, n2: row.querySelector('.us-plan-n2').value });
-        });
-
+        document.querySelectorAll('.us-plan-row').forEach(row => plans.push({ p2: row.querySelector('.us-plan-p2').value, n2: row.querySelector('.us-plan-n2').value }));
         cloudData.usStocks[currentUsKey] = {
-          name: document.getElementById('us_nameInput').value || currentUsKey,
-          symbol: currentUsKey,
-          rate: document.getElementById('us_exchangeRate').value,
-          fee: document.getElementById('us_fee').value,
-          n1: document.getElementById('us_n1').value,
-          p1: document.getElementById('us_p1').value,
-          prevClose: document.getElementById('us_prevClose').value,
-          currentPrice: document.getElementById('us_currentPrice').value,
-          targetPrice: document.getElementById('us_targetPrice').value,
-          plans: plans,
-          ptarget: document.getElementById('us_ptarget').value
+          name: document.getElementById('us_nameInput').value || currentUsKey, symbol: currentUsKey,
+          rate: document.getElementById('us_exchangeRate').value, fee: document.getElementById('us_fee').value,
+          n1: document.getElementById('us_n1').value, p1: document.getElementById('us_p1').value,
+          prevClose: document.getElementById('us_prevClose').value, currentPrice: document.getElementById('us_currentPrice').value,
+          targetPrice: document.getElementById('us_targetPrice').value, plans: plans, ptarget: document.getElementById('us_ptarget').value
         };
       }
     }
@@ -1158,47 +1039,27 @@
       if (type === 'tw') {
         currentTwKey = key;
         const tw = (cloudData.twStocks && cloudData.twStocks[key]) ? cloudData.twStocks[key] : {};
-        document.getElementById('tw_nameInput').value = tw.name || key;
-        document.getElementById('tw_symbolInput').value = key;
-
-        document.getElementById('twDiscount').value = tw.discount || '0.6';
-        document.getElementById('twMinFee').value = tw.minFee || '20';
-        document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : '';
-        document.getElementById('tw_p1').value = tw.p1 || '';
-        document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || '';
-        document.getElementById('tw_prevClose').value = tw.prevClose || '';
-        document.getElementById('tw_currentPrice').value = tw.currentPrice || '';
-        document.getElementById('tw_targetPrice').value = tw.targetPrice || '';
+        document.getElementById('tw_nameInput').value = tw.name || key; document.getElementById('tw_symbolInput').value = key;
+        document.getElementById('twDiscount').value = tw.discount || '0.6'; document.getElementById('twMinFee').value = tw.minFee || '20';
+        document.getElementById('tw_n1').value = tw.n1 !== undefined ? tw.n1 : ''; document.getElementById('tw_p1').value = tw.p1 || '';
+        document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || ''; document.getElementById('tw_prevClose').value = tw.prevClose || '';
+        document.getElementById('tw_currentPrice').value = tw.currentPrice || ''; document.getElementById('tw_targetPrice').value = tw.targetPrice || '';
         document.getElementById('tw_ptarget').value = tw.ptarget || '';
-
-        const container = document.getElementById('twPlansContainer');
-        container.innerHTML = '';
+        const container = document.getElementById('twPlansContainer'); container.innerHTML = '';
         const plans = (tw.plans && tw.plans.length > 0) ? tw.plans : [{ p2: "", n2: "" }];
-        plans.forEach(plan => addTwPlanRow(plan.p2 || "", plan.n2 || ""));
-        calculateTw();
+        plans.forEach(plan => addTwPlanRow(plan.p2 || "", plan.n2 || "")); calculateTw();
       } else {
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
-        document.getElementById('us_nameInput').value = us.name || key;
-        document.getElementById('us_symbolInput').value = key;
-
-        if (us.rate) {
-          document.getElementById('us_exchangeRate').value = us.rate;
-        }
+        document.getElementById('us_nameInput').value = us.name || key; document.getElementById('us_symbolInput').value = key;
+        if (us.rate) document.getElementById('us_exchangeRate').value = us.rate;
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
-        document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
-        document.getElementById('us_p1').value = us.p1 || '';
-        document.getElementById('us_prevClose').value = us.prevClose || '';
-        document.getElementById('us_currentPrice').value = us.currentPrice || '';
-        document.getElementById('us_targetPrice').value = us.targetPrice || '';
-        document.getElementById('us_ptarget').value = us.ptarget || '';
-
-        const container = document.getElementById('usPlansContainer');
-        container.innerHTML = '';
+        document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : ''; document.getElementById('us_p1').value = us.p1 || '';
+        document.getElementById('us_prevClose').value = us.prevClose || ''; document.getElementById('us_currentPrice').value = us.currentPrice || '';
+        document.getElementById('us_targetPrice').value = us.targetPrice || ''; document.getElementById('us_ptarget').value = us.ptarget || '';
+        const container = document.getElementById('usPlansContainer'); container.innerHTML = '';
         const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "" }];
-        plans.forEach(plan => addUsPlanRow(plan.p2 || "", plan.n2 || ""));
-        calculateUs();
-        
+        plans.forEach(plan => addUsPlanRow(plan.p2 || "", plan.n2 || "")); calculateUs();
         fetchExchangeRate();
       }
     }
@@ -1211,65 +1072,28 @@
         <div class="flex justify-between items-center">
           <span class="font-bold text-[11px] text-indigo-700">補倉批次</span>
           <div class="flex gap-1.5">
-            <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 text-indigo-700 text-[10px] px-2 py-1 rounded-lg border border-indigo-200">複製</button>
+            <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 text-rose-700 text-[10px] px-2 py-1 rounded-lg border border-indigo-200">刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <div>
-            <div class="flex justify-between mb-0.5">
-              <label class="text-[10px] text-slate-600">預計買入 (P2)</label>
-              <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] text-indigo-600 underline cursor-pointer">帶入市價</button>
-            </div>
-            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
-            <input type="number" placeholder="加碼股數" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-        </div>
-      `;
-      container.appendChild(div);
-      relabelTwPlans();
-      bindTwPlanEvents(div);
-      calculateTw();
-      saveData();
+          <div><div class="flex justify-between mb-0.5"><label class="text-[10px]">預計買入 (P2)</label><button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] text-indigo-600 underline">帶入市價</button></div><input type="number" step="0.01" value="${p2}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs"></div>
+          <div><label class="text-[10px] block mb-0.5">加碼股數 (N2)</label><input type="number" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs"></div>
+        </div>`;
+      container.appendChild(div); relabelTwPlans(); bindTwPlanEvents(div); calculateTw(); saveData();
     };
 
     window.removeTwPlanRow = function(btn) {
-      const container = document.getElementById('twPlansContainer');
-      if (container.children.length <= 1) { alert("至少需保留一筆補倉規劃！"); return; }
-      btn.closest('.tw-plan-row').remove();
-      relabelTwPlans();
-      calculateTw();
-      saveData();
+      if (document.getElementById('twPlansContainer').children.length <= 1) return;
+      btn.closest('.tw-plan-row').remove(); relabelTwPlans(); calculateTw(); saveData();
     };
-
-    window.copyTwPlanRow = function(btn) {
-      const row = btn.closest('.tw-plan-row');
-      addTwPlanRow(row.querySelector('.tw-plan-p2').value, row.querySelector('.tw-plan-n2').value);
-    };
-
+    window.copyTwPlanRow = function(btn) { const row = btn.closest('.tw-plan-row'); addTwPlanRow(row.querySelector('.tw-plan-p2').value, row.querySelector('.tw-plan-n2').value); };
     window.copyCurrentPriceToTwRow = function(btn) {
       const cp = document.getElementById('tw_currentPrice').value;
-      if (cp) {
-        btn.closest('.tw-plan-row').querySelector('.tw-plan-p2').value = cp;
-        calculateTw();
-        saveData();
-      }
+      if (cp) { btn.closest('.tw-plan-row').querySelector('.tw-plan-p2').value = cp; calculateTw(); saveData(); }
     };
-
-    function relabelTwPlans() {
-      document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
-        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
-      });
-    }
-
-    function bindTwPlanEvents(rowEl) {
-      rowEl.querySelectorAll('.save-trigger').forEach(el => {
-        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
-      });
-    }
+    function relabelTwPlans() { document.querySelectorAll('.tw-plan-row').forEach((row, idx) => row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`); }
+    function bindTwPlanEvents(rowEl) { rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); })); }
 
     window.addUsPlanRow = function(p2 = "", n2 = "") {
       const container = document.getElementById('usPlansContainer');
@@ -1279,121 +1103,66 @@
         <div class="flex justify-between items-center">
           <span class="font-bold text-[11px] text-teal-700">補倉批次</span>
           <div class="flex gap-1.5">
-            <button type="button" onclick="copyUsPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">📋 複製</button>
-            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] px-2 py-1 rounded-lg font-bold border border-indigo-200 cursor-pointer">🗑️ 刪除</button>
+            <button type="button" onclick="copyUsPlanRow(this)" class="bg-indigo-50 text-indigo-700 text-[10px] px-2 py-1 rounded-lg border border-indigo-200">複製</button>
+            <button type="button" onclick="removeUsPlanRow(this)" class="bg-rose-50 text-rose-700 text-[10px] px-2 py-1 rounded-lg border border-indigo-200">刪除</button>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <div>
-            <div class="flex justify-between mb-0.5">
-              <label class="text-[10px] text-slate-600">預計買入 ($ P2)</label>
-              <button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] text-teal-600 underline cursor-pointer">帶入市價</button>
-            </div>
-            <input type="number" step="0.01" placeholder="買入價" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-600 block mb-0.5">加碼股數 (N2)</label>
-            <input type="number" placeholder="加碼股數" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs bg-white outline-none">
-          </div>
-        </div>
-      `;
-      container.appendChild(div);
-      relabelUsPlans();
-      bindUsPlanEvents(div);
-      calculateUs();
-      saveData();
+          <div><div class="flex justify-between mb-0.5"><label class="text-[10px]">預計買入 ($ P2)</label><button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] text-teal-600 underline">帶入市價</button></div><input type="number" step="0.01" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs"></div>
+          <div><label class="text-[10px] block mb-0.5">加碼股數 (N2)</label><input type="number" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs"></div>
+        </div>`;
+      container.appendChild(div); relabelUsPlans(); bindUsPlanEvents(div); calculateUs(); saveData();
     };
 
     window.removeUsPlanRow = function(btn) {
-      const container = document.getElementById('usPlansContainer');
-      if (container.children.length <= 1) { alert("至少需保留一筆補倉規劃！"); return; }
-      btn.closest('.us-plan-row').remove();
-      relabelUsPlans();
-      calculateUs();
-      saveData();
+      if (document.getElementById('usPlansContainer').children.length <= 1) return;
+      btn.closest('.us-plan-row').remove(); relabelUsPlans(); calculateUs(); saveData();
     };
-
-    window.copyUsPlanRow = function(btn) {
-      const row = btn.closest('.us-plan-row');
-      addUsPlanRow(row.querySelector('.us-plan-p2').value, row.querySelector('.us-plan-n2').value);
-    };
-
+    window.copyUsPlanRow = function(btn) { const row = btn.closest('.us-plan-row'); addUsPlanRow(row.querySelector('.us-plan-p2').value, row.querySelector('.us-plan-n2').value); };
     window.copyCurrentPriceToRow = function(btn) {
       const cp = document.getElementById('us_currentPrice').value;
-      if (cp) {
-        btn.closest('.us-plan-row').querySelector('.us-plan-p2').value = cp;
-        calculateUs();
-      }
+      if (cp) { btn.closest('.us-plan-row').querySelector('.us-plan-p2').value = cp; calculateUs(); }
     };
-
-    function relabelUsPlans() {
-      document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
-        row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`;
-      });
-    }
-
-    function bindUsPlanEvents(rowEl) {
-      rowEl.querySelectorAll('.save-trigger').forEach(el => {
-        el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
-      });
-    }
+    function relabelUsPlans() { document.querySelectorAll('.us-plan-row').forEach((row, idx) => row.querySelector('span.font-bold').innerText = `補倉批次 #${idx + 1}`); }
+    function bindUsPlanEvents(rowEl) { rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); })); }
 
     window.switchStock = async function(type, key) {
       if (!key) return;
       if (type === 'tw') { currentTwKey = key; localStorage.setItem('calc_current_tw_key', key); }
       else { currentUsKey = key; localStorage.setItem('calc_current_us_key', key); }
-      loadStockToUI(type, key);
-      await fetchMarketPrice(type);
+      loadStockToUI(type, key); await fetchMarketPrice(type);
     };
 
     function saveData() {
       if (isInitializing || isSyncing) return;
-      saveUIToCurrentStock('tw');
-      saveUIToCurrentStock('us');
-      cloudData = sanitizeStockData(cloudData);
-      saveToLocalStorage();
-
-      if (!currentUser || !sbClient || !navigator.onLine) {
-        document.getElementById('syncStatus').innerText = '已存至本機';
-        return;
-      }
-
-      document.getElementById('syncStatus').innerText = '雲端同步中...';
+      saveUIToCurrentStock('tw'); saveUIToCurrentStock('us');
+      cloudData = sanitizeStockData(cloudData); saveToLocalStorage();
+      if (!currentUser || !sbClient || !navigator.onLine) return;
       clearTimeout(saveTimeout);
       saveTimeout = setTimeout(async () => {
-        if (!currentUser || !sbClient || !navigator.onLine) return;
         try {
           const { data: sessionCheck } = await sbClient.auth.getSession();
           if (!sessionCheck?.session?.user) return;
-
           const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
-          let newSyncCount = (existing?.sync_count || 0) + 1;
-          const { error } = await sbClient.from('user_portfolios').upsert({
-            user_id: currentUser.id, portfolio_data: cloudData, sync_count: newSyncCount,
+          await sbClient.from('user_portfolios').upsert({
+            user_id: currentUser.id, portfolio_data: cloudData, sync_count: (existing?.sync_count || 0) + 1,
             last_active: new Date().toISOString(), updated_at: new Date().toISOString()
           }, { onConflict: 'user_id' });
-
-          if (error) throw error;
-          document.getElementById('syncStatus').innerText = '已同步雲端';
           loadAdminStats();
-        } catch (err) { document.getElementById('syncStatus').innerText = `同步警告: ${err.message}`; }
+        } catch (err) {}
       }, 500);
     }
 
     async function manualSaveDataSilent() {
       if (!currentUser || !sbClient || isInitializing) return;
-      saveUIToCurrentStock('tw');
-      saveUIToCurrentStock('us');
-      cloudData = sanitizeStockData(cloudData);
-      saveToLocalStorage();
+      saveUIToCurrentStock('tw'); saveUIToCurrentStock('us');
+      cloudData = sanitizeStockData(cloudData); saveToLocalStorage();
       try {
         const { data: sessionCheck } = await sbClient.auth.getSession();
         if (!sessionCheck?.session?.user) return;
-
         const { data: existing } = await sbClient.from('user_portfolios').select('sync_count').eq('user_id', currentUser.id).maybeSingle();
-        let newSyncCount = (existing?.sync_count || 0) + 1;
         await sbClient.from('user_portfolios').upsert({
-          user_id: currentUser.id, portfolio_data: cloudData, sync_count: newSyncCount,
+          user_id: currentUser.id, portfolio_data: cloudData, sync_count: (existing?.sync_count || 0) + 1,
           last_active: new Date().toISOString(), updated_at: new Date().toISOString()
         }, { onConflict: 'user_id' });
       } catch (err) {}
@@ -1426,7 +1195,6 @@
 
       const totalOriginalCost = n1 * p1;
       const displayPnlPct = !isNaN(manualPnlPct) ? manualPnlPct : (p1 > 0 && currentPrice > 0 ? ((currentPrice - p1) / p1) * 100 : null);
-      
       const pnlAmt = (n1 > 0 && p1 > 0 && currentPrice > 0) ? (currentPrice - p1) * n1 : null;
       const targetPnlAmt = (n1 > 0 && p1 > 0 && targetPrice > 0) ? (targetPrice - p1) * n1 : null;
       const targetPnlPct = (p1 > 0 && targetPrice > 0) ? ((targetPrice - p1) / p1) * 100 : null;
@@ -1437,64 +1205,42 @@
 
       pnlEl.className = `font-bold text-xs sm:text-base ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'} flex items-center gap-2 flex-wrap`;
       pnlEl.querySelector('span:first-child').innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
-      
       if (pnlAmt !== null) {
         pnlAmtEl.className = `text-xs font-bold ${pnlAmt >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
         pnlAmtEl.innerText = `(${pnlAmt >= 0 ? '+' : ''}$${formatMoney(pnlAmt)})`;
-      } else {
-        pnlAmtEl.innerText = '';
-      }
+      } else pnlAmtEl.innerText = '';
 
       if (targetPnlAmt !== null && targetPnlPct !== null) {
         targetPnlEl.className = `font-bold text-xs sm:text-base ${targetPnlAmt >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
         targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlAmt >= 0 ? '+' : ''}$${formatMoney(targetPnlAmt)})`;
-      } else {
-        targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-400";
-        targetPnlEl.innerText = '-%';
-      }
+      } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-400"; targetPnlEl.innerText = '-%'; }
 
-      const batchContainer = document.getElementById('twBatchResultsContainer');
-      batchContainer.innerHTML = '';
-
+      const batchContainer = document.getElementById('twBatchResultsContainer'); batchContainer.innerHTML = '';
       if (n1 <= 0 || p1 <= 0) {
-        document.getElementById('tw_resN1').innerText = '0.0';
-        document.getElementById('tw_resN2').innerText = '0.0';
-        document.getElementById('tw_resTotalN').innerText = '0.0 股';
-        document.getElementById('tw_resAvgPrice').innerText = '$0.00';
-        document.getElementById('tw_resOriginalCost').innerText = '$0';
-        document.getElementById('tw_resAddCost').innerText = '$0';
+        document.getElementById('tw_resN1').innerText = '0.0'; document.getElementById('tw_resN2').innerText = '0.0';
+        document.getElementById('tw_resTotalN').innerText = '0.0 股'; document.getElementById('tw_resAvgPrice').innerText = '$0.00';
+        document.getElementById('tw_resOriginalCost').innerText = '$0'; document.getElementById('tw_resAddCost').innerText = '$0';
         return;
       }
 
-      let totalAddShares = 0;
-      let totalAddCost = 0;
-      let finalAvgPrice = p1;
-
+      let totalAddShares = 0; let totalAddCost = 0; let finalAvgPrice = p1;
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
         const firstRow = document.querySelector('.tw-plan-row');
         const p2 = firstRow ? (parseFloat(firstRow.querySelector('.tw-plan-p2').value) || 0) : 0;
-
         if (p2 > 0 && ptargetIn > p2) {
           let roughN2 = (n1 * (p1 - ptargetIn)) / (ptargetIn - p2);
           if (roughN2 > 0) {
             totalAddShares = ((n1 * (p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / (ptargetIn - p2);
             const addFee = calcTwBuyFee(p2, totalAddShares, discount, minFee);
-            totalAddCost = (totalAddShares * p2) + addFee;
-            finalAvgPrice = ptargetIn;
-
-            const totalCost = totalOriginalCost + totalAddCost;
-            const totalShares = n1 + totalAddShares;
+            totalAddCost = (totalAddShares * p2) + addFee; finalAvgPrice = ptargetIn;
+            const totalCost = totalOriginalCost + totalAddCost; const totalShares = n1 + totalAddShares;
             const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
 
-            document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
-            document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
-            document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-            document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
-            document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+            document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+            document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
 
-            const batchDiv = document.createElement('div');
-            batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+            const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
             batchDiv.innerHTML = `
               <div class="font-bold text-indigo-300 border-b border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
               <div class="grid grid-cols-2 gap-1 text-slate-300">
@@ -1503,36 +1249,25 @@
                 <div>3. 本次所需補倉股數: <span class="text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
                 <div>4. 目前個股總股數: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
                 <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
-                <div class="col-span-2">6. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-              </div>
-            `;
-            batchContainer.appendChild(batchDiv);
-            return;
+                <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              </div>`;
+            batchContainer.appendChild(batchDiv); return;
           }
         }
       }
 
-      let cumulativeShares = n1;
-      let cumulativeCost = totalOriginalCost;
-
-      const planRows = document.querySelectorAll('.tw-plan-row');
-      planRows.forEach((row, idx) => {
+      let cumulativeShares = n1; let cumulativeCost = totalOriginalCost;
+      document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
         const p2 = parseFloat(row.querySelector('.tw-plan-p2').value) || 0;
         const n2 = parseFloat(row.querySelector('.tw-plan-n2').value) || 0;
-
         if (p2 > 0 && n2 > 0) {
           totalAddShares += n2;
-          const batchFee = calcTwBuyFee(p2, n2, discount, minFee);
-          const batchCost = (p2 * n2) + batchFee;
-          totalAddCost += batchCost;
-
-          cumulativeShares += n2;
-          cumulativeCost += batchCost;
+          const batchCost = (p2 * n2) + calcTwBuyFee(p2, n2, discount, minFee);
+          totalAddCost += batchCost; cumulativeShares += n2; cumulativeCost += batchCost;
           const batchAvgPrice = cumulativeCost / cumulativeShares;
           const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
 
-          const batchDiv = document.createElement('div');
-          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
           batchDiv.innerHTML = `
             <div class="font-bold text-indigo-300 border-b border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
             <div class="grid grid-cols-2 gap-1 text-slate-300">
@@ -1541,23 +1276,17 @@
               <div>3. 本次所需補倉股數: <span class="text-cyan-300">${n2.toFixed(1)} 股</span></div>
               <div>4. 目前個股總股數: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
               <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(batchAvgPrice)}</span></div>
-              <div class="col-span-2">6. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-            </div>
-          `;
+              <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>`;
           batchContainer.appendChild(batchDiv);
         }
       });
 
-      const totalShares = n1 + totalAddShares;
-      const totalCost = totalOriginalCost + totalAddCost;
+      const totalShares = n1 + totalAddShares; const totalCost = totalOriginalCost + totalAddCost;
       finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
-
-      document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
-      document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
-      document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-      document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`;
-      document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+      document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
     }
 
     function calculateUs() {
@@ -1571,7 +1300,6 @@
 
       const pnlPct = (p1 > 0 && currentPrice > 0) ? ((currentPrice - p1) / p1) * 100 : null;
       const pnlAmtUSD = (n1 > 0 && p1 > 0 && currentPrice > 0) ? (currentPrice - p1) * n1 : null;
-      
       const targetPnlUSD = (n1 > 0 && p1 > 0 && targetPrice > 0) ? (targetPrice - p1) * n1 : null;
       const targetPnlPct = (p1 > 0 && targetPrice > 0) ? ((targetPrice - p1) / p1) * 100 : null;
 
@@ -1579,19 +1307,15 @@
       const pnlAmtEl = document.getElementById('us_pnlAmtDisplay');
       const targetPnlEl = document.getElementById('us_targetPnlDisplay');
 
-      if (pnlEl) {
-        pnlEl.className = `font-bold text-xs sm:text-base ${pnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
-        pnlEl.innerText = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
-      }
+      if (pnlEl) pnlEl.innerHTML = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
+      if (pnlEl) pnlEl.className = `font-bold text-xs sm:text-base ${pnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
 
       if (pnlAmtEl) {
         if (pnlAmtUSD !== null) {
           const pnlAmtTWD = pnlAmtUSD * exchangeRate;
           pnlAmtEl.className = `text-xs font-bold ${pnlAmtUSD >= 0 ? 'text-emerald-500' : 'text-rose-500'} ml-1`;
           pnlAmtEl.innerText = `(${pnlAmtUSD >= 0 ? '+' : ''}$${formatMoney(pnlAmtUSD)} / NT$${formatMoney(pnlAmtTWD)})`;
-        } else {
-          pnlAmtEl.innerText = '';
-        }
+        } else pnlAmtEl.innerText = '';
       }
 
       if (targetPnlEl) {
@@ -1599,57 +1323,36 @@
           const targetPnlTWD = targetPnlUSD * exchangeRate;
           targetPnlEl.className = `font-bold text-xs sm:text-base ${targetPnlUSD >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
           targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlUSD >= 0 ? '+' : ''}$${formatMoney(targetPnlUSD)} / NT$${formatMoney(targetPnlTWD)})`;
-        } else {
-          targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-400";
-          targetPnlEl.innerText = '-%';
-        }
+        } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-400"; targetPnlEl.innerText = '-%'; }
       }
 
-      const batchContainer = document.getElementById('usBatchResultsContainer');
-      batchContainer.innerHTML = '';
-
+      const batchContainer = document.getElementById('usBatchResultsContainer'); batchContainer.innerHTML = '';
       if (n1 <= 0 || p1 <= 0) {
-        document.getElementById('us_resN1').innerText = '0.0';
-        document.getElementById('us_resN2').innerText = '0.0';
-        document.getElementById('us_resTotalN').innerText = '0.0 股';
-        document.getElementById('us_resAvgPrice').innerText = '$0.00';
-        document.getElementById('us_resAvgPriceTWD').innerText = 'NT$0.00';
-        document.getElementById('us_resOriginalCostUSD').innerText = '$0';
-        document.getElementById('us_resOriginalCostTWD').innerText = 'NT$0';
-        document.getElementById('us_resAddCostUSD').innerText = '$0';
-        document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
-        return;
+        document.getElementById('us_resN1').innerText = '0.0'; document.getElementById('us_resN2').innerText = '0.0';
+        document.getElementById('us_resTotalN').innerText = '0.0 股'; document.getElementById('us_resAvgPrice').innerText = '$0.00';
+        document.getElementById('us_resAvgPriceTWD').innerText = 'NT$0.00'; document.getElementById('us_resOriginalCostUSD').innerText = '$0';
+        document.getElementById('us_resOriginalCostTWD').innerText = 'NT$0'; document.getElementById('us_resAddCostUSD').innerText = '$0';
+        document.getElementById('us_resAddCostTWD').innerText = 'NT$0'; return;
       }
 
-      const origUSD = n1 * p1;
-      let totalAddShares = 0;
-      let totalAddCostUSD = 0;
-      let finalAvgPrice = p1;
-
+      const origUSD = n1 * p1; let totalAddShares = 0; let totalAddCostUSD = 0; let finalAvgPrice = p1;
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
         const firstRow = document.querySelector('.us-plan-row');
         const p2 = firstRow ? (parseFloat(firstRow.querySelector('.us-plan-p2').value) || 0) : 0;
-
         if (p2 > 0 && ptargetIn > p2) {
           totalAddShares = ((n1 * (p1 - ptargetIn)) + fee) / (ptargetIn - p2);
           if (totalAddShares > 0) totalAddCostUSD = totalAddShares * p2;
           finalAvgPrice = ptargetIn;
-          const totalCostUSD = origUSD + totalAddCostUSD + fee;
-          const totalShares = n1 + totalAddShares;
+          const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
 
-          document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
-          document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
-          document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-          document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
-          document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
-          document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
-          document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
+          document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+          document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`; document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+          document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`; document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
           document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
 
           const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
-          const batchDiv = document.createElement('div');
-          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
           batchDiv.innerHTML = `
             <div class="font-bold text-teal-300 border-b border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
             <div class="grid grid-cols-2 gap-1 text-slate-300">
@@ -1659,35 +1362,24 @@
               <div>4. 目前個股總資金(台幣): <span class="text-amber-300">NT$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
               <div>5. 本次所需補倉股數: <span class="text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
               <div>6. 目前個股總股數: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
-              <div>7. 調整後平均成本(美元)&(台幣): <span class="text-yellow-300">$${formatPrice(finalAvgPrice)} (NT$${formatPrice(finalAvgPrice * exchangeRate)})</span></div>
-              <div>8. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-            </div>
-          `;
-          batchContainer.appendChild(batchDiv);
-          return;
+              <div>7. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
+              <div>8. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>`;
+          batchContainer.appendChild(batchDiv); return;
         }
       }
 
-      let cumulativeShares = n1;
-      let cumulativeCostUSD = origUSD;
-
-      const planRows = document.querySelectorAll('.us-plan-row');
-      planRows.forEach((row, idx) => {
+      let cumulativeShares = n1; let cumulativeCostUSD = origUSD;
+      document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
         const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
         const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
-
         if (p2 > 0 && n2 > 0) {
-          totalAddShares += n2;
-          const batchCostUSD = p2 * n2;
-          totalAddCostUSD += batchCostUSD;
-
-          cumulativeShares += n2;
-          cumulativeCostUSD += batchCostUSD;
+          totalAddShares += n2; const batchCostUSD = p2 * n2; totalAddCostUSD += batchCostUSD;
+          cumulativeShares += n2; cumulativeCostUSD += batchCostUSD;
           const batchAvgPrice = cumulativeCostUSD / cumulativeShares;
           const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
 
-          const batchDiv = document.createElement('div');
-          batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
+          const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-700/50";
           batchDiv.innerHTML = `
             <div class="font-bold text-teal-300 border-b border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
             <div class="grid grid-cols-2 gap-1 text-slate-300">
@@ -1697,256 +1389,99 @@
               <div>4. 目前個股總資金(台幣): <span class="text-amber-300">NT$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
               <div>5. 本次所需補倉股數: <span class="text-cyan-300">${n2.toFixed(1)} 股</span></div>
               <div>6. 目前個股總股數: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
-              <div>7. 調整後平均成本(美元)&(台幣): <span class="text-yellow-300">$${formatPrice(batchAvgPrice)} (NT$${formatPrice(batchAvgPrice * exchangeRate)})</span></div>
-              <div>8. 未實現損益 (對照目前市價): <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-            </div>
-          `;
+              <div>7. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(batchAvgPrice)}</span></div>
+              <div>8. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>`;
           batchContainer.appendChild(batchDiv);
         }
       });
 
-      const totalCostUSD = origUSD + totalAddCostUSD + fee;
-      const totalShares = n1 + totalAddShares;
+      const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
       finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
-
-      document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
-      document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
-      document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-      document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`;
-      document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
-      document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`;
-      document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
+      document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`; document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
+      document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`; document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
       document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
     }
 
-    function batchPnlPropColor(pct) {
-      if (pct === null) return 'text-slate-400';
-      return pct >= 0 ? 'text-emerald-400' : 'text-rose-400';
-    }
+    function batchPnlPropColor(pct) { return pct === null ? 'text-slate-400' : (pct >= 0 ? 'text-emerald-400' : 'text-rose-400'); }
 
-    document.querySelectorAll('.save-trigger').forEach(el => {
-      el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); });
-    });
-
+    document.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); }));
     ['tw', 'us'].forEach(type => {
       const symInput = document.getElementById(`${type}_symbolInput`);
       if (symInput) {
         symInput.addEventListener('blur', () => { commitSymbolChange(type); saveData(); });
-        symInput.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            commitSymbolChange(type);
-            fetchMarketPrice(type);
-          }
-        });
+        symInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { commitSymbolChange(type); fetchMarketPrice(type); } });
       }
     });
-
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
     async function init() {
-      applyUIMode();
-      updateConnectionStatusUI();
-      
-      const savedTab = localStorage.getItem('calc_current_tab') || 'tw';
-      switchTab(savedTab);
-
+      applyUIMode(); updateConnectionStatusUI(); switchTab(localStorage.getItem('calc_current_tab') || 'tw');
       try {
-        sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-          auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
-        });
-        
-        const { data: sessionData } = await sbClient.auth.getSession();
-        currentUser = sessionData?.session?.user || null;
-        updateAuthUI();
-        updateVersionDisplay();
-
+        sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+        const { data: sessionData } = await sbClient.auth.getSession(); currentUser = sessionData?.session?.user || null;
+        updateAuthUI(); updateVersionDisplay();
         const pendingGuestRaw = sessionStorage.getItem('pending_guest_data');
-        if (pendingGuestRaw) {
-          sessionStorage.removeItem('pending_guest_data');
-          try {
-            pendingGuestData = JSON.parse(pendingGuestRaw);
-          } catch(e) {}
-        }
+        if (pendingGuestRaw) { sessionStorage.removeItem('pending_guest_data'); try { pendingGuestData = JSON.parse(pendingGuestRaw); } catch(e) {} }
 
-        if (!currentUser) {
-          loadFromLocalStorage();
-          initDefaultView();
-          document.getElementById('syncStatus').innerText = navigator.onLine ? '訪客模式 (未登入)' : '離線模式';
-        } else {
-          document.getElementById('syncStatus').innerText = '正在從雲端載入資料...';
+        if (!currentUser) { loadFromLocalStorage(); initDefaultView(); document.getElementById('syncStatus').innerText = navigator.onLine ? '訪客模式 (未登入)' : '離線模式'; }
+        else {
+          document.getElementById('syncStatus').innerText = '載入中...';
           const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
-          
           if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0)) {
-            let localParsed = null;
-            try {
-              const localRaw = localStorage.getItem(getLocalStorageKey());
-              if (localRaw) localParsed = JSON.parse(localRaw);
-            } catch(e) {}
-
-            let cloudTime = new Date(data.updated_at).getTime() || 0;
-            let localTime = localParsed ? (localParsed.updated_at || 0) : 0;
-
-            if (localParsed && localTime > cloudTime) {
-              cloudData = sanitizeStockData(localParsed);
-              document.getElementById('syncStatus').innerText = '已恢復本機最新進度';
-              manualSaveDataSilent();
-            } else {
-              cloudData = sanitizeStockData(data.portfolio_data);
-              saveToLocalStorage();
-              document.getElementById('syncStatus').innerText = '已成功載入雲端資料';
-            }
+            let localParsed = null; try { const localRaw = localStorage.getItem(getLocalStorageKey()); if (localRaw) localParsed = JSON.parse(localRaw); } catch(e) {}
+            if (localParsed && (localParsed.updated_at || 0) > (new Date(data.updated_at).getTime() || 0)) {
+              cloudData = sanitizeStockData(localParsed); manualSaveDataSilent();
+            } else { cloudData = sanitizeStockData(data.portfolio_data); saveToLocalStorage(); }
             initDefaultView();
           } else {
             if (pendingGuestData && Object.keys(pendingGuestData.twStocks || {}).length > 0) {
-              document.getElementById('dataChoiceModal').classList.remove('hidden');
-              cloudData = sanitizeStockData(pendingGuestData);
-              initDefaultView();
-              document.getElementById('syncStatus').innerText = '待確認是否保留未登入資料';
-            } else {
-              if (loadFromLocalStorage()) {
-                initDefaultView();
-                await manualSaveDataSilent();
-                document.getElementById('syncStatus').innerText = '已由本機快取恢復並上傳雲端';
-              } else {
-                initDefaultView();
-                saveUIToCurrentStock('tw');
-                saveUIToCurrentStock('us');
-                await manualSaveDataSilent();
-                document.getElementById('syncStatus').innerText = '已建立新雲端紀錄';
-              }
-            }
+              document.getElementById('dataChoiceModal').classList.remove('hidden'); cloudData = sanitizeStockData(pendingGuestData); initDefaultView();
+            } else { if (loadFromLocalStorage()) { initDefaultView(); await manualSaveDataSilent(); } else { initDefaultView(); saveUIToCurrentStock('tw'); saveUIToCurrentStock('us'); await manualSaveDataSilent(); } }
           }
           loadAdminStats();
         }
-
         isInitializing = false;
-
         sbClient.auth.onAuthStateChange(async (event, session) => {
-          currentUser = session?.user || null;
-          updateAuthUI();
-          updateVersionDisplay(); 
-
+          currentUser = session?.user || null; updateAuthUI(); updateVersionDisplay(); 
           if (event === 'SIGNED_IN' && currentUser && navigator.onLine) {
             isInitializing = true;
-            document.getElementById('syncStatus').innerText = '正在同步帳號資料...';
-            
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
-            
             if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0)) {
-              let localParsed = null;
-              try {
-                const localRaw = localStorage.getItem(getLocalStorageKey());
-                if (localRaw) localParsed = JSON.parse(localRaw);
-              } catch(e) {}
-
-              let cloudTime = new Date(data.updated_at).getTime() || 0;
-              let localTime = localParsed ? (localParsed.updated_at || 0) : 0;
-
-              if (localParsed && localTime > cloudTime) {
-                cloudData = sanitizeStockData(localParsed);
-                document.getElementById('syncStatus').innerText = '已恢復本機最新進度';
-                manualSaveDataSilent(); 
-              } else {
-                cloudData = sanitizeStockData(data.portfolio_data);
-                saveToLocalStorage();
-                document.getElementById('syncStatus').innerText = '已同步雲端資料';
-              }
-              initDefaultView();
+              cloudData = sanitizeStockData(data.portfolio_data); saveToLocalStorage(); initDefaultView();
             } else {
-              if (pendingGuestData && Object.keys(pendingGuestData.twStocks || {}).length > 0) {
-                document.getElementById('dataChoiceModal').classList.remove('hidden');
-                cloudData = sanitizeStockData(pendingGuestData);
-                initDefaultView();
-              } else {
-                if (!loadFromLocalStorage()) {
-                  initDefaultView();
-                  saveUIToCurrentStock('tw');
-                  saveUIToCurrentStock('us');
-                } else {
-                  initDefaultView();
-                }
-                await manualSaveDataSilent();
-              }
-              document.getElementById('syncStatus').innerText = '帳號初始化完成';
+              if (pendingGuestData && Object.keys(pendingGuestData.twStocks || {}).length > 0) { document.getElementById('dataChoiceModal').classList.remove('hidden'); cloudData = sanitizeStockData(pendingGuestData); initDefaultView(); }
+              else { if (!loadFromLocalStorage()) { initDefaultView(); saveUIToCurrentStock('tw'); saveUIToCurrentStock('us'); } else initDefaultView(); await manualSaveDataSilent(); }
             }
-            isInitializing = false;
-            loadAdminStats();
+            isInitializing = false; loadAdminStats();
           } else if (event === 'SIGNED_OUT') {
-            currentUser = null;
-            cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
-            loadFromLocalStorage();
-            initDefaultView();
-            updateAuthUI();
-            document.getElementById('syncStatus').innerText = '已登出 (訪客模式)';
+            currentUser = null; cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
+            loadFromLocalStorage(); initDefaultView(); updateAuthUI();
           }
         });
-      } catch (err) {
-        isInitializing = false;
-        document.getElementById('syncStatus').innerText = '單機離線模式';
-      }
+      } catch (err) { isInitializing = false; }
       fetchExchangeRate();
     }
-
     window.resolveDataChoice = async function(choice) {
-      document.getElementById('dataChoiceModal').classList.add('hidden');
-      isInitializing = false;
-
-      if (choice === 'keep_local') {
-        document.getElementById('syncStatus').innerText = '正在將您的資料儲存至雲端...';
-        saveUIToCurrentStock('tw');
-        saveUIToCurrentStock('us');
-        saveToLocalStorage();
-        await manualSaveDataSilent();
-        document.getElementById('syncStatus').innerText = '已成功保留並同步您的資料至雲端！';
-        alert('成功！您剛才在未登入時填寫的投資組合已完整保存至您的帳號雲端。');
-      } else {
-        document.getElementById('syncStatus').innerText = '已載入雲端預設狀態';
-        cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
-        initDefaultView();
-        saveToLocalStorage();
-      }
+      document.getElementById('dataChoiceModal').classList.add('hidden'); isInitializing = false;
+      if (choice === 'keep_local') { saveUIToCurrentStock('tw'); saveUIToCurrentStock('us'); saveToLocalStorage(); await manualSaveDataSilent(); alert('同步成功！'); }
+      else { cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] }; initDefaultView(); saveToLocalStorage(); }
     };
-
     function initDefaultView() {
-      renderStockSelector('tw');
-      renderStockSelector('us');
-      
-      if (!cloudData.twOrder) cloudData.twOrder = [];
-      if (!cloudData.usOrder) cloudData.usOrder = [];
-      
-      if (!currentTwKey || !cloudData.twOrder.includes(currentTwKey)) {
-        currentTwKey = cloudData.twOrder.length > 0 ? cloudData.twOrder[0] : "";
-        if (currentTwKey) localStorage.setItem('calc_current_tw_key', currentTwKey);
-      }
-      if (!currentUsKey || !cloudData.usOrder.includes(currentUsKey)) {
-        currentUsKey = cloudData.usOrder.length > 0 ? cloudData.usOrder[0] : "";
-        if (currentUsKey) localStorage.setItem('calc_current_us_key', currentUsKey);
-      }
-
-      loadStockToUI('tw', currentTwKey);
-      loadStockToUI('us', currentUsKey);
+      renderStockSelector('tw'); renderStockSelector('us');
+      if (!cloudData.twOrder) cloudData.twOrder = []; if (!cloudData.usOrder) cloudData.usOrder = [];
+      if (!currentTwKey || !cloudData.twOrder.includes(currentTwKey)) { currentTwKey = cloudData.twOrder.length > 0 ? cloudData.twOrder[0] : ""; if (currentTwKey) localStorage.setItem('calc_current_tw_key', currentTwKey); }
+      if (!currentUsKey || !cloudData.usOrder.includes(currentUsKey)) { currentUsKey = cloudData.usOrder.length > 0 ? cloudData.usOrder[0] : ""; if (currentUsKey) localStorage.setItem('calc_current_us_key', currentUsKey); }
+      loadStockToUI('tw', currentTwKey); loadStockToUI('us', currentUsKey);
     }
-
     function updateAuthUI() {
-      const userInfoEl = document.getElementById('userInfo');
-      const loginBtn = document.getElementById('loginBtn');
-      const loggedOptions = document.getElementById('loggedOptions');
-
-      if (currentUser) {
-        userInfoEl.innerText = currentUser.email.split('@')[0];
-        loginBtn.classList.add('hidden');
-        loggedOptions.classList.remove('hidden');
-        loadAdminStats();
-      } else {
-        userInfoEl.innerText = '未登入';
-        loginBtn.classList.remove('hidden');
-        loggedOptions.classList.add('hidden');
-        document.getElementById('adminPanel').classList.add('hidden');
-      }
+      const userInfoEl = document.getElementById('userInfo'); const loginBtn = document.getElementById('loginBtn'); const loggedOptions = document.getElementById('loggedOptions');
+      if (currentUser) { userInfoEl.innerText = currentUser.email.split('@')[0]; loginBtn.classList.add('hidden'); loggedOptions.classList.remove('hidden'); loadAdminStats(); }
+      else { userInfoEl.innerText = '未登入'; loginBtn.classList.remove('hidden'); loggedOptions.classList.add('hidden'); document.getElementById('adminPanel').classList.add('hidden'); }
     }
-
     init();
   </script>
 </body>
