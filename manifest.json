@@ -1,13 +1,19 @@
 {
   "name": "台美股攤平與損益計算器",
-  "short_name": "股利計算器",
+  "short_name": "投資計算器",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#f1f5f9",
+  "background_color": "#f8fafc",
   "theme_color": "#4f46e5",
+  "description": "即時連線、試算台美股分批補倉與攤平損益的專業工具",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2910/2910791.png",
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
