@@ -14,6 +14,15 @@ export default async function handler(req, res) {
   }
 
   symbol = symbol.trim().toUpperCase();
+
+  // 💡 專屬版本檢測與心跳攔截：直接回傳，不連線至 Yahoo
+  if (symbol === 'PING') {
+    return res.status(200).json({
+      status: 'ok',
+      apiVersion: 'v0'
+    });
+  }
+
   let querySymbols = symbol;
 
   if (/^\d{4,5}$/.test(symbol)) {
