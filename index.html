@@ -18,7 +18,7 @@
       </div>
       <div class="space-y-3 text-xs">
         <div>
-          <label class="font-bold text-slate-700 block mb-1">股票代號/名稱 (必填)</label>
+          <label id="modalSymbolLabel" class="font-bold text-slate-700 block mb-1">股票代號/名稱 (必填)</label>
           <input id="modal_symbol" type="text" placeholder="例: 台積電或2330" class="w-full border rounded-xl p-2.5 font-bold outline-none focus:border-indigo-500">
         </div>
         <div>
@@ -73,7 +73,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.36</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.37</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -156,7 +156,7 @@
             <input id="tw_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
           <div>
-            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 2330)</label>
+            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">台股代號 (例: 台積電或2330)</label>
             <input id="tw_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-900">
           </div>
         </div>
@@ -290,7 +290,7 @@
             <input id="us_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900">
           </div>
           <div>
-            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: AAPL)</label>
+            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">美股代號 (例: 蘋果或AAPL)</label>
             <input id="us_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-900 uppercase">
           </div>
         </div>
@@ -446,11 +446,14 @@
       }
     }
 
-    window.addEventListener('online', () => { updateConnectionStatusUI(); syncLocalToCloud(); });
+    window.addEventListener('online', () => { updateConnectionStatusUI(); syncLocalToCloud(); fetchExchangeRate(); });
     window.addEventListener('offline', updateConnectionStatusUI);
 
+    // 💡 頁面恢復可見時自動抓取最新匯率
     window.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'hidden') {
+      if (document.visibilityState === 'visible') {
+        fetchExchangeRate();
+      } else if (document.visibilityState === 'hidden') {
         saveToLocalStorage();
         if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
       }
@@ -637,6 +640,7 @@
       applyUIMode();
     };
 
+    // 💡 切換分頁時自動觸發匯率更新
     window.switchTab = function(type) {
       localStorage.setItem('calc_current_tab', type);
       const twView = document.getElementById('twView');
@@ -658,6 +662,9 @@
         usBtn.innerText = "🇺🇸 美股專用";
         twBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
         twBtn.innerText = "🇹🇼 台股專用";
+        
+        // 切換到美股畫面時立即同步最新即時匯率
+        fetchExchangeRate();
       }
     };
 
@@ -687,6 +694,7 @@
       if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
     };
 
+    // 💡 即時匯率自動抓取 (整合至切換美股、切換項目與頁面可見時)
     window.fetchExchangeRate = async function() {
       if (!navigator.onLine) return;
       try {
@@ -695,9 +703,12 @@
           const data = await res.json();
           const rate = data?.rates?.TWD;
           if (rate) {
-            document.getElementById('us_exchangeRate').value = rate.toFixed(2);
-            calculateUs();
-            saveData();
+            const rateInput = document.getElementById('us_exchangeRate');
+            if (rateInput) {
+              rateInput.value = rate.toFixed(2);
+              calculateUs();
+              saveData();
+            }
           }
         }
       } catch (err) {}
@@ -799,7 +810,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.36';
+          latestApiVer = result.apiVersion || 'v7.8.37';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -839,6 +850,7 @@
     window.openAddStockModal = function(type) {
       currentModalType = type;
       document.getElementById('addModalTitle').innerText = type === 'tw' ? '➕ 新增台股投資組合' : '➕ 新增美股投資組合';
+      document.getElementById('modalSymbolLabel').innerText = type === 'tw' ? '台股代號/名稱 (必填)' : '美股代號/名稱 (必填)';
       document.getElementById('modal_symbol').placeholder = type === 'tw' ? '例: 台積電或2330' : '例: 蘋果或AAPL';
       document.getElementById('modal_symbol').value = '';
       document.getElementById('modal_name').value = '';
@@ -885,7 +897,7 @@
         targetStore[trimmed] = {
           name: nameVal || trimmed,
           symbol: trimmed,
-          rate: "32",
+          rate: document.getElementById('us_exchangeRate').value || "32",
           fee: "0",
           n1: n1Val,
           p1: p1Val,
@@ -909,7 +921,6 @@
       fetchMarketPrice(type);
 
       if (keepAdding) {
-        // 清空輸入欄位，保留視窗讓使用者繼續輸入下一筆
         document.getElementById('modal_symbol').value = '';
         document.getElementById('modal_name').value = '';
         document.getElementById('modal_n1').value = '';
@@ -1138,7 +1149,10 @@
         document.getElementById('us_nameInput').value = us.name || key;
         document.getElementById('us_symbolInput').value = key;
 
-        document.getElementById('us_exchangeRate').value = us.rate || '32';
+        // 若該檔美股有自己的匯率記錄則優先帶入，否則保持最新取得的匯率
+        if (us.rate) {
+          document.getElementById('us_exchangeRate').value = us.rate;
+        }
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : '';
         document.getElementById('us_p1').value = us.p1 || '';
@@ -1152,6 +1166,9 @@
         const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "" }];
         plans.forEach(plan => addUsPlanRow(plan.p2 || "", plan.n2 || ""));
         calculateUs();
+
+        // 💡 每次切換美股組合時，自動聯網取得最新匯率與行情
+        fetchExchangeRate();
       }
     }
 
