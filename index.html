@@ -2,15 +2,8 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <!-- PWA 必須的 viewport 與主題色設定 -->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#4f46e5">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>台美股多組合攤平與損益計算器</title>
-  
-  <!-- 💡 匯入 PWA Manifest -->
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192.png">
-
   <script data-config='{"config":{"properties":{}}}' bis-use="true"></script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -80,7 +73,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v7.8.38 PWA</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">前端 v7.8.37</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -91,11 +84,6 @@
       </div>
       
       <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
-        <!-- 💡 PWA 原生安裝按鈕 (系統判斷可安裝時才會顯示) -->
-        <button id="installAppBtn" type="button" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-emerald-300 transition shadow-sm cursor-pointer">
-          📲 安裝 App
-        </button>
-
         <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
           📱 手機介面
         </button>
@@ -436,34 +424,6 @@
     let pendingGuestData = null;
     let currentModalType = 'tw';
 
-    // 💡 PWA 安裝按鈕邏輯
-    let deferredPrompt;
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      document.getElementById('installAppBtn').classList.remove('hidden');
-    });
-
-    document.getElementById('installAppBtn').addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          document.getElementById('installAppBtn').classList.add('hidden');
-        }
-        deferredPrompt = null;
-      }
-    });
-
-    // 💡 註冊 Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./sw.js')
-          .then(reg => console.log('Service Worker 註冊成功:', reg.scope))
-          .catch(err => console.log('Service Worker 註冊失敗:', err));
-      });
-    }
-
     function getLocalStorageKey() {
       if (!currentUser) return `${LOCAL_STORAGE_BASE_KEY}_guest`;
       return `${LOCAL_STORAGE_BASE_KEY}_user_${currentUser.id}`;
@@ -489,6 +449,7 @@
     window.addEventListener('online', () => { updateConnectionStatusUI(); syncLocalToCloud(); fetchExchangeRate(); });
     window.addEventListener('offline', updateConnectionStatusUI);
 
+    // 💡 頁面恢復可見時自動抓取最新匯率
     window.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         fetchExchangeRate();
@@ -679,6 +640,7 @@
       applyUIMode();
     };
 
+    // 💡 切換分頁時自動觸發匯率更新
     window.switchTab = function(type) {
       localStorage.setItem('calc_current_tab', type);
       const twView = document.getElementById('twView');
@@ -701,6 +663,7 @@
         twBtn.className = "py-2.5 font-semibold rounded-xl transition-all text-slate-600 text-xs sm:text-sm cursor-pointer";
         twBtn.innerText = "🇹🇼 台股專用";
         
+        // 切換到美股畫面時立即同步最新即時匯率
         fetchExchangeRate();
       }
     };
@@ -731,6 +694,7 @@
       if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
     };
 
+    // 💡 即時匯率自動抓取 (整合至切換美股、切換項目與頁面可見時)
     window.fetchExchangeRate = async function() {
       if (!navigator.onLine) return;
       try {
@@ -846,7 +810,7 @@
 
           saveData();
 
-          latestApiVer = result.apiVersion || 'v7.8.38 PWA';
+          latestApiVer = result.apiVersion || 'v7.8.37';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情 (${result.currentPrice})`;
         } else {
@@ -882,6 +846,7 @@
       alert(`已成功將名稱更改為「${trimmedName}」！`);
     };
 
+    // 💡 彈出式新增視窗控制 (依台美股動態調整說明文字)
     window.openAddStockModal = function(type) {
       currentModalType = type;
       document.getElementById('addModalTitle').innerText = type === 'tw' ? '➕ 新增台股投資組合' : '➕ 新增美股投資組合';
@@ -899,6 +864,7 @@
       document.getElementById('addStockModal').classList.add('hidden');
     };
 
+    // 💡 支援單筆或連續多筆新增的處理邏輯
     window.confirmAddStock = async function(keepAdding) {
       const type = currentModalType;
       const symbolVal = document.getElementById('modal_symbol').value.trim();
@@ -950,6 +916,7 @@
       loadStockToUI(type, trimmed);
       saveData();
 
+      // 背景自動抓取行情
       document.getElementById(`${type}_symbolInput`).value = trimmed;
       fetchMarketPrice(type);
 
@@ -1182,6 +1149,7 @@
         document.getElementById('us_nameInput').value = us.name || key;
         document.getElementById('us_symbolInput').value = key;
 
+        // 若該檔美股有自己的匯率記錄則優先帶入，否則保持最新取得的匯率
         if (us.rate) {
           document.getElementById('us_exchangeRate').value = us.rate;
         }
@@ -1198,7 +1166,8 @@
         const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "" }];
         plans.forEach(plan => addUsPlanRow(plan.p2 || "", plan.n2 || ""));
         calculateUs();
-        
+
+        // 💡 每次切換美股組合時，自動聯網取得最新匯率與行情
         fetchExchangeRate();
       }
     }
