@@ -1,4 +1,5 @@
-const CACHE_NAME = 'costcal-pwa-v1';
+const SW_VERSION = 'v0';
+const CACHE_NAME = 'costcal-pwa-' + SW_VERSION;
 const urlsToCache = [
   './',
   './index.html',
@@ -33,8 +34,11 @@ self.addEventListener('activate', event => {
 
 // 3. 攔截請求：採用「網路優先，失敗則退回快取」(Network First) 的策略
 self.addEventListener('fetch', event => {
-  // 只攔截 GET 請求，忽略 API 與 Supabase 認證相關請求
-  if (event.request.method !== 'GET' || event.request.url.includes('supabase') || event.request.url.includes('api')) {
+  // 忽略 API 與 Supabase，且忽略帶有 t= (Cache Buster) 的版本偵測請求，確保管理員能抓到原始檔
+  if (event.request.method !== 'GET' || 
+      event.request.url.includes('supabase') || 
+      event.request.url.includes('api') ||
+      event.request.url.includes('?t=')) {
     return;
   }
 
