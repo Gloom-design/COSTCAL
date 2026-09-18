@@ -35,6 +35,11 @@ self.addEventListener('activate', event => {
 
 // 3. 攔截請求：採用「網路優先，失敗則退回快取」(Network First) 的策略
 self.addEventListener('fetch', event => {
+  // 僅處理 http 與 https 請求，忽略 chrome-extension 等瀏覽器擴充套件
+  if (!event.request.url.startsWith('http')) {
+    return;
+  }
+
   // 忽略 API 與 Supabase，且忽略帶有 t= (Cache Buster) 的版本偵測請求，確保管理員能抓到原始檔
   if (event.request.method !== 'GET' || 
       event.request.url.includes('supabase') || 

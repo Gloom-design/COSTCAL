@@ -483,7 +483,7 @@
       }
     }
 
-    window.addEventListener('online', () => { updateConnectionStatusUI(); syncLocalToCloud(); fetchExchangeRate(); });
+    window.addEventListener('online', () => { updateConnectionStatusUI(); syncLocalToCloud(); fetchExchangeRate(); pingBackendVersion(); });
     window.addEventListener('offline', updateConnectionStatusUI);
 
     window.addEventListener('visibilitychange', () => {
@@ -672,6 +672,10 @@
         const res = await fetch(`${API_BACKEND_URL}?symbol=PING&t=${ts}`);
         const data = await res.json();
         document.getElementById('adminVerStock').innerText = data.apiVersion || '未標示';
+        if (data && data.apiVersion) {
+          latestApiVer = data.apiVersion;
+          updateVersionDisplay();
+        }
       } catch (e) {
         document.getElementById('adminVerStock').innerText = '連線失敗';
       }
@@ -754,6 +758,20 @@
           if (rate) {
             document.getElementById('us_exchangeRate').value = rate.toFixed(2);
             calculateUs(); saveData();
+          }
+        }
+      } catch (err) {}
+    };
+
+    window.pingBackendVersion = async function() {
+      if (!navigator.onLine) return;
+      try {
+        const res = await fetch(`${API_BACKEND_URL}?symbol=PING&t=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.apiVersion) {
+            latestApiVer = data.apiVersion;
+            updateVersionDisplay();
           }
         }
       } catch (err) {}
@@ -1439,12 +1457,14 @@
             } else { if (loadFromLocalStorage()) { initDefaultView(); await manualSaveDataSilent(); } else { initDefaultView(); saveUIToCurrentStock('tw'); saveUIToCurrentStock('us'); await manualSaveDataSilent(); } }
           }
           loadAdminStats();
+          document.getElementById('syncStatus').innerText = '雲端已同步';
         }
         isInitializing = false;
         sbClient.auth.onAuthStateChange(async (event, session) => {
           currentUser = session?.user || null; updateAuthUI(); updateVersionDisplay(); 
           if (event === 'SIGNED_IN' && currentUser && navigator.onLine) {
             isInitializing = true;
+            document.getElementById('syncStatus').innerText = '載入中...';
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
             if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0)) {
               cloudData = sanitizeStockData(data.portfolio_data); saveToLocalStorage(); initDefaultView();
@@ -1453,13 +1473,16 @@
               else { if (!loadFromLocalStorage()) { initDefaultView(); saveUIToCurrentStock('tw'); saveUIToCurrentStock('us'); } else initDefaultView(); await manualSaveDataSilent(); }
             }
             isInitializing = false; loadAdminStats();
+            document.getElementById('syncStatus').innerText = '雲端已同步';
           } else if (event === 'SIGNED_OUT') {
             currentUser = null; cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
             loadFromLocalStorage(); initDefaultView(); updateAuthUI();
+            document.getElementById('syncStatus').innerText = navigator.onLine ? '訪客模式 (未登入)' : '離線模式';
           }
         });
       } catch (err) { isInitializing = false; }
       fetchExchangeRate();
+      pingBackendVersion();
     }
     window.resolveDataChoice = async function(choice) {
       document.getElementById('dataChoiceModal').classList.add('hidden'); isInitializing = false;
