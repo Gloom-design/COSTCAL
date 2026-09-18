@@ -74,7 +74,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v0.1</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v0.2</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -160,9 +160,16 @@
       </div>
 
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
-        <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
           <span class="font-bold text-indigo-600 text-xs sm:text-sm">1. 台股設定與代號查詢</span>
-          <div class="flex gap-3 text-[10px] sm:text-xs text-slate-600">
+          <div class="flex items-center gap-2 text-[10px] sm:text-xs text-slate-600 flex-wrap">
+            <span class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
+              <span>損益顏色:</span>
+              <select id="twColorRule" onchange="changeColorRule('tw', this.value)" class="bg-transparent font-bold text-indigo-700 outline-none cursor-pointer">
+                <option value="red_up">🔴漲紅 🟢跌綠 (預設)</option>
+                <option value="green_up">🟢漲綠 🔴跌紅</option>
+              </select>
+            </span>
             <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1" value="0.6"></span>
             <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1" value="20"></span>
           </div>
@@ -292,9 +299,16 @@
       </div>
 
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
-        <div class="flex justify-between items-center border-b pb-3">
+        <div class="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
           <span class="font-bold text-teal-600 text-xs sm:text-sm">1. 美股設定與代號查詢</span>
-          <div class="flex gap-2 text-[10px] sm:text-xs text-slate-600 items-center">
+          <div class="flex items-center gap-2 text-[10px] sm:text-xs text-slate-600 flex-wrap">
+            <span class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
+              <span>損益顏色:</span>
+              <select id="usColorRule" onchange="changeColorRule('us', this.value)" class="bg-transparent font-bold text-teal-700 outline-none cursor-pointer">
+                <option value="green_up">🟢漲綠 🔴跌紅 (預設)</option>
+                <option value="red_up">🔴漲紅 🟢跌綠</option>
+              </select>
+            </span>
             <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5" value="32"></span>
             <button type="button" onclick="fetchExchangeRate()" class="bg-teal-50 hover:bg-teal-100 text-teal-700 px-2 py-1 rounded-lg text-[10px] font-bold border border-teal-200 cursor-pointer">🔄 即時</button>
             <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5" value="0"></span>
@@ -421,7 +435,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.1';
+    const FRONTEND_VERSION = 'v0.2';
     
     let sbClient = null; 
     let currentUser = null;
@@ -844,7 +858,7 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
-          latestApiVer = result.apiVersion || 'v0.1';
+          latestApiVer = result.apiVersion || 'v0.2';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情`;
         }
@@ -1217,15 +1231,15 @@
       const pnlAmtEl = document.getElementById('tw_pnlAmtDisplay');
       const targetPnlEl = document.getElementById('tw_targetPnlDisplay');
 
-      pnlEl.className = `font-bold text-xs sm:text-base ${displayPnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'} flex items-center gap-2 flex-wrap`;
+      pnlEl.className = `font-bold text-xs sm:text-base ${getPnlColor('tw', displayPnlPct)} flex items-center gap-2 flex-wrap`;
       pnlEl.querySelector('span:first-child').innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
       if (pnlAmt !== null) {
-        pnlAmtEl.className = `text-xs font-bold ${pnlAmt >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+        pnlAmtEl.className = `text-xs font-bold ${getPnlColor('tw', pnlAmt)}`;
         pnlAmtEl.innerText = `(${pnlAmt >= 0 ? '+' : ''}$${formatMoney(pnlAmt)})`;
       } else pnlAmtEl.innerText = '';
 
       if (targetPnlAmt !== null && targetPnlPct !== null) {
-        targetPnlEl.className = `font-bold text-xs sm:text-base ${targetPnlAmt >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+        targetPnlEl.className = `font-bold text-xs sm:text-base ${getPnlColor('tw', targetPnlAmt, 'dark')}`;
         targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlAmt >= 0 ? '+' : ''}$${formatMoney(targetPnlAmt)})`;
       } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-400"; targetPnlEl.innerText = '-%'; }
 
@@ -1263,7 +1277,7 @@
                 <div>3. 本次所需補倉股數: <span class="text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
                 <div>4. 目前個股總股數: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
                 <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
-                <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+                <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
               </div>`;
             batchContainer.appendChild(batchDiv); return;
           }
@@ -1290,7 +1304,7 @@
               <div>3. 本次所需補倉股數: <span class="text-cyan-300">${n2.toFixed(1)} 股</span></div>
               <div>4. 目前個股總股數: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
               <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(batchAvgPrice)}</span></div>
-              <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
             </div>`;
           batchContainer.appendChild(batchDiv);
         }
@@ -1322,12 +1336,12 @@
       const targetPnlEl = document.getElementById('us_targetPnlDisplay');
 
       if (pnlEl) pnlEl.innerHTML = pnlPct !== null ? `${pnlPct > 0 ? '+' : ''}${pnlPct.toFixed(2)}%` : '-%';
-      if (pnlEl) pnlEl.className = `font-bold text-xs sm:text-base ${pnlPct >= 0 ? 'text-emerald-500' : 'text-rose-500'}`;
+      if (pnlEl) pnlEl.className = `font-bold text-xs sm:text-base ${getPnlColor('us', pnlPct)}`;
 
       if (pnlAmtEl) {
         if (pnlAmtUSD !== null) {
           const pnlAmtTWD = pnlAmtUSD * exchangeRate;
-          pnlAmtEl.className = `text-xs font-bold ${pnlAmtUSD >= 0 ? 'text-emerald-500' : 'text-rose-500'} ml-1`;
+          pnlAmtEl.className = `text-xs font-bold ${getPnlColor('us', pnlAmtUSD)} ml-1`;
           pnlAmtEl.innerText = `(${pnlAmtUSD >= 0 ? '+' : ''}$${formatMoney(pnlAmtUSD)} / NT$${formatMoney(pnlAmtTWD)})`;
         } else pnlAmtEl.innerText = '';
       }
@@ -1335,7 +1349,7 @@
       if (targetPnlEl) {
         if (targetPnlUSD !== null && targetPnlPct !== null) {
           const targetPnlTWD = targetPnlUSD * exchangeRate;
-          targetPnlEl.className = `font-bold text-xs sm:text-base ${targetPnlUSD >= 0 ? 'text-emerald-600' : 'text-rose-600'}`;
+          targetPnlEl.className = `font-bold text-xs sm:text-base ${getPnlColor('us', targetPnlUSD, 'dark')}`;
           targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlUSD >= 0 ? '+' : ''}$${formatMoney(targetPnlUSD)} / NT$${formatMoney(targetPnlTWD)})`;
         } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-400"; targetPnlEl.innerText = '-%'; }
       }
@@ -1377,7 +1391,7 @@
               <div>5. 本次所需補倉股數: <span class="text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
               <div>6. 目前個股總股數: <span class="text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
               <div>7. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
-              <div>8. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
             </div>`;
           batchContainer.appendChild(batchDiv); return;
         }
@@ -1404,7 +1418,7 @@
               <div>5. 本次所需補倉股數: <span class="text-cyan-300">${n2.toFixed(1)} 股</span></div>
               <div>6. 目前個股總股數: <span class="text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
               <div>7. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(batchAvgPrice)}</span></div>
-              <div>8. 未實現損益: <span class="${batchPnlPropColor(batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
             </div>`;
           batchContainer.appendChild(batchDiv);
         }
@@ -1419,7 +1433,32 @@
       document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
     }
 
-    function batchPnlPropColor(pct) { return pct === null ? 'text-slate-400' : (pct >= 0 ? 'text-emerald-400' : 'text-rose-400'); }
+    function getPnlColor(type, value, level = 'normal') {
+      if (value === null || isNaN(value)) return 'text-slate-400';
+      const defaultRule = (type === 'tw' ? 'red_up' : 'green_up');
+      const rule = localStorage.getItem(`calc_color_rule_${type}`) || defaultRule;
+      const isUp = value >= 0;
+      const isRed = (rule === 'red_up') ? isUp : !isUp;
+
+      if (level === 'dark') {
+        return isRed ? 'text-rose-600' : 'text-emerald-600';
+      } else if (level === 'light') {
+        return isRed ? 'text-rose-400' : 'text-emerald-400';
+      } else {
+        return isRed ? 'text-rose-500' : 'text-emerald-500';
+      }
+    }
+
+    function batchPnlPropColor(type, pct) {
+      return getPnlColor(type, pct, 'light');
+    }
+
+    window.changeColorRule = function(type, rule) {
+      localStorage.setItem(`calc_color_rule_${type}`, rule);
+      if (type === 'tw') calculateTw();
+      else calculateUs();
+      saveData();
+    };
 
     document.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); }));
     ['tw', 'us'].forEach(type => {
@@ -1433,6 +1472,13 @@
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
 
     async function init() {
+      const twRule = localStorage.getItem('calc_color_rule_tw') || 'red_up';
+      const usRule = localStorage.getItem('calc_color_rule_us') || 'green_up';
+      const twColorEl = document.getElementById('twColorRule');
+      const usColorEl = document.getElementById('usColorRule');
+      if (twColorEl) twColorEl.value = twRule;
+      if (usColorEl) usColorEl.value = usRule;
+
       applyUIMode(); updateConnectionStatusUI(); switchTab(localStorage.getItem('calc_current_tab') || 'tw');
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
