@@ -1,4 +1,4 @@
-// CostCal Stock API - Version v0
+// CostCal Stock API - Version v0.1
 // API Endpoint: https://costcal-test.vercel.app/api/stock
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
   if (symbol === 'PING') {
     return res.status(200).json({
       status: 'ok',
-      apiVersion: 'v0'
+      apiVersion: 'v0.1'
     });
   }
 
@@ -58,7 +58,7 @@ export default async function handler(req, res) {
       name: quote.longName || quote.shortName || quote.symbol,
       currentPrice: quote.regularMarketPrice,
       prevClose: quote.regularMarketPreviousClose,
-      apiVersion: 'v0'
+      apiVersion: 'v0.1'
     });
 
   } catch (error) {
