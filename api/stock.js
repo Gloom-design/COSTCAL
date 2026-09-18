@@ -1,3 +1,5 @@
+// CostCal Stock API - Version v0
+// API Endpoint: https://costcal-test.vercel.app/api/stock
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
