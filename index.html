@@ -154,12 +154,15 @@
         </button>
 
         <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
-          <span id="userInfo" class="text-[10px] sm:text-xs text-slate-500 max-w-[90px] sm:max-w-[140px] truncate hidden sm:inline">未登入</span>
+          <span id="userInfo" title="目前登入帳號" class="hidden text-[10px] sm:text-xs text-slate-700 bg-slate-100 border border-slate-200 px-2 py-1.5 rounded-xl font-semibold max-w-[85px] sm:max-w-[140px] truncate">未登入</span>
           <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-semibold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
           
-          <div id="loggedOptions" class="hidden flex items-center gap-1.5">
+          <div id="loggedOptions" class="hidden flex items-center gap-1.5 flex-wrap">
+            <button id="switchAccountBtn" type="button" onclick="switchAccount()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-semibold border border-indigo-200 cursor-pointer shadow-sm flex items-center gap-1" title="切換其他 Google 帳號">
+              🔄 切換帳號
+            </button>
+            <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-semibold border border-slate-200 cursor-pointer shadow-sm">登出</button>
             <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-semibold border border-rose-200 cursor-pointer shadow-sm">⚠️ 刪除帳號</button>
-            <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-semibold cursor-pointer shadow">登出</button>
           </div>
         </div>
       </div>
@@ -713,6 +716,46 @@
         }
       });
       if (error) alert("登入失敗: " + error.message);
+    };
+
+    window.switchAccount = async function() {
+      if (!navigator.onLine) { alert("目前離線中，無法進行帳號切換！"); return; }
+      if (!sbClient) return;
+
+      if (!confirm("確定要切換為其他 Google 帳號嗎？\n\n系統將會先安全儲存您目前的投資組合資料。")) return;
+
+      clearTimeout(saveTimeout);
+      const syncStatusEl = document.getElementById('syncStatus');
+      if (syncStatusEl) syncStatusEl.innerText = '正在安全儲存並準備切換帳號...';
+
+      if (currentUser && navigator.onLine) {
+        await manualSaveDataSilent();
+      }
+      saveToLocalStorage();
+
+      try {
+        await sbClient.auth.signOut();
+      } catch (err) {
+        console.warn("切換帳號登出處理:", err);
+      }
+
+      currentUser = null;
+      localStorage.removeItem('calc_current_tw_key');
+      localStorage.removeItem('calc_current_us_key');
+      localStorage.removeItem('calc_current_tab');
+      localStorage.removeItem(`${LOCAL_STORAGE_BASE_KEY}_guest`);
+      sessionStorage.removeItem('pending_guest_data');
+
+      const { error } = await sbClient.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname,
+          queryParams: {
+            prompt: 'select_account'
+          }
+        }
+      });
+      if (error) alert("切換帳號失敗: " + error.message);
     };
 
     window.logout = async function() {
@@ -1654,9 +1697,23 @@
       loadStockToUI('tw', currentTwKey); loadStockToUI('us', currentUsKey);
     }
     function updateAuthUI() {
-      const userInfoEl = document.getElementById('userInfo'); const loginBtn = document.getElementById('loginBtn'); const loggedOptions = document.getElementById('loggedOptions');
-      if (currentUser) { userInfoEl.innerText = currentUser.email.split('@')[0]; loginBtn.classList.add('hidden'); loggedOptions.classList.remove('hidden'); loadAdminStats(); }
-      else { userInfoEl.innerText = '未登入'; loginBtn.classList.remove('hidden'); loggedOptions.classList.add('hidden'); document.getElementById('adminPanel').classList.add('hidden'); }
+      const userInfoEl = document.getElementById('userInfo'); 
+      const loginBtn = document.getElementById('loginBtn'); 
+      const loggedOptions = document.getElementById('loggedOptions');
+      if (currentUser) { 
+        userInfoEl.innerText = currentUser.email.split('@')[0]; 
+        userInfoEl.title = `目前登入帳號：${currentUser.email}`;
+        userInfoEl.classList.remove('hidden'); 
+        loginBtn.classList.add('hidden'); 
+        loggedOptions.classList.remove('hidden'); 
+        loadAdminStats(); 
+      } else { 
+        userInfoEl.innerText = '未登入'; 
+        userInfoEl.classList.add('hidden'); 
+        loginBtn.classList.remove('hidden'); 
+        loggedOptions.classList.add('hidden'); 
+        document.getElementById('adminPanel').classList.add('hidden'); 
+      }
     }
     init();
   </script>
