@@ -68,6 +68,66 @@
     </div>
   </div>
 
+  <div id="iosInstallModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this)closeIosInstallModal()">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">📲</span>
+          <h3 class="font-bold text-sm sm:text-base text-slate-900">加到 iPhone / iPad 主畫面</h3>
+        </div>
+        <button type="button" onclick="closeIosInstallModal()" class="text-slate-400 hover:text-slate-600 font-bold text-lg cursor-pointer leading-none px-1">✕</button>
+      </div>
+      
+      <p class="text-xs text-slate-600 leading-relaxed">
+        只要簡單 3 個步驟，即可將計算器加入桌面，享受全螢幕、無網址列的原生 App 體驗：
+      </p>
+
+      <div class="space-y-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">1</span>
+          <div>
+            <div class="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+              點擊 Safari 下方的「分享」按鈕
+              <span class="inline-flex items-center justify-center bg-white border border-slate-200 rounded p-1 text-indigo-600 shadow-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">（位於 iPhone 螢幕最底部置中的工具列）</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">2</span>
+          <div>
+            <div class="font-bold text-slate-800 flex items-center gap-1.5 flex-wrap">
+              向上滑動選單，點選「加入主畫面」
+              <span class="inline-flex items-center justify-center bg-white border border-slate-200 rounded p-1 text-slate-700 shadow-xs">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">（圖示為帶有加號的正方形）</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-600 text-white font-bold flex items-center justify-center text-xs shadow-xs">3</span>
+          <div>
+            <div class="font-bold text-slate-800">點擊右上角「新增」</div>
+            <p class="text-[11px] text-slate-500 mt-0.5">即可在桌面產生 App 圖示，像原生 App 隨開即用！</p>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" onclick="closeIosInstallModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow cursor-pointer text-xs">
+        我知道了，開始加入
+      </button>
+    </div>
+  </div>
+
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
     
     <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-25 flex-wrap gap-3">
@@ -452,21 +512,61 @@
     let pendingGuestData = null;
     let currentModalType = 'tw';
 
+    window.closeIosInstallModal = function() {
+      const modal = document.getElementById('iosInstallModal');
+      if (modal) modal.classList.add('hidden');
+    };
+
+    window.openIosInstallModal = function() {
+      const modal = document.getElementById('iosInstallModal');
+      if (modal) modal.classList.remove('hidden');
+    };
+
+    function isIOSDevice() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+        (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
+    function isStandaloneMode() {
+      return ('standalone' in window.navigator && window.navigator.standalone) || 
+        window.matchMedia('(display-mode: standalone)').matches;
+    }
+
     let deferredPrompt;
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;
-      document.getElementById('installAppBtn').classList.remove('hidden');
+      const btn = document.getElementById('installAppBtn');
+      if (btn) btn.classList.remove('hidden');
     });
 
-    document.getElementById('installAppBtn').addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') document.getElementById('installAppBtn').classList.add('hidden');
-        deferredPrompt = null;
-      }
+    window.addEventListener('appinstalled', () => {
+      const btn = document.getElementById('installAppBtn');
+      if (btn) btn.classList.add('hidden');
+      deferredPrompt = null;
     });
+
+    // 若為 iOS Safari 且尚未加到主畫面獨立開啟，顯示安裝 App 按鈕
+    if (isIOSDevice() && !isStandaloneMode()) {
+      const btn = document.getElementById('installAppBtn');
+      if (btn) btn.classList.remove('hidden');
+    }
+
+    const installBtnEl = document.getElementById('installAppBtn');
+    if (installBtnEl) {
+      installBtnEl.addEventListener('click', async () => {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          if (outcome === 'accepted') {
+            installBtnEl.classList.add('hidden');
+          }
+          deferredPrompt = null;
+        } else {
+          openIosInstallModal();
+        }
+      });
+    }
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
@@ -605,7 +705,12 @@
 
       const { error } = await sbClient.auth.signInWithOAuth({ 
         provider: 'google',
-        options: { redirectTo: window.location.origin + window.location.pathname }
+        options: { 
+          redirectTo: window.location.origin + window.location.pathname,
+          queryParams: {
+            prompt: 'select_account'
+          }
+        }
       });
       if (error) alert("登入失敗: " + error.message);
     };
@@ -618,12 +723,18 @@
         await manualSaveDataSilent(); 
       }
       saveToLocalStorage();
-      await sbClient.auth.signOut({ scope: 'local' });
+      try {
+        await sbClient.auth.signOut();
+      } catch (err) {
+        console.warn("登出處理:", err);
+      }
       
+      currentUser = null;
       localStorage.removeItem('calc_current_tw_key');
       localStorage.removeItem('calc_current_us_key');
       localStorage.removeItem('calc_current_tab');
       localStorage.removeItem(`${LOCAL_STORAGE_BASE_KEY}_guest`); 
+      sessionStorage.removeItem('pending_guest_data');
       window.location.href = window.location.origin + window.location.pathname;
     };
 
