@@ -158,6 +158,10 @@ export default async function handler(req, res) {
 
   } catch (error) {
     console.error('API 查詢異常:', error);
-    return res.status(500).json({ error: '伺服器擷取報價失敗，請稍後再試' });
+    return res.status(500).json({ 
+      error: '伺服器擷取報價失敗，請稍後再試',
+      detail: error.message,
+      stack: error.stack 
+    });
   }
 }
