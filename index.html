@@ -134,7 +134,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v0.2</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v0.2.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -346,6 +346,69 @@
           </button>
         </div>
       </div>
+
+      <!-- 💼 台股全投資組合總覽 (Portfolio Summary) -->
+      <div id="twPortfolioSummaryCard" class="summary-card bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md border border-indigo-500/40 space-y-3.5">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2.5 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base sm:text-lg">💼</span>
+            <div>
+              <h2 class="font-bold text-xs sm:text-sm text-indigo-400 leading-tight">台股所有投資組合總覽</h2>
+              <p class="text-[10px] text-slate-400">彙總您名下所有持股之成本與未實現損益</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="tw_summaryStockCountBadge" class="bg-indigo-950/80 text-indigo-300 border border-indigo-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
+            <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-indigo-600/80 hover:bg-indigo-600 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-indigo-400/40 transition flex items-center gap-1 cursor-pointer">
+              <span>🔄 更新全組合行情</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI 數據核心面板 -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- 總投資成本 -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">總投資成本</div>
+            <div id="tw_summaryTotalCost" class="text-base sm:text-xl font-bold text-white tracking-tight">$0</div>
+            <div id="tw_summaryCostSub" class="text-[10px] text-slate-400 truncate">現有投入資金</div>
+          </div>
+
+          <!-- 總未實現損益 -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">總未實現損益</div>
+            <div id="tw_summaryTotalPnl" class="text-base sm:text-xl font-bold text-slate-400 tracking-tight">$0</div>
+            <div id="tw_summaryPnlRate" class="text-[10px] font-bold text-slate-400">總損益率: -%</div>
+          </div>
+
+          <!-- 總現值 (總市值) -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">總市值現值</div>
+            <div id="tw_summaryTotalValue" class="text-sm sm:text-base font-bold text-cyan-300">$0</div>
+            <div class="text-[10px] text-slate-400">以現價/前收計算</div>
+          </div>
+
+          <!-- 損益分佈概況 -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">持股損益分佈</div>
+            <div id="tw_summaryDist" class="text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-1.5 flex-wrap">
+              <span>0 檔</span>
+            </div>
+            <div id="tw_summaryPlanAddCostSub" class="text-[10px] text-slate-400 truncate">補倉預計加碼: $0</div>
+          </div>
+        </div>
+
+        <!-- 各檔明細清單摺疊區 -->
+        <div class="border-t border-slate-800 pt-2 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] sm:text-xs text-slate-400 font-semibold">各持股明細損益 (點擊可切換編輯)</span>
+            <button type="button" onclick="togglePortfolioDetail('tw')" id="twToggleDetailBtn" class="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold underline cursor-pointer">
+              展開明細 ▾
+            </button>
+          </div>
+          <div id="twPortfolioDetailList" class="space-y-1.5 hidden max-h-64 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
     </div>
 
     <div id="usView" class="space-y-4 sm:space-y-5 hidden">
@@ -484,6 +547,69 @@
           </button>
         </div>
       </div>
+
+      <!-- 💼 美股全投資組合總覽 (Portfolio Summary) -->
+      <div id="usPortfolioSummaryCard" class="summary-card bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md border border-teal-500/40 space-y-3.5">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-2.5 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base sm:text-lg">💼</span>
+            <div>
+              <h2 class="font-bold text-xs sm:text-sm text-teal-400 leading-tight">美股所有投資組合總覽</h2>
+              <p class="text-[10px] text-slate-400">彙總您名下所有持股之成本與未實現損益 (含台幣換算)</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span id="us_summaryStockCountBadge" class="bg-teal-950/80 text-teal-300 border border-teal-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
+            <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-teal-600/80 hover:bg-teal-600 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-teal-400/40 transition flex items-center gap-1 cursor-pointer">
+              <span>🔄 更新全組合行情</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI 數據核心面板 -->
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- 總投資成本 -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">總投資成本 (USD / TWD)</div>
+            <div id="us_summaryTotalCostUSD" class="text-base sm:text-xl font-bold text-white tracking-tight">$0</div>
+            <div id="us_summaryCostTWD" class="text-[10px] font-semibold text-cyan-300">NT$0</div>
+          </div>
+
+          <!-- 總未實現損益 -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">總未實現損益</div>
+            <div id="us_summaryTotalPnlUSD" class="text-base sm:text-xl font-bold text-slate-400 tracking-tight">$0</div>
+            <div id="us_summaryPnlRate" class="text-[10px] font-bold text-slate-400">總損益率: -%</div>
+          </div>
+
+          <!-- 總現值 (總市值) -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">總市值現值</div>
+            <div id="us_summaryTotalValueUSD" class="text-sm sm:text-base font-bold text-cyan-300">$0</div>
+            <div id="us_summaryTotalValueTWD" class="text-[10px] text-slate-400">折合 NT$0</div>
+          </div>
+
+          <!-- 損益分佈概況 -->
+          <div class="bg-slate-800/70 p-3 rounded-xl border border-slate-700/60 space-y-1">
+            <div class="text-[10px] sm:text-xs text-slate-400">持股損益分佈</div>
+            <div id="us_summaryDist" class="text-xs sm:text-sm font-bold text-slate-300 flex items-center gap-1.5 flex-wrap">
+              <span>0 檔</span>
+            </div>
+            <div id="us_summaryPlanAddCostSub" class="text-[10px] text-slate-400 truncate">補倉預計投入: $0</div>
+          </div>
+        </div>
+
+        <!-- 各檔明細清單摺疊區 -->
+        <div class="border-t border-slate-800 pt-2 space-y-2">
+          <div class="flex justify-between items-center">
+            <span class="text-[10px] sm:text-xs text-slate-400 font-semibold">各持股明細損益 (點擊可切換編輯)</span>
+            <button type="button" onclick="togglePortfolioDetail('us')" id="usToggleDetailBtn" class="text-[10px] text-teal-400 hover:text-teal-300 font-bold underline cursor-pointer">
+              展開明細 ▾
+            </button>
+          </div>
+          <div id="usPortfolioDetailList" class="space-y-1.5 hidden max-h-64 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -498,7 +624,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.2';
+    const FRONTEND_VERSION = 'v0.2.1';
     
     let sbClient = null; 
     let currentUser = null;
@@ -1149,16 +1275,25 @@
       const body = document.getElementById('bodyBg');
       const container = document.getElementById('mainContainer');
       const cards = document.querySelectorAll('.card-box');
+      const summaryCards = document.querySelectorAll('.summary-card');
       if (isCompactMode) {
         btn.innerText = "📱 手機介面";
         body.className = "bg-slate-100 text-slate-800 p-1.5 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
         cards.forEach(card => card.className = "card-box bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2");
+        summaryCards.forEach(sc => {
+          const isTw = sc.id.startsWith('tw');
+          sc.className = `summary-card bg-slate-900 text-white p-3 rounded-xl shadow-md border ${isTw ? 'border-indigo-500/40' : 'border-teal-500/40'} space-y-2.5`;
+        });
       } else {
         btn.innerText = "💻 電腦介面";
         body.className = "bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm";
         cards.forEach(card => card.className = "card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5");
+        summaryCards.forEach(sc => {
+          const isTw = sc.id.startsWith('tw');
+          sc.className = `summary-card bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md border ${isTw ? 'border-indigo-500/40' : 'border-teal-500/40'} space-y-3.5`;
+        });
       }
     }
 
@@ -1402,6 +1537,7 @@
         document.getElementById('tw_resN1').innerText = '0.0'; document.getElementById('tw_resN2').innerText = '0.0';
         document.getElementById('tw_resTotalN').innerText = '0.0 股'; document.getElementById('tw_resAvgPrice').innerText = '$0.00';
         document.getElementById('tw_resOriginalCost').innerText = '$0'; document.getElementById('tw_resAddCost').innerText = '$0';
+        calculateTwPortfolioSummary();
         return;
       }
 
@@ -1433,7 +1569,9 @@
                 <div class="col-span-2">5. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
                 <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
               </div>`;
-            batchContainer.appendChild(batchDiv); return;
+            batchContainer.appendChild(batchDiv);
+            calculateTwPortfolioSummary();
+            return;
           }
         }
       }
@@ -1469,6 +1607,7 @@
       document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
       document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
       document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+      calculateTwPortfolioSummary();
     }
 
     function calculateUs() {
@@ -1514,7 +1653,9 @@
         document.getElementById('us_resTotalN').innerText = '0.0 股'; document.getElementById('us_resAvgPrice').innerText = '$0.00';
         document.getElementById('us_resAvgPriceTWD').innerText = 'NT$0.00'; document.getElementById('us_resOriginalCostUSD').innerText = '$0';
         document.getElementById('us_resOriginalCostTWD').innerText = 'NT$0'; document.getElementById('us_resAddCostUSD').innerText = '$0';
-        document.getElementById('us_resAddCostTWD').innerText = 'NT$0'; return;
+        document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
+        calculateUsPortfolioSummary();
+        return;
       }
 
       const origUSD = n1 * p1; let totalAddShares = 0; let totalAddCostUSD = 0; let finalAvgPrice = p1;
@@ -1547,7 +1688,9 @@
               <div>7. 調整後平均成本: <span class="text-yellow-300">$${formatPrice(finalAvgPrice)}</span></div>
               <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-bold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
             </div>`;
-          batchContainer.appendChild(batchDiv); return;
+          batchContainer.appendChild(batchDiv);
+          calculateUsPortfolioSummary();
+          return;
         }
       }
 
@@ -1585,7 +1728,436 @@
       document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`; document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
       document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`; document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
       document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+      calculateUsPortfolioSummary();
     }
+
+    window.togglePortfolioDetail = function(type) {
+      const list = document.getElementById(`${type}PortfolioDetailList`);
+      const btn = document.getElementById(`${type}ToggleDetailBtn`);
+      if (!list || !btn) return;
+      if (list.classList.contains('hidden')) {
+        list.classList.remove('hidden');
+        btn.innerText = '收合明細 ▴';
+      } else {
+        list.classList.add('hidden');
+        btn.innerText = '展開明細 ▾';
+      }
+    };
+
+    window.switchStockFromDetail = async function(type, key) {
+      await switchStock(type, key);
+      const card = document.getElementById(`${type}Card1`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+
+    function calculateTwPortfolioSummary() {
+      const orderKey = 'twOrder';
+      const storeKey = 'twStocks';
+      const store = cloudData[storeKey] || {};
+      const keys = (cloudData[orderKey] && cloudData[orderKey].length > 0) ? cloudData[orderKey] : Object.keys(store);
+
+      let totalCost = 0;
+      let totalValue = 0;
+      let totalPnl = 0;
+      let costWithPrice = 0;
+      let activeHoldingsCount = 0;
+      let gainCount = 0;
+      let lossCount = 0;
+      let flatCount = 0;
+      let totalPlanAddCost = 0;
+      const items = [];
+
+      const currentInputs = (currentTwKey) ? {
+        n1: parseFloat(document.getElementById('tw_n1')?.value) || 0,
+        p1: parseFloat(document.getElementById('tw_p1')?.value) || 0,
+        currentPrice: parseFloat(document.getElementById('tw_currentPrice')?.value) || 0,
+        prevClose: parseFloat(document.getElementById('tw_prevClose')?.value) || 0,
+        name: document.getElementById('tw_nameInput')?.value || currentTwKey
+      } : null;
+
+      keys.forEach(key => {
+        const stock = store[key];
+        if (!stock) return;
+
+        let n1, p1, cp, name;
+        if (currentInputs && key === currentTwKey) {
+          n1 = currentInputs.n1;
+          p1 = currentInputs.p1;
+          cp = currentInputs.currentPrice > 0 ? currentInputs.currentPrice : currentInputs.prevClose;
+          name = currentInputs.name;
+        } else {
+          n1 = parseFloat(stock.n1) || 0;
+          p1 = parseFloat(stock.p1) || 0;
+          cp = parseFloat(stock.currentPrice) || (parseFloat(stock.prevClose) || 0);
+          name = stock.name || key;
+        }
+
+        const cost = n1 * p1;
+        let pnl = null;
+        let pnlPct = null;
+        let val = null;
+
+        if (n1 > 0 && p1 > 0) {
+          totalCost += cost;
+          activeHoldingsCount++;
+
+          if (cp > 0) {
+            val = n1 * cp;
+            pnl = (cp - p1) * n1;
+            pnlPct = ((cp - p1) / p1) * 100;
+            totalValue += val;
+            totalPnl += pnl;
+            costWithPrice += cost;
+
+            if (pnl > 0.001) gainCount++;
+            else if (pnl < -0.001) lossCount++;
+            else flatCount++;
+          }
+        }
+
+        const plans = (key === currentTwKey) ? (() => {
+          const pList = [];
+          document.querySelectorAll('.tw-plan-row').forEach(row => {
+            pList.push({
+              p2: parseFloat(row.querySelector('.tw-plan-p2')?.value) || 0,
+              n2: parseFloat(row.querySelector('.tw-plan-n2')?.value) || 0
+            });
+          });
+          return pList;
+        })() : (stock.plans || []);
+
+        const discount = parseFloat(stock.discount || document.getElementById('twDiscount')?.value) || 0.6;
+        const minFee = parseFloat(stock.minFee || document.getElementById('twMinFee')?.value) || 20;
+
+        plans.forEach(plan => {
+          const p2 = parseFloat(plan.p2) || 0;
+          const n2 = parseFloat(plan.n2) || 0;
+          if (p2 > 0 && n2 > 0) {
+            totalPlanAddCost += (p2 * n2) + calcTwBuyFee(p2, n2, discount, minFee);
+          }
+        });
+
+        items.push({
+          key,
+          name,
+          n1,
+          p1,
+          cp,
+          cost,
+          val,
+          pnl,
+          pnlPct,
+          isActive: key === currentTwKey
+        });
+      });
+
+      const totalPnlRate = (costWithPrice > 0) ? (totalPnl / costWithPrice) * 100 : null;
+
+      const badgeEl = document.getElementById('tw_summaryStockCountBadge');
+      if (badgeEl) badgeEl.innerText = `共 ${activeHoldingsCount} 檔持股`;
+
+      const costEl = document.getElementById('tw_summaryTotalCost');
+      if (costEl) costEl.innerText = `$${formatMoney(totalCost)}`;
+
+      const costSubEl = document.getElementById('tw_summaryCostSub');
+      if (costSubEl) costSubEl.innerText = `現有庫存成本 (共 ${keys.length} 組合)`;
+
+      const valEl = document.getElementById('tw_summaryTotalValue');
+      if (valEl) valEl.innerText = `$${formatMoney(totalValue)}`;
+
+      const pnlEl = document.getElementById('tw_summaryTotalPnl');
+      if (pnlEl) {
+        pnlEl.className = `text-base sm:text-xl font-bold ${getPnlColor('tw', totalPnl)} tracking-tight`;
+        pnlEl.innerText = totalPnl !== 0 ? `${totalPnl > 0 ? '+' : ''}$${formatMoney(totalPnl)}` : '$0';
+      }
+
+      const pnlRateEl = document.getElementById('tw_summaryPnlRate');
+      if (pnlRateEl) {
+        pnlRateEl.className = `text-[10px] font-bold ${getPnlColor('tw', totalPnlRate)}`;
+        pnlRateEl.innerText = totalPnlRate !== null ? `總損益率: ${totalPnlRate > 0 ? '+' : ''}${totalPnlRate.toFixed(2)}%` : '總損益率: -%';
+      }
+
+      const distEl = document.getElementById('tw_summaryDist');
+      if (distEl) {
+        distEl.innerHTML = `
+          <span class="${getPnlColor('tw', 1)} font-bold">🟢 ${gainCount} 賺</span>
+          <span class="text-slate-500">/</span>
+          <span class="${getPnlColor('tw', -1)} font-bold">🔴 ${lossCount} 賠</span>
+          <span class="text-slate-500">/</span>
+          <span class="text-slate-400 font-bold">${flatCount} 平</span>
+        `;
+      }
+
+      const planAddSubEl = document.getElementById('tw_summaryPlanAddCostSub');
+      if (planAddSubEl) {
+        planAddSubEl.innerText = `補倉預計加碼: $${formatMoney(totalPlanAddCost)}`;
+      }
+
+      const detailContainer = document.getElementById('twPortfolioDetailList');
+      if (detailContainer) {
+        if (items.length === 0) {
+          detailContainer.innerHTML = '<div class="text-slate-400 text-xs text-center py-2">尚未建立任何投資組合</div>';
+        } else {
+          detailContainer.innerHTML = items.map(it => `
+            <div onclick="switchStockFromDetail('tw', '${it.key}')" class="p-2.5 rounded-xl transition cursor-pointer flex items-center justify-between gap-2 text-xs border ${it.isActive ? 'bg-indigo-950/70 border-indigo-500/60 shadow-xs' : 'bg-slate-800/50 hover:bg-slate-800 border-slate-700/50'}">
+              <div class="space-y-0.5 min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-bold text-white">${it.key}</span>
+                  <span class="text-[11px] text-indigo-300 truncate max-w-[110px] sm:max-w-[160px]">${it.name !== it.key ? it.name : ''}</span>
+                  ${it.isActive ? '<span class="text-[9px] bg-indigo-600 text-white font-bold px-1.5 py-0.2 rounded">編輯中</span>' : ''}
+                </div>
+                <div class="text-[10px] text-slate-400 flex items-center gap-2 flex-wrap">
+                  <span>持股: <strong class="text-slate-200">${formatMoney(it.n1)}</strong> 股</span>
+                  <span>均價: <strong class="text-slate-200">$${formatPrice(it.p1)}</strong></span>
+                  <span>市價: <strong class="${it.cp > 0 ? 'text-cyan-300' : 'text-slate-400'}">${it.cp > 0 ? '$' + formatPrice(it.cp) : '未查詢'}</strong></span>
+                </div>
+              </div>
+              <div class="text-right space-y-0.5 flex-shrink-0">
+                <div class="text-[10px] text-slate-300 font-semibold">成本: $${formatMoney(it.cost)}</div>
+                <div class="text-[11px] font-bold ${getPnlColor('tw', it.pnl)}">
+                  ${it.pnl !== null ? `${it.pnl >= 0 ? '+' : ''}$${formatMoney(it.pnl)} (${it.pnlPct >= 0 ? '+' : ''}${it.pnlPct.toFixed(2)}%)` : '<span class="text-slate-500 font-normal">無現價</span>'}
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    function calculateUsPortfolioSummary() {
+      const orderKey = 'usOrder';
+      const storeKey = 'usStocks';
+      const store = cloudData[storeKey] || {};
+      const keys = (cloudData[orderKey] && cloudData[orderKey].length > 0) ? cloudData[orderKey] : Object.keys(store);
+      const exchangeRate = parseFloat(document.getElementById('us_exchangeRate')?.value) || 32;
+
+      let totalCostUSD = 0;
+      let totalValueUSD = 0;
+      let totalPnlUSD = 0;
+      let costWithPriceUSD = 0;
+      let activeHoldingsCount = 0;
+      let gainCount = 0;
+      let lossCount = 0;
+      let flatCount = 0;
+      let totalPlanAddCostUSD = 0;
+      const items = [];
+
+      const currentInputs = (currentUsKey) ? {
+        n1: parseFloat(document.getElementById('us_n1')?.value) || 0,
+        p1: parseFloat(document.getElementById('us_p1')?.value) || 0,
+        currentPrice: parseFloat(document.getElementById('us_currentPrice')?.value) || 0,
+        prevClose: parseFloat(document.getElementById('us_prevClose')?.value) || 0,
+        name: document.getElementById('us_nameInput')?.value || currentUsKey
+      } : null;
+
+      keys.forEach(key => {
+        const stock = store[key];
+        if (!stock) return;
+
+        let n1, p1, cp, name;
+        if (currentInputs && key === currentUsKey) {
+          n1 = currentInputs.n1;
+          p1 = currentInputs.p1;
+          cp = currentInputs.currentPrice > 0 ? currentInputs.currentPrice : currentInputs.prevClose;
+          name = currentInputs.name;
+        } else {
+          n1 = parseFloat(stock.n1) || 0;
+          p1 = parseFloat(stock.p1) || 0;
+          cp = parseFloat(stock.currentPrice) || (parseFloat(stock.prevClose) || 0);
+          name = stock.name || key;
+        }
+
+        const costUSD = n1 * p1;
+        let pnlUSD = null;
+        let pnlPct = null;
+        let valUSD = null;
+
+        if (n1 > 0 && p1 > 0) {
+          totalCostUSD += costUSD;
+          activeHoldingsCount++;
+
+          if (cp > 0) {
+            valUSD = n1 * cp;
+            pnlUSD = (cp - p1) * n1;
+            pnlPct = ((cp - p1) / p1) * 100;
+            totalValueUSD += valUSD;
+            totalPnlUSD += pnlUSD;
+            costWithPriceUSD += costUSD;
+
+            if (pnlUSD > 0.001) gainCount++;
+            else if (pnlUSD < -0.001) lossCount++;
+            else flatCount++;
+          }
+        }
+
+        const plans = (key === currentUsKey) ? (() => {
+          const pList = [];
+          document.querySelectorAll('.us-plan-row').forEach(row => {
+            pList.push({
+              p2: parseFloat(row.querySelector('.us-plan-p2')?.value) || 0,
+              n2: parseFloat(row.querySelector('.us-plan-n2')?.value) || 0
+            });
+          });
+          return pList;
+        })() : (stock.plans || []);
+
+        plans.forEach(plan => {
+          const p2 = parseFloat(plan.p2) || 0;
+          const n2 = parseFloat(plan.n2) || 0;
+          if (p2 > 0 && n2 > 0) {
+            totalPlanAddCostUSD += (p2 * n2);
+          }
+        });
+
+        items.push({
+          key,
+          name,
+          n1,
+          p1,
+          cp,
+          costUSD,
+          valUSD,
+          pnlUSD,
+          pnlPct,
+          isActive: key === currentUsKey
+        });
+      });
+
+      const totalPnlRate = (costWithPriceUSD > 0) ? (totalPnlUSD / costWithPriceUSD) * 100 : null;
+      const totalCostTWD = totalCostUSD * exchangeRate;
+      const totalValueTWD = totalValueUSD * exchangeRate;
+      const totalPnlTWD = totalPnlUSD * exchangeRate;
+
+      const badgeEl = document.getElementById('us_summaryStockCountBadge');
+      if (badgeEl) badgeEl.innerText = `共 ${activeHoldingsCount} 檔持股`;
+
+      const costEl = document.getElementById('us_summaryTotalCostUSD');
+      if (costEl) costEl.innerText = `$${formatMoney(totalCostUSD)}`;
+
+      const costTwdEl = document.getElementById('us_summaryCostTWD');
+      if (costTwdEl) costTwdEl.innerText = `折合 NT$${formatMoney(totalCostTWD)}`;
+
+      const valEl = document.getElementById('us_summaryTotalValueUSD');
+      if (valEl) valEl.innerText = `$${formatMoney(totalValueUSD)}`;
+
+      const valTwdEl = document.getElementById('us_summaryTotalValueTWD');
+      if (valTwdEl) valTwdEl.innerText = `折合 NT$${formatMoney(totalValueTWD)}`;
+
+      const pnlEl = document.getElementById('us_summaryTotalPnlUSD');
+      if (pnlEl) {
+        pnlEl.className = `text-base sm:text-xl font-bold ${getPnlColor('us', totalPnlUSD)} tracking-tight`;
+        pnlEl.innerText = totalPnlUSD !== 0 ? `${totalPnlUSD > 0 ? '+' : ''}$${formatMoney(totalPnlUSD)}` : '$0';
+      }
+
+      const pnlRateEl = document.getElementById('us_summaryPnlRate');
+      if (pnlRateEl) {
+        pnlRateEl.className = `text-[10px] font-bold ${getPnlColor('us', totalPnlUSD)}`;
+        pnlRateEl.innerText = totalPnlRate !== null ? `總損益率: ${totalPnlRate > 0 ? '+' : ''}${totalPnlRate.toFixed(2)}% (${totalPnlTWD >= 0 ? '+' : ''}NT$${formatMoney(totalPnlTWD)})` : '總損益率: -%';
+      }
+
+      const distEl = document.getElementById('us_summaryDist');
+      if (distEl) {
+        distEl.innerHTML = `
+          <span class="${getPnlColor('us', 1)} font-bold">🟢 ${gainCount} 賺</span>
+          <span class="text-slate-500">/</span>
+          <span class="${getPnlColor('us', -1)} font-bold">🔴 ${lossCount} 賠</span>
+          <span class="text-slate-500">/</span>
+          <span class="text-slate-400 font-bold">${flatCount} 平</span>
+        `;
+      }
+
+      const planAddSubEl = document.getElementById('us_summaryPlanAddCostSub');
+      if (planAddSubEl) {
+        planAddSubEl.innerText = `補倉預計投入: $${formatMoney(totalPlanAddCostUSD)} (NT$${formatMoney(totalPlanAddCostUSD * exchangeRate)})`;
+      }
+
+      const detailContainer = document.getElementById('usPortfolioDetailList');
+      if (detailContainer) {
+        if (items.length === 0) {
+          detailContainer.innerHTML = '<div class="text-slate-400 text-xs text-center py-2">尚未建立任何美股投資組合</div>';
+        } else {
+          detailContainer.innerHTML = items.map(it => `
+            <div onclick="switchStockFromDetail('us', '${it.key}')" class="p-2.5 rounded-xl transition cursor-pointer flex items-center justify-between gap-2 text-xs border ${it.isActive ? 'bg-teal-950/70 border-teal-500/60 shadow-xs' : 'bg-slate-800/50 hover:bg-slate-800 border-slate-700/50'}">
+              <div class="space-y-0.5 min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="font-bold text-white uppercase">${it.key}</span>
+                  <span class="text-[11px] text-teal-300 truncate max-w-[110px] sm:max-w-[160px]">${it.name !== it.key ? it.name : ''}</span>
+                  ${it.isActive ? '<span class="text-[9px] bg-teal-600 text-white font-bold px-1.5 py-0.2 rounded">編輯中</span>' : ''}
+                </div>
+                <div class="text-[10px] text-slate-400 flex items-center gap-2 flex-wrap">
+                  <span>持股: <strong class="text-slate-200">${formatMoney(it.n1)}</strong> 股</span>
+                  <span>均價: <strong class="text-slate-200">$${formatPrice(it.p1)}</strong></span>
+                  <span>市價: <strong class="${it.cp > 0 ? 'text-teal-300' : 'text-slate-400'}">${it.cp > 0 ? '$' + formatPrice(it.cp) : '未查詢'}</strong></span>
+                </div>
+              </div>
+              <div class="text-right space-y-0.5 flex-shrink-0">
+                <div class="text-[10px] text-slate-300 font-semibold">成本: $${formatMoney(it.costUSD)}</div>
+                <div class="text-[11px] font-bold ${getPnlColor('us', it.pnlUSD)}">
+                  ${it.pnlUSD !== null ? `${it.pnlUSD >= 0 ? '+' : ''}$${formatMoney(it.pnlUSD)} (${it.pnlPct >= 0 ? '+' : ''}${it.pnlPct.toFixed(2)}%)` : '<span class="text-slate-500 font-normal">無現價</span>'}
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      }
+    }
+
+    window.refreshAllMarketPrices = async function(type) {
+      if (!navigator.onLine) { alert("目前離線中，無法更新行情！"); return; }
+      const btn = document.getElementById(`${type}RefreshAllBtn`);
+      const originalText = btn ? btn.innerHTML : '';
+      const orderKey = type === 'tw' ? 'twOrder' : 'usOrder';
+      const storeKey = type === 'tw' ? 'twStocks' : 'usStocks';
+      const store = cloudData[storeKey] || {};
+      const keys = (cloudData[orderKey] && cloudData[orderKey].length > 0) ? cloudData[orderKey] : Object.keys(store);
+
+      if (keys.length === 0) {
+        alert("尚無投資組合可更新行情！");
+        return;
+      }
+
+      commitSymbolChange(type);
+      saveUIToCurrentStock(type);
+
+      let successCount = 0;
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        if (btn) btn.innerHTML = `<span>⏳ 查詢中 (${i + 1}/${keys.length})...</span>`;
+        try {
+          const res = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(key)}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.currentPrice !== undefined) {
+              if (!store[key]) store[key] = {};
+              store[key].currentPrice = data.currentPrice;
+              if (data.prevClose !== undefined) store[key].prevClose = data.prevClose;
+              if (data.name && (!store[key].name || store[key].name === key)) store[key].name = data.name;
+              successCount++;
+            }
+          }
+        } catch (e) {
+          console.warn(`更新 ${key} 市價失敗:`, e);
+        }
+      }
+
+      const currentKey = type === 'tw' ? currentTwKey : currentUsKey;
+      if (currentKey && store[currentKey]) {
+        loadStockToUI(type, currentKey);
+      }
+
+      if (type === 'tw') calculateTw();
+      else calculateUs();
+
+      saveData();
+      if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
+
+      if (btn) btn.innerHTML = `<span>✅ 更新完成 (${successCount}/${keys.length})</span>`;
+      setTimeout(() => {
+        if (btn) btn.innerHTML = originalText;
+      }, 2500);
+    };
 
     function getPnlColor(type, value, level = 'normal') {
       if (value === null || isNaN(value)) return 'text-slate-400';
@@ -1611,6 +2183,7 @@
       localStorage.setItem(`calc_color_rule_${type}`, rule);
       if (type === 'tw') calculateTw();
       else calculateUs();
+      calculateTwPortfolioSummary(); calculateUsPortfolioSummary();
       saveData();
     };
 
@@ -1695,6 +2268,7 @@
       if (!currentTwKey || !cloudData.twOrder.includes(currentTwKey)) { currentTwKey = cloudData.twOrder.length > 0 ? cloudData.twOrder[0] : ""; if (currentTwKey) localStorage.setItem('calc_current_tw_key', currentTwKey); }
       if (!currentUsKey || !cloudData.usOrder.includes(currentUsKey)) { currentUsKey = cloudData.usOrder.length > 0 ? cloudData.usOrder[0] : ""; if (currentUsKey) localStorage.setItem('calc_current_us_key', currentUsKey); }
       loadStockToUI('tw', currentTwKey); loadStockToUI('us', currentUsKey);
+      calculateTwPortfolioSummary(); calculateUsPortfolioSummary();
     }
     function updateAuthUI() {
       const userInfoEl = document.getElementById('userInfo'); 
