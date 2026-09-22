@@ -1,5 +1,5 @@
-// CostCal Service Worker - Version v0.3.3
-const SW_VERSION = 'v0.3.3';
+// CostCal Service Worker - Version v0.4.0
+const SW_VERSION = 'v0.4.0';
 const CACHE_NAME = 'costcal-pwa-' + SW_VERSION;
 const urlsToCache = [
   './',
@@ -64,5 +64,22 @@ self.addEventListener('fetch', event => {
         // 離線時，從快取尋找替代方案
         return caches.match(event.request);
       })
+  );
+});
+
+// 4. 推播點擊事件：點擊通知時自動開啟或聚焦計算器視窗
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
+      for (const client of clientList) {
+        if (client.url.includes('index.html') || client.url.endsWith('/') || client.url.includes('costcal')) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow('./index.html');
+      }
+    })
   );
 });

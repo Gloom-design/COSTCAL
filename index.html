@@ -425,7 +425,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.3.3</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -438,6 +438,11 @@
       <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
         <button id="installAppBtn" type="button" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-emerald-300 transition shadow-sm cursor-pointer">
           📲 安裝 App
+        </button>
+
+        <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-300 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-sm cursor-pointer flex items-center gap-1.5" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
+          <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+          <span id="monitorStatusText">30s 盤中監控: 關閉</span>
         </button>
 
         <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer flex items-center gap-1" title="介面風格與主題配色設定">
@@ -715,7 +720,13 @@
         <div class="pt-2.5 border-t border-slate-100 bg-indigo-50/40 p-3 rounded-xl border border-indigo-100 space-y-2">
           <div class="grid grid-cols-2 gap-3 items-center">
             <div>
-              <label class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-300 font-bold block mb-1">🎯 設定賣出目標價</label>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-300 font-bold block">🎯 設定賣出目標價</label>
+                <button type="button" id="tw_targetAlertBtn" onclick="toggleTargetAlert('tw')" title="設定目標價達標推播通知" class="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200">
+                  <span id="tw_targetAlertIcon">🔔</span>
+                  <span id="tw_targetAlertText">提醒</span>
+                </button>
+              </div>
               <input id="tw_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="tw-input save-trigger w-full border border-indigo-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-indigo-950 outline-none">
             </div>
             <div>
@@ -942,7 +953,13 @@
         <div class="pt-2.5 border-t border-slate-100 bg-teal-50/40 p-3 rounded-xl border border-teal-100 space-y-2">
           <div class="grid grid-cols-2 gap-3 items-center">
             <div>
-              <label class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-300 font-bold block mb-1">🎯 設定賣出目標價 ($)</label>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-300 font-bold block">🎯 設定賣出目標價 ($)</label>
+                <button type="button" id="us_targetAlertBtn" onclick="toggleTargetAlert('us')" title="設定目標價達標推播通知" class="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200">
+                  <span id="us_targetAlertIcon">🔔</span>
+                  <span id="us_targetAlertText">提醒</span>
+                </button>
+              </div>
               <input id="us_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="us-input save-trigger w-full border border-teal-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-teal-950 outline-none">
             </div>
             <div>
@@ -1031,7 +1048,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.3.3';
+    const FRONTEND_VERSION = 'v0.4.0';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
@@ -1298,6 +1315,346 @@
     });
 
     window.addEventListener('beforeunload', () => { saveToLocalStorage(); });
+
+    // ----------------------------------------------------
+    // 🔔 到價推播警示與音效引擎 (Notification & Audio Alert Engine)
+    // ----------------------------------------------------
+    const alertCooldownMap = {}; // key: `${type}_${stockKey}_${alertType}_${val}`, value: timestamp
+    let isRealtimeMonitorActive = false;
+    let monitorIntervalId = null;
+    let monitorCountdown = 30;
+
+    // 1. 播放清脆雙音提醒和弦 (Web Audio API 合成，零外部檔案依賴)
+    function playAlertChime() {
+      try {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const ctx = new AudioContextClass();
+        if (ctx.state === 'suspended') {
+          ctx.resume();
+        }
+        const now = ctx.currentTime;
+        
+        // 第 1 音：880Hz (A5)
+        const osc1 = ctx.createOscillator();
+        const g1 = ctx.createGain();
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(880, now);
+        g1.gain.setValueAtTime(0.25, now);
+        g1.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
+        osc1.connect(g1);
+        g1.connect(ctx.destination);
+        osc1.start(now);
+        osc1.stop(now + 0.35);
+
+        // 第 2 音：1174.66Hz (D6)
+        const osc2 = ctx.createOscillator();
+        const g2 = ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(1174.66, now + 0.12);
+        g2.gain.setValueAtTime(0.3, now + 0.12);
+        g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+        osc2.connect(g2);
+        g2.connect(ctx.destination);
+        osc2.start(now + 0.12);
+        osc2.stop(now + 0.6);
+      } catch (e) {
+        console.warn("Audio chime play error:", e);
+      }
+    }
+
+    // 2. 請求瀏覽器通知權限
+    async function requestNotificationPermission() {
+      if (!("Notification" in window)) {
+        alert("您的瀏覽器不支援桌面推播通知功能。");
+        return false;
+      }
+      if (Notification.permission === "granted") {
+        return true;
+      }
+      if (Notification.permission === "denied") {
+        alert("推播通知已被封鎖。若要開啟到價警示，請點擊瀏覽器網址列旁的鎖頭或網站設定，將「通知」改為「允許」。");
+        return false;
+      }
+      try {
+        const result = await Notification.requestPermission();
+        if (result === "granted") {
+          sendPriceAlertNotification("🔔 CostCal 到價推播已開啟", "當股票達到您設定的加碼價或停利目標價時，系統將在此即時通知您！", "costcal-welcome");
+          return true;
+        } else {
+          alert("未取得通知權限，將無法在背景收到到價推播。");
+          return false;
+        }
+      } catch (err) {
+        return false;
+      }
+    }
+
+    // 3. 發送系統推播通知 (優先使用 Service Worker 以支援 PWA)
+    async function sendPriceAlertNotification(title, body, tag) {
+      playAlertChime();
+      if (!("Notification" in window) || Notification.permission !== "granted") {
+        return;
+      }
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        try {
+          const reg = await navigator.serviceWorker.ready;
+          if (reg && reg.showNotification) {
+            await reg.showNotification(title, {
+              body,
+              icon: './icon-192.png',
+              badge: './icon-192.png',
+              tag: tag || ('alert_' + Date.now()),
+              renotify: true,
+              vibrate: [200, 100, 200]
+            });
+            return;
+          }
+        } catch (e) {
+          console.warn("SW showNotification fallback:", e);
+        }
+      }
+      try {
+        new Notification(title, {
+          body,
+          icon: './icon-192.png',
+          tag: tag || ('alert_' + Date.now())
+        });
+      } catch (e) {
+        console.warn("Window Notification fallback error:", e);
+      }
+    }
+
+    // 4. 更新目標價警示按鈕 UI
+    function updateTargetAlertBtnUI(type, isActive) {
+      const btn = document.getElementById(`${type}_targetAlertBtn`);
+      const icon = document.getElementById(`${type}_targetAlertIcon`);
+      const text = document.getElementById(`${type}_targetAlertText`);
+      if (!btn) return;
+      btn.setAttribute('data-active', isActive ? 'true' : 'false');
+      if (isActive) {
+        btn.className = "text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700 shadow-xs";
+        if (icon) icon.innerText = '🔔';
+        if (text) text.innerText = '警示中';
+      } else {
+        btn.className = "text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200";
+        if (icon) icon.innerText = '🔕';
+        if (text) text.innerText = '提醒';
+      }
+    }
+
+    // 5. 目標價鈴鐺點擊切換
+    window.toggleTargetAlert = async function(type) {
+      const btn = document.getElementById(`${type}_targetAlertBtn`);
+      if (!btn) return;
+      const current = btn.getAttribute('data-active') === 'true';
+      const next = !current;
+      if (next) {
+        const granted = await requestNotificationPermission();
+        if (!granted) return;
+        playAlertChime();
+      }
+      updateTargetAlertBtnUI(type, next);
+      saveData();
+    };
+
+    // 6. 補倉批次買入價鈴鐺點擊切換
+    window.togglePlanAlert = async function(btn, type) {
+      const row = btn.closest(`.${type}-plan-row`);
+      if (!row) return;
+      const p2Input = row.querySelector(`.${type}-plan-p2`);
+      if (!p2Input) return;
+      const current = p2Input.getAttribute('data-alert') === 'true';
+      const next = !current;
+      if (next) {
+        const granted = await requestNotificationPermission();
+        if (!granted) return;
+        playAlertChime();
+      }
+      p2Input.setAttribute('data-alert', next ? 'true' : 'false');
+      const iconSpan = btn.querySelector('span:first-child');
+      const textSpan = btn.querySelector('span:last-child');
+      if (next) {
+        btn.className = `${type}-plan-alert-btn px-1.5 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700 shadow-xs`;
+        if (iconSpan) iconSpan.innerText = '🔔';
+        if (textSpan) textSpan.innerText = '警示中';
+      } else {
+        btn.className = `${type}-plan-alert-btn px-1.5 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200`;
+        if (iconSpan) iconSpan.innerText = '🔕';
+        if (textSpan) textSpan.innerText = '提醒';
+      }
+      saveData();
+    };
+
+    // 7. 價格警示判定函式 (含 5 分鐘冷卻防重複洗版)
+    function checkPriceAlerts(type, stockKey, currentPrice) {
+      if (!currentPrice || currentPrice <= 0 || !stockKey) return;
+      const store = type === 'tw' ? (cloudData.twStocks || {}) : (cloudData.usStocks || {});
+      const stock = store[stockKey];
+      if (!stock) return;
+
+      const stockName = stock.name || stockKey;
+      const currencyPrefix = type === 'tw' ? '$' : '$';
+      const targetPrice = parseFloat(stock.targetPrice) || 0;
+      const isTargetAlert = stock.targetAlert === true;
+
+      // 檢查賣出停利目標價 (現價 >= 目標價)
+      if (isTargetAlert && targetPrice > 0) {
+        if (currentPrice >= targetPrice) {
+          const cdKey = `${type}_${stockKey}_target_${targetPrice}`;
+          const lastTrigger = alertCooldownMap[cdKey] || 0;
+          const now = Date.now();
+          if (now - lastTrigger > 300000) { // 5 分鐘冷卻
+            alertCooldownMap[cdKey] = now;
+            const diffPct = (((currentPrice - targetPrice) / targetPrice) * 100).toFixed(1);
+            sendPriceAlertNotification(
+              `🎯【停利目標達成】${stockKey} ${stockName}`,
+              `現價 ${currencyPrefix}${formatPrice(currentPrice)} 已達到或超越目標賣價 ${currencyPrefix}${formatPrice(targetPrice)}！(超標 +${diffPct}%)`,
+              cdKey
+            );
+          }
+        }
+      }
+
+      // 檢查補倉買入加碼價 (現價 <= 補倉價)
+      const plans = stock.plans || [];
+      plans.forEach((plan, idx) => {
+        const p2 = parseFloat(plan.p2) || 0;
+        if (plan.alert && p2 > 0) {
+          if (currentPrice <= p2) {
+            const cdKey = `${type}_${stockKey}_plan_${idx}_${p2}`;
+            const lastTrigger = alertCooldownMap[cdKey] || 0;
+            const now = Date.now();
+            if (now - lastTrigger > 300000) { // 5 分鐘冷卻
+              alertCooldownMap[cdKey] = now;
+              const diffPct = (((p2 - currentPrice) / p2) * 100).toFixed(1);
+              sendPriceAlertNotification(
+                `🟢【加碼買入提醒】${stockKey} ${stockName} (批次 #${idx + 1})`,
+                `現價 ${currencyPrefix}${formatPrice(currentPrice)} 已跌至或低於預計補倉價 ${currencyPrefix}${formatPrice(p2)}！(折價 -${diffPct}%)`,
+                cdKey
+              );
+            }
+          }
+        }
+      });
+    }
+
+    // 8. 盤中 30 秒自動更新監控開關
+    window.toggleRealtimeMonitor = async function() {
+      if (!isRealtimeMonitorActive) {
+        const granted = await requestNotificationPermission();
+        if (!granted) {
+          alert("請允許瀏覽器通知權限，才能在到價時接收即時推播！");
+          return;
+        }
+        isRealtimeMonitorActive = true;
+        startRealtimeMonitor();
+      } else {
+        isRealtimeMonitorActive = false;
+        stopRealtimeMonitor();
+      }
+    };
+
+    function updateMonitorUI() {
+      const btn = document.getElementById('realtimeMonitorBtn');
+      const dot = document.getElementById('monitorStatusDot');
+      const text = document.getElementById('monitorStatusText');
+      if (!btn) return;
+      if (isRealtimeMonitorActive) {
+        btn.className = "bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-black transition shadow-sm cursor-pointer flex items-center gap-1.5";
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        if (text) text.innerText = `30s 監控中 (${monitorCountdown}s)`;
+      } else {
+        btn.className = "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold transition shadow-sm cursor-pointer flex items-center gap-1.5";
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-slate-400";
+        if (text) text.innerText = "30s 盤中監控: 關閉";
+      }
+    }
+
+    function startRealtimeMonitor() {
+      monitorCountdown = 30;
+      updateMonitorUI();
+      clearInterval(monitorIntervalId);
+      monitorIntervalId = setInterval(async () => {
+        if (!isRealtimeMonitorActive) {
+          clearInterval(monitorIntervalId);
+          return;
+        }
+        monitorCountdown--;
+        if (monitorCountdown <= 0) {
+          monitorCountdown = 30;
+          updateMonitorUI();
+          await triggerMarketCheckForMonitor();
+        } else {
+          updateMonitorUI();
+        }
+      }, 1000);
+    }
+
+    function stopRealtimeMonitor() {
+      clearInterval(monitorIntervalId);
+      monitorIntervalId = null;
+      monitorCountdown = 30;
+      updateMonitorUI();
+    }
+
+    async function triggerMarketCheckForMonitor() {
+      if (!navigator.onLine) return;
+      const currentTab = localStorage.getItem('calc_current_tab') || 'tw';
+      
+      try {
+        await fetchMarketPrice(currentTab);
+      } catch (e) {
+        console.warn("Monitor current stock fetch error:", e);
+      }
+
+      const twStore = cloudData.twStocks || {};
+      const usStore = cloudData.usStocks || {};
+
+      const twAlertKeys = Object.keys(twStore).filter(k => {
+        const s = twStore[k];
+        return s.targetAlert === true || (s.plans && s.plans.some(p => p.alert === true));
+      });
+
+      const usAlertKeys = Object.keys(usStore).filter(k => {
+        const s = usStore[k];
+        return s.targetAlert === true || (s.plans && s.plans.some(p => p.alert === true));
+      });
+
+      for (const k of twAlertKeys) {
+        if (k !== currentTwKey) {
+          try {
+            const res = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(k)}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.currentPrice) {
+                twStore[k].currentPrice = data.currentPrice;
+                checkPriceAlerts('tw', k, data.currentPrice);
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
+      for (const k of usAlertKeys) {
+        if (k !== currentUsKey) {
+          try {
+            const res = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(k)}`);
+            if (res.ok) {
+              const data = await res.json();
+              if (data && data.currentPrice) {
+                usStore[k].currentPrice = data.currentPrice;
+                checkPriceAlerts('us', k, data.currentPrice);
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
+      if (currentTab === 'tw') calculateTw(); else calculateUs();
+      calculateTwPortfolioSummary();
+      calculateUsPortfolioSummary();
+    }
 
     function sanitizeStockData(data) {
       if (!data) return { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
@@ -1698,6 +2055,9 @@
           if (type === 'tw') calculateTw(); else calculateUs();
           saveData();
 
+          const activeKey = type === 'tw' ? currentTwKey : currentUsKey;
+          if (activeKey) checkPriceAlerts(type, activeKey, result.currentPrice);
+
           latestApiVer = result.apiVersion || 'v0.2';
           updateVersionDisplay();
           document.getElementById('syncStatus').innerText = `已成功載入行情`;
@@ -1749,7 +2109,7 @@
 
       targetStore[trimmed] = {
         name: nameVal || trimmed, symbol: trimmed,
-        n1: n1Val, p1: p1Val, plans: [{ p2: "", n2: "" }], ptarget: "", targetPrice: "",
+        n1: n1Val, p1: p1Val, plans: [{ p2: "", n2: "", alert: false }], ptarget: "", targetPrice: "", targetAlert: false,
         ...(type === 'tw' ? { discount: "0.6", minFee: "20" } : { rate: document.getElementById('us_exchangeRate').value || "32", fee: "0" })
       };
 
@@ -1801,6 +2161,7 @@
         document.getElementById('tw_manualPnlPct').value = ''; document.getElementById('tw_prevClose').value = '';
         document.getElementById('tw_currentPrice').value = ''; document.getElementById('tw_targetPrice').value = '';
         document.getElementById('tw_ptarget').value = ''; document.getElementById('twPlansContainer').innerHTML = '';
+        updateTargetAlertBtnUI('tw', false);
         calculateTw();
       } else {
         document.getElementById('us_nameInput').value = ''; document.getElementById('us_symbolInput').value = '';
@@ -1808,6 +2169,7 @@
         document.getElementById('us_p1').value = ''; document.getElementById('us_prevClose').value = '';
         document.getElementById('us_currentPrice').value = ''; document.getElementById('us_targetPrice').value = '';
         document.getElementById('us_ptarget').value = ''; document.getElementById('usPlansContainer').innerHTML = '';
+        updateTargetAlertBtnUI('us', false);
         calculateUs();
       }
     }
@@ -1900,26 +2262,47 @@
         if (!currentTwKey) return;
         if (!cloudData.twStocks[currentTwKey]) cloudData.twStocks[currentTwKey] = {};
         const plans = [];
-        document.querySelectorAll('.tw-plan-row').forEach(row => plans.push({ p2: row.querySelector('.tw-plan-p2').value, n2: row.querySelector('.tw-plan-n2').value }));
+        document.querySelectorAll('.tw-plan-row').forEach(row => {
+          const p2Input = row.querySelector('.tw-plan-p2');
+          const n2Input = row.querySelector('.tw-plan-n2');
+          plans.push({
+            p2: p2Input ? p2Input.value : '',
+            n2: n2Input ? n2Input.value : '',
+            alert: p2Input ? (p2Input.getAttribute('data-alert') === 'true') : false
+          });
+        });
+        const targetAlertActive = document.getElementById('tw_targetAlertBtn')?.getAttribute('data-active') === 'true';
         cloudData.twStocks[currentTwKey] = {
           name: document.getElementById('tw_nameInput').value || currentTwKey, symbol: currentTwKey,
           discount: document.getElementById('twDiscount').value, minFee: document.getElementById('twMinFee').value,
           n1: document.getElementById('tw_n1').value, p1: document.getElementById('tw_p1').value,
           manualPnlPct: document.getElementById('tw_manualPnlPct').value, prevClose: document.getElementById('tw_prevClose').value,
           currentPrice: document.getElementById('tw_currentPrice').value, targetPrice: document.getElementById('tw_targetPrice').value,
+          targetAlert: targetAlertActive,
           plans: plans, ptarget: document.getElementById('tw_ptarget').value
         };
       } else {
         if (!currentUsKey) return;
         if (!cloudData.usStocks[currentUsKey]) cloudData.usStocks[currentUsKey] = {};
         const plans = [];
-        document.querySelectorAll('.us-plan-row').forEach(row => plans.push({ p2: row.querySelector('.us-plan-p2').value, n2: row.querySelector('.us-plan-n2').value }));
+        document.querySelectorAll('.us-plan-row').forEach(row => {
+          const p2Input = row.querySelector('.us-plan-p2');
+          const n2Input = row.querySelector('.us-plan-n2');
+          plans.push({
+            p2: p2Input ? p2Input.value : '',
+            n2: n2Input ? n2Input.value : '',
+            alert: p2Input ? (p2Input.getAttribute('data-alert') === 'true') : false
+          });
+        });
+        const targetAlertActive = document.getElementById('us_targetAlertBtn')?.getAttribute('data-active') === 'true';
         cloudData.usStocks[currentUsKey] = {
           name: document.getElementById('us_nameInput').value || currentUsKey, symbol: currentUsKey,
           rate: document.getElementById('us_exchangeRate').value, fee: document.getElementById('us_fee').value,
           n1: document.getElementById('us_n1').value, p1: document.getElementById('us_p1').value,
           prevClose: document.getElementById('us_prevClose').value, currentPrice: document.getElementById('us_currentPrice').value,
-          targetPrice: document.getElementById('us_targetPrice').value, plans: plans, ptarget: document.getElementById('us_ptarget').value
+          targetPrice: document.getElementById('us_targetPrice').value,
+          targetAlert: targetAlertActive,
+          plans: plans, ptarget: document.getElementById('us_ptarget').value
         };
       }
     }
@@ -1935,9 +2318,10 @@
         document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || ''; document.getElementById('tw_prevClose').value = tw.prevClose || '';
         document.getElementById('tw_currentPrice').value = tw.currentPrice || ''; document.getElementById('tw_targetPrice').value = tw.targetPrice || '';
         document.getElementById('tw_ptarget').value = tw.ptarget || '';
+        updateTargetAlertBtnUI('tw', !!tw.targetAlert);
         const container = document.getElementById('twPlansContainer'); container.innerHTML = '';
-        const plans = (tw.plans && tw.plans.length > 0) ? tw.plans : [{ p2: "", n2: "" }];
-        plans.forEach(plan => addTwPlanRow(plan.p2 || "", plan.n2 || "")); calculateTw();
+        const plans = (tw.plans && tw.plans.length > 0) ? tw.plans : [{ p2: "", n2: "", alert: false }];
+        plans.forEach(plan => addTwPlanRow(plan.p2 || "", plan.n2 || "", !!plan.alert)); calculateTw();
       } else {
         currentUsKey = key;
         const us = (cloudData.usStocks && cloudData.usStocks[key]) ? cloudData.usStocks[key] : {};
@@ -1947,14 +2331,15 @@
         document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : ''; document.getElementById('us_p1').value = us.p1 || '';
         document.getElementById('us_prevClose').value = us.prevClose || ''; document.getElementById('us_currentPrice').value = us.currentPrice || '';
         document.getElementById('us_targetPrice').value = us.targetPrice || ''; document.getElementById('us_ptarget').value = us.ptarget || '';
+        updateTargetAlertBtnUI('us', !!us.targetAlert);
         const container = document.getElementById('usPlansContainer'); container.innerHTML = '';
-        const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "" }];
-        plans.forEach(plan => addUsPlanRow(plan.p2 || "", plan.n2 || "")); calculateUs();
+        const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "", alert: false }];
+        plans.forEach(plan => addUsPlanRow(plan.p2 || "", plan.n2 || "", !!plan.alert)); calculateUs();
         fetchExchangeRate();
       }
     }
 
-    window.addTwPlanRow = function(p2 = "", n2 = "") {
+    window.addTwPlanRow = function(p2 = "", n2 = "", alert = false) {
       const container = document.getElementById('twPlansContainer');
       const div = document.createElement('div');
       div.className = "tw-plan-row bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-300 dark:border-slate-700 space-y-2 relative";
@@ -1967,7 +2352,19 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <div><div class="flex justify-between mb-0.5"><label class="text-[10px] font-bold text-slate-800 dark:text-slate-300">預計買入 (P2)</label><button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 underline cursor-pointer">帶入市價</button></div><input type="number" step="0.01" value="${p2}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800"></div>
+          <div>
+            <div class="flex justify-between items-center mb-0.5">
+              <label class="text-[10px] font-bold text-slate-800 dark:text-slate-300">預計買入 (P2)</label>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="togglePlanAlert(this, 'tw')" title="設定補倉價到價提醒" class="tw-plan-alert-btn px-1.5 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer ${alert ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700 shadow-xs' : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200'}">
+                  <span>${alert ? '🔔' : '🔕'}</span>
+                  <span class="text-[9px]">${alert ? '警示中' : '提醒'}</span>
+                </button>
+                <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 underline cursor-pointer">帶入</button>
+              </div>
+            </div>
+            <input type="number" step="0.01" value="${p2}" data-alert="${alert ? 'true' : 'false'}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800">
+          </div>
           <div><label class="text-[10px] font-bold text-slate-800 dark:text-slate-300 block mb-0.5">加碼股數 (N2)</label><input type="number" value="${n2}" class="tw-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800"></div>
         </div>`;
       container.appendChild(div); relabelTwPlans(); bindTwPlanEvents(div); calculateTw(); saveData();
@@ -1977,7 +2374,11 @@
       if (document.getElementById('twPlansContainer').children.length <= 1) return;
       btn.closest('.tw-plan-row').remove(); relabelTwPlans(); calculateTw(); saveData();
     };
-    window.copyTwPlanRow = function(btn) { const row = btn.closest('.tw-plan-row'); addTwPlanRow(row.querySelector('.tw-plan-p2').value, row.querySelector('.tw-plan-n2').value); };
+    window.copyTwPlanRow = function(btn) {
+      const row = btn.closest('.tw-plan-row');
+      const p2El = row.querySelector('.tw-plan-p2');
+      addTwPlanRow(p2El.value, row.querySelector('.tw-plan-n2').value, p2El.getAttribute('data-alert') === 'true');
+    };
     window.copyCurrentPriceToTwRow = function(btn) {
       const cp = document.getElementById('tw_currentPrice').value;
       if (cp) { btn.closest('.tw-plan-row').querySelector('.tw-plan-p2').value = cp; calculateTw(); saveData(); }
@@ -1990,7 +2391,7 @@
     }
     function bindTwPlanEvents(rowEl) { rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); })); }
 
-    window.addUsPlanRow = function(p2 = "", n2 = "") {
+    window.addUsPlanRow = function(p2 = "", n2 = "", alert = false) {
       const container = document.getElementById('usPlansContainer');
       const div = document.createElement('div');
       div.className = "us-plan-row bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-300 dark:border-slate-700 space-y-2 relative";
@@ -2003,7 +2404,19 @@
           </div>
         </div>
         <div class="grid grid-cols-2 gap-2">
-          <div><div class="flex justify-between mb-0.5"><label class="text-[10px] font-bold text-slate-800 dark:text-slate-300">預計買入 ($ P2)</label><button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] font-bold text-teal-700 dark:text-teal-400 underline cursor-pointer">帶入市價</button></div><input type="number" step="0.01" value="${p2}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800"></div>
+          <div>
+            <div class="flex justify-between items-center mb-0.5">
+              <label class="text-[10px] font-bold text-slate-800 dark:text-slate-300">預計買入 ($ P2)</label>
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="togglePlanAlert(this, 'us')" title="設定補倉價到價提醒" class="us-plan-alert-btn px-1.5 py-0.5 rounded text-[10px] font-bold border transition cursor-pointer ${alert ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700 shadow-xs' : 'bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200'}">
+                  <span>${alert ? '🔔' : '🔕'}</span>
+                  <span class="text-[9px]">${alert ? '警示中' : '提醒'}</span>
+                </button>
+                <button type="button" onclick="copyCurrentPriceToRow(this)" class="text-[10px] font-bold text-teal-700 dark:text-teal-400 underline cursor-pointer">帶入</button>
+              </div>
+            </div>
+            <input type="number" step="0.01" value="${p2}" data-alert="${alert ? 'true' : 'false'}" class="us-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800">
+          </div>
           <div><label class="text-[10px] font-bold text-slate-800 dark:text-slate-300 block mb-0.5">加碼股數 (N2)</label><input type="number" value="${n2}" class="us-plan-n2 save-trigger w-full border rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800"></div>
         </div>`;
       container.appendChild(div); relabelUsPlans(); bindUsPlanEvents(div); calculateUs(); saveData();
@@ -2013,7 +2426,11 @@
       if (document.getElementById('usPlansContainer').children.length <= 1) return;
       btn.closest('.us-plan-row').remove(); relabelUsPlans(); calculateUs(); saveData();
     };
-    window.copyUsPlanRow = function(btn) { const row = btn.closest('.us-plan-row'); addUsPlanRow(row.querySelector('.us-plan-p2').value, row.querySelector('.us-plan-n2').value); };
+    window.copyUsPlanRow = function(btn) {
+      const row = btn.closest('.us-plan-row');
+      const p2El = row.querySelector('.us-plan-p2');
+      addUsPlanRow(p2El.value, row.querySelector('.us-plan-n2').value, p2El.getAttribute('data-alert') === 'true');
+    };
     window.copyCurrentPriceToRow = function(btn) {
       const cp = document.getElementById('us_currentPrice').value;
       if (cp) { btn.closest('.us-plan-row').querySelector('.us-plan-p2').value = cp; calculateUs(); }
@@ -2926,6 +3343,7 @@
               store[key].currentPrice = data.currentPrice;
               if (data.prevClose !== undefined) store[key].prevClose = data.prevClose;
               if (data.name && (!store[key].name || store[key].name === key)) store[key].name = data.name;
+              checkPriceAlerts(type, key, data.currentPrice);
               successCount++;
             }
           }
