@@ -235,6 +235,8 @@
       font-size: 0.65rem;
       font-weight: 800;
       padding: 0.25rem 0.55rem;
+      min-width: 4.2rem;
+      text-align: center;
       border-radius: 0.625rem;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -242,11 +244,13 @@
       white-space: nowrap;
       user-select: none;
       flex-shrink: 0;
+      margin-left: auto;
     }
     @media (min-width: 640px) {
       .collapse-toggle-btn {
         font-size: 0.72rem;
         padding: 0.3rem 0.65rem;
+        min-width: 4.6rem;
       }
     }
     .collapse-toggle-btn:hover {
@@ -482,7 +486,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.2</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.3</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -577,7 +581,7 @@
             <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">依即時匯率換算為新台幣總額</p>
           </div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 ml-auto sm:ml-0">
           <span id="global_exchangeRateBadge" class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 font-mono font-bold">USD 匯率: 32.00</span>
           <button type="button" onclick="toggleSectionCollapse('globalPortfolio')" id="globalPortfolioCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
             <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
@@ -634,7 +638,7 @@
               <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">彙總您名下所有持股之成本與未實現損益</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap ml-auto sm:ml-0">
             <span id="tw_summaryStockCountBadge" class="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
             <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-indigo-400/40 transition flex items-center gap-1 cursor-pointer">
               <span>🔄 更新全組合行情</span>
@@ -721,27 +725,30 @@
       </div>
 
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
-        <div class="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <h2 class="font-black text-indigo-950 dark:text-indigo-400 text-xs sm:text-sm">1. 台股設定與代號查詢</h2>
-          </div>
-          <div class="flex items-center gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap">
-            <span class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
+        <div class="flex justify-between items-center border-b pb-2.5">
+          <h2 class="font-black text-indigo-950 dark:text-indigo-400 text-xs sm:text-sm">
+            1. 台股設定與代號查詢
+          </h2>
+          <button type="button" onclick="toggleSectionCollapse('twCard1')" id="twCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+          </button>
+        </div>
+
+        <div id="twCard1Body" class="space-y-3.5">
+          <!-- 🎛️ 損益顏色與折數低消設定列 (展開時顯示，收合時隨本體一併優雅摺疊) -->
+          <div class="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/60">
+            <span class="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
               <span>損益顏色:</span>
-              <select id="twColorRule" onchange="changeColorRule('tw', this.value)" class="bg-transparent font-bold text-indigo-800 outline-none cursor-pointer">
+              <select id="twColorRule" onchange="changeColorRule('tw', this.value)" class="bg-transparent font-bold text-indigo-800 dark:text-indigo-400 outline-none cursor-pointer">
                 <option value="red_up">🔴漲紅 🟢跌綠 (預設)</option>
                 <option value="green_up">🟢漲綠 🔴跌紅</option>
               </select>
             </span>
-            <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold" value="0.6"></span>
-            <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold" value="20"></span>
-            <button type="button" onclick="toggleSectionCollapse('twCard1')" id="twCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-            </button>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold bg-white dark:bg-slate-900 dark:text-white" value="0.6"></span>
+              <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold bg-white dark:bg-slate-900 dark:text-white" value="20"></span>
+            </div>
           </div>
-        </div>
-
-        <div id="twCard1Body" class="space-y-3.5">
           <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-300 font-bold block mb-1">台股名稱</label>
@@ -836,7 +843,7 @@
           <div class="flex items-center gap-2">
             <h2 class="font-black text-indigo-950 dark:text-indigo-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 ml-auto sm:ml-0">
             <button type="button" onclick="addTwPlanRow()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-indigo-200 cursor-pointer shadow-sm">
               ➕ 新增補倉筆數
             </button>
@@ -858,8 +865,8 @@
 
       <div id="twResultCard" class="card-box bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3">
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
-          <h2 class="font-black text-xs sm:text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-1.5">
-            <span>📊</span> <span>3. 台股試算結果</span>
+          <h2 class="font-black text-xs sm:text-sm text-indigo-950 dark:text-indigo-400">
+            3. 台股試算結果
           </h2>
           <button type="button" onclick="toggleSectionCollapse('twResultCard')" id="twResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
             <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
@@ -902,7 +909,7 @@
               <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">彙總您名下所有持股之成本與未實現損益 (含台幣換算)</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-wrap">
+          <div class="flex items-center gap-2 flex-wrap ml-auto sm:ml-0">
             <span id="us_summaryStockCountBadge" class="bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
             <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-teal-600 hover:bg-teal-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-teal-400/40 transition flex items-center gap-1 cursor-pointer">
               <span>🔄 更新全組合行情</span>
@@ -989,28 +996,31 @@
       </div>
 
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
-        <div class="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">1. 美股設定與代號查詢</h2>
-          </div>
-          <div class="flex items-center gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap">
-            <span class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
+        <div class="flex justify-between items-center border-b pb-2.5">
+          <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">
+            1. 美股設定與代號查詢
+          </h2>
+          <button type="button" onclick="toggleSectionCollapse('usCard1')" id="usCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+          </button>
+        </div>
+
+        <div id="usCard1Body" class="space-y-3.5">
+          <!-- 🎛️ 美股損益顏色、即時匯率與手續費設定列 (展開時顯示，收合時隨本體一併優雅摺疊) -->
+          <div class="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/60">
+            <span class="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
               <span>損益顏色:</span>
-              <select id="usColorRule" onchange="changeColorRule('us', this.value)" class="bg-transparent font-bold text-teal-800 outline-none cursor-pointer">
+              <select id="usColorRule" onchange="changeColorRule('us', this.value)" class="bg-transparent font-bold text-teal-800 dark:text-teal-400 outline-none cursor-pointer">
                 <option value="green_up">🟢漲綠 🔴跌紅 (預設)</option>
                 <option value="red_up">🔴漲紅 🟢跌綠</option>
               </select>
             </span>
-            <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5 font-bold" value="32"></span>
-            <button type="button" onclick="fetchExchangeRate()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 px-2 py-1 rounded-lg text-[10px] font-bold border border-teal-200 cursor-pointer">🔄 即時</button>
-            <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5 font-bold" value="0"></span>
-            <button type="button" onclick="toggleSectionCollapse('usCard1')" id="usCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-            </button>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5 font-bold bg-white dark:bg-slate-900 dark:text-white" value="32"></span>
+              <button type="button" onclick="fetchExchangeRate()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800 px-2 py-1 rounded-lg text-[10px] font-bold border border-teal-200 cursor-pointer">🔄 即時</button>
+              <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5 font-bold bg-white dark:bg-slate-900 dark:text-white" value="0"></span>
+            </div>
           </div>
-        </div>
-
-        <div id="usCard1Body" class="space-y-3.5">
           <div class="grid grid-cols-2 gap-3.5">
           <div>
             <label class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-300 font-bold block mb-1">美股名稱</label>
@@ -1095,7 +1105,7 @@
           <div class="flex items-center gap-2">
             <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 ml-auto sm:ml-0">
             <button type="button" onclick="addUsPlanRow()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
               ➕ 新增補倉筆數
             </button>
@@ -1117,8 +1127,8 @@
 
       <div id="usResultCard" class="card-box bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3">
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
-          <h2 class="font-black text-xs sm:text-sm text-teal-950 dark:text-teal-400 flex items-center gap-1.5">
-            <span>📊</span> <span>3. 美股試算結果</span>
+          <h2 class="font-black text-xs sm:text-sm text-teal-950 dark:text-teal-400">
+            3. 美股試算結果
           </h2>
           <button type="button" onclick="toggleSectionCollapse('usResultCard')" id="usResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
             <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
@@ -1170,7 +1180,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.4.2';
+    const FRONTEND_VERSION = 'v0.4.3';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
