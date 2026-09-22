@@ -241,6 +241,37 @@
     html.dark #tabUsBtn:not(.bg-white) {
       color: #94a3b8 !important;
     }
+    /* ══════════════════════════════════════════════════════════════
+       🎯 全站所有卡片與區塊水平內距 (Padding) 絕對一致，確保右上角收合按鈕 100% 垂直對齊
+       ══════════════════════════════════════════════════════════════ */
+    #disclaimerCard,
+    #mainAppHeader,
+    #adminPanel,
+    .summary-card,
+    .card-box {
+      box-sizing: border-box !important;
+      padding-left: 1rem !important;  /* 16px */
+      padding-right: 1rem !important; /* 16px */
+    }
+    @media (min-width: 640px) {
+      #disclaimerCard,
+      #mainAppHeader,
+      #adminPanel,
+      .summary-card,
+      .card-box {
+        padding-left: 1.5rem !important;  /* 24px */
+        padding-right: 1.5rem !important; /* 24px */
+      }
+    }
+    body.compact-mode #disclaimerCard,
+    body.compact-mode #mainAppHeader,
+    body.compact-mode #adminPanel,
+    body.compact-mode .summary-card,
+    body.compact-mode .card-box {
+      padding-left: 0.75rem !important;  /* 12px */
+      padding-right: 0.75rem !important; /* 12px */
+    }
+
     /* 統一鮮明收合/展開按鈕樣式 (右上角顯眼設計) */
     .collapse-toggle-btn {
       display: inline-flex;
@@ -260,6 +291,7 @@
       user-select: none;
       flex-shrink: 0;
       margin-left: auto;
+      margin-right: 0 !important;
     }
     @media (min-width: 640px) {
       .collapse-toggle-btn {
@@ -501,7 +533,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.5</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.6</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1195,7 +1227,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.4.5';
+    const FRONTEND_VERSION = 'v0.4.6';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
@@ -2419,7 +2451,7 @@
 
       if (isCompactMode) {
         btn.innerText = "📱 手機介面";
-        body.className = bodyBg + " p-1.5 min-h-screen transition-all";
+        body.className = bodyBg + " compact-mode p-1.5 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
         cards.forEach(card => card.className = `card-box ${cardBg} p-3 rounded-xl shadow-sm space-y-2 border`);
         summaryCards.forEach(sc => {
