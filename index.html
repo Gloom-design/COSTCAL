@@ -8,7 +8,93 @@
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <script data-config='{"config":{"properties":{}}}' bis-use="true"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class'
+    };
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style id="themeDynamicStyles">
+    :root {
+      --theme-primary: #4f46e5;
+      --theme-primary-hover: #4338ca;
+      --theme-primary-light: #eef2ff;
+      --theme-primary-border: #c7d2fe;
+      --theme-primary-text: #3730a3;
+    }
+    .btn-theme-primary {
+      background-color: var(--theme-primary, #4f46e5) !important;
+      color: #ffffff !important;
+    }
+    .btn-theme-primary:hover {
+      background-color: var(--theme-primary-hover, #4338ca) !important;
+    }
+    .text-theme-primary {
+      color: var(--theme-primary, #4f46e5) !important;
+    }
+    .border-theme-primary {
+      border-color: var(--theme-primary, #4f46e5) !important;
+    }
+    .bg-theme-light {
+      background-color: var(--theme-primary-light, #eef2ff) !important;
+    }
+    /* Dark mode overrides */
+    html.dark body {
+      background-color: #020617 !important;
+      color: #f1f5f9 !important;
+    }
+    html.dark .card-box {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    html.dark input[type="text"],
+    html.dark input[type="number"],
+    html.dark select {
+      background-color: #1e293b !important;
+      color: #f8fafc !important;
+      border-color: #475569 !important;
+    }
+    html.dark header {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    html.dark header h1 {
+      color: #f8fafc !important;
+    }
+    html.dark .bg-white {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+    }
+    html.dark .bg-slate-50 {
+      background-color: #1e293b !important;
+    }
+    html.dark .bg-slate-100 {
+      background-color: #1e293b !important;
+      color: #f1f5f9 !important;
+    }
+    html.dark .text-slate-800,
+    html.dark .text-slate-900,
+    html.dark .text-slate-700 {
+      color: #e2e8f0 !important;
+    }
+    html.dark .text-slate-600 {
+      color: #94a3b8 !important;
+    }
+    html.dark .border-slate-200,
+    html.dark .border-slate-100 {
+      border-color: #334155 !important;
+    }
+    html.dark #mainContainer > div.grid.grid-cols-2.bg-slate-200 {
+      background-color: #1e293b !important;
+    }
+    html.dark #tabTwBtn.bg-white,
+    html.dark #tabUsBtn.bg-white {
+      background-color: #0f172a !important;
+      color: var(--theme-primary, #6366f1) !important;
+    }
+  </style>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
   
@@ -128,6 +214,71 @@
     </div>
   </div>
 
+  <!-- 🎨 介面主題與配色設定 Modal -->
+  <div id="themeModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+        <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-slate-900 dark:text-white">
+          <span>🎨</span> <span>介面主題與配色設定</span>
+        </h3>
+        <button type="button" onclick="closeThemeModal()" class="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer">✕</button>
+      </div>
+
+      <!-- 風格模式選擇 -->
+      <div class="space-y-2">
+        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block">1. 介面風格 (明暗模式)</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="setThemeMode('light')" id="themeModeLightBtn" class="py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-slate-800 border-indigo-500 shadow-xs">
+            <span>☀️ 白色風格 (預設)</span>
+          </button>
+          <button type="button" onclick="setThemeMode('dark')" id="themeModeDarkBtn" class="py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer bg-slate-800 text-slate-300 border-slate-700">
+            <span>🌙 黑色風格</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 主題強調色調 -->
+      <div class="space-y-2 pt-1">
+        <label class="text-xs font-bold text-slate-700 dark:text-slate-300 block">2. 強調色調 (Accent Color)</label>
+        <div class="grid grid-cols-3 gap-2" id="presetAccentsContainer">
+          <button type="button" onclick="setThemeAccent('indigo')" class="accent-btn p-2 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 cursor-pointer bg-indigo-50 border-indigo-300 text-indigo-700">
+            <span class="w-3 h-3 rounded-full bg-indigo-600"></span> 經典靛藍
+          </button>
+          <button type="button" onclick="setThemeAccent('emerald')" class="accent-btn p-2 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 cursor-pointer bg-emerald-50 border-emerald-300 text-emerald-700">
+            <span class="w-3 h-3 rounded-full bg-emerald-600"></span> 翡翠綠
+          </button>
+          <button type="button" onclick="setThemeAccent('teal')" class="accent-btn p-2 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 cursor-pointer bg-teal-50 border-teal-300 text-teal-700">
+            <span class="w-3 h-3 rounded-full bg-teal-600"></span> 賽博青
+          </button>
+          <button type="button" onclick="setThemeAccent('purple')" class="accent-btn p-2 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 cursor-pointer bg-purple-50 border-purple-300 text-purple-700">
+            <span class="w-3 h-3 rounded-full bg-purple-600"></span> 星曜紫
+          </button>
+          <button type="button" onclick="setThemeAccent('rose')" class="accent-btn p-2 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 cursor-pointer bg-rose-50 border-rose-300 text-rose-700">
+            <span class="w-3 h-3 rounded-full bg-rose-600"></span> 玫瑰紅
+          </button>
+          <button type="button" onclick="setThemeAccent('amber')" class="accent-btn p-2 rounded-xl border text-[11px] font-bold flex items-center gap-1.5 cursor-pointer bg-amber-50 border-amber-300 text-amber-700">
+            <span class="w-3 h-3 rounded-full bg-amber-600"></span> 琥珀橘
+          </button>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div class="flex items-center gap-2">
+            <label class="text-xs text-slate-600 dark:text-slate-400 font-bold">自選自訂色:</label>
+            <input type="color" id="customAccentColorPicker" onchange="setCustomAccent(this.value)" value="#4f46e5" class="w-8 h-8 rounded-lg cursor-pointer border-0 bg-transparent">
+            <span id="customAccentHexDisplay" class="text-[11px] font-mono text-slate-500">#4f46e5</span>
+          </div>
+          <span class="text-[10px] text-slate-400">即時預覽</span>
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button type="button" onclick="closeThemeModal()" class="w-full btn-theme-primary font-bold py-2.5 rounded-xl transition shadow text-xs cursor-pointer">
+          套用並關閉
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
     
     <!-- ⚠️ 免責聲明 -->
@@ -142,7 +293,7 @@
       <div>
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-bold text-sm sm:text-lg text-slate-900 leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v0.2.3</span>
+          <span class="bg-indigo-100 text-indigo-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full">v0.3.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-600 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-200">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -152,12 +303,16 @@
         <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-400 mt-0.5">系統就緒</div>
       </div>
       
-      <div class="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+      <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
         <button id="installAppBtn" type="button" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-emerald-300 transition shadow-sm cursor-pointer">
           📲 安裝 App
         </button>
 
-        <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
+        <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer flex items-center gap-1" title="介面風格與主題配色設定">
+          <span>🎨 配色</span>
+        </button>
+
+        <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
           📱 手機介面
         </button>
 
@@ -201,6 +356,57 @@
           <div>stock.js: <strong id="adminVerStock" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
           <div>manifest.json: <strong id="adminVerManifest" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
           <div>sw.js: <strong id="adminVerSw" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 🌍 全球資產合併總覽 (Global Unified Portfolio Overview) -->
+    <div id="globalPortfolioCard" class="summary-card bg-slate-900 text-white p-3.5 sm:p-5 rounded-2xl shadow-md border border-cyan-500/40 space-y-2.5">
+      <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <span class="text-base sm:text-lg">🌍</span>
+          <div>
+            <h2 class="font-bold text-xs sm:text-sm text-cyan-300 leading-tight">全球資產合併總覽 (台股 + 美股)</h2>
+            <p class="text-[10px] text-slate-400">依即時匯率換算為新台幣總額</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="global_exchangeRateBadge" class="bg-slate-800 text-slate-300 text-[10px] px-2 py-0.5 rounded-lg border border-slate-700 font-mono">USD 匯率: 32.00</span>
+          <button type="button" onclick="toggleGlobalCard()" id="globalToggleBtn" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-bold underline cursor-pointer">
+            收合 ▲
+          </button>
+        </div>
+      </div>
+
+      <div id="globalCardBody" class="space-y-2.5">
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <!-- 全球總投入成本 -->
+          <div class="bg-slate-800/70 p-2.5 rounded-xl border border-slate-700/60 space-y-0.5">
+            <div class="text-[10px] text-slate-400">全球總投資成本</div>
+            <div id="global_totalCostTWD" class="text-sm sm:text-base font-bold text-white tracking-tight">NT$0</div>
+            <div id="global_costSub" class="text-[9px] text-slate-400 truncate">🇹🇼 NT$0 | 🇺🇸 $0</div>
+          </div>
+          <!-- 全球總市值現值 -->
+          <div class="bg-slate-800/70 p-2.5 rounded-xl border border-slate-700/60 space-y-0.5">
+            <div class="text-[10px] text-slate-400">全球總現值市值</div>
+            <div id="global_totalValueTWD" class="text-sm sm:text-base font-bold text-cyan-300 tracking-tight">NT$0</div>
+            <div class="text-[9px] text-slate-400">折合新台幣總現值</div>
+          </div>
+          <!-- 全球總未實現損益 -->
+          <div class="bg-slate-800/70 p-2.5 rounded-xl border border-slate-700/60 space-y-0.5">
+            <div class="text-[10px] text-slate-400">全球未實現損益</div>
+            <div id="global_totalPnlTWD" class="text-sm sm:text-base font-bold text-slate-400 tracking-tight">NT$0</div>
+            <div id="global_totalPnlRate" class="text-[9px] font-bold text-slate-400">報酬率: -%</div>
+          </div>
+          <!-- 台美市場比重 -->
+          <div class="bg-slate-800/70 p-2.5 rounded-xl border border-slate-700/60 space-y-0.5">
+            <div class="text-[10px] text-slate-400">市場配置比重</div>
+            <div id="global_marketRatio" class="text-xs sm:text-sm font-bold text-indigo-300">🇹🇼 50% : 🇺🇸 50%</div>
+            <div class="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden flex mt-1">
+              <div id="global_ratioTwBar" class="bg-indigo-500 h-full transition-all duration-500" style="width: 50%;"></div>
+              <div id="global_ratioUsBar" class="bg-teal-400 h-full transition-all duration-500" style="width: 50%;"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -260,6 +466,22 @@
             </div>
             <div id="tw_summaryPlanAddCostSub" class="text-[10px] text-slate-400 truncate">補倉預計加碼: $0</div>
           </div>
+        </div>
+
+        <!-- 📊 持股資金配置比重 (Asset Allocation Weighting Bar) -->
+        <div class="border-t border-slate-800 pt-2.5 space-y-1.5">
+          <div class="flex justify-between items-center text-[10px] sm:text-xs">
+            <span class="text-slate-400 font-semibold flex items-center gap-1">
+              <span>📊</span> <span>持股資金配置權重</span>
+            </span>
+            <span id="tw_weightSummaryText" class="text-slate-500 text-[9px] sm:text-[10px]">依現有持股成本佔比</span>
+          </div>
+          <!-- 多色彩條 -->
+          <div id="tw_weightBar" class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+            <div class="w-full h-full bg-slate-800 flex items-center justify-center text-[8px] text-slate-600">無庫存成本資料</div>
+          </div>
+          <!-- 標籤圓點清單 -->
+          <div id="tw_weightPills" class="flex flex-wrap gap-1.5 pt-0.5"></div>
         </div>
 
         <!-- 各檔明細清單摺疊區 -->
@@ -358,14 +580,28 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center bg-indigo-50/40 p-3 rounded-xl border border-indigo-100">
-          <div>
-            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">🎯 設定目標價格</label>
-            <input id="tw_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="tw-input save-trigger w-full border border-indigo-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-indigo-900 outline-none">
+        <div class="pt-2.5 border-t border-slate-100 bg-indigo-50/40 p-3 rounded-xl border border-indigo-100 space-y-2">
+          <div class="grid grid-cols-2 gap-3 items-center">
+            <div>
+              <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">🎯 設定賣出目標價</label>
+              <input id="tw_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="tw-input save-trigger w-full border border-indigo-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-indigo-900 outline-none">
+            </div>
+            <div>
+              <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">現有持股達標獲利</label>
+              <div id="tw_targetPnlDisplay" class="font-bold text-xs sm:text-base text-slate-400">-%</div>
+              <div id="tw_targetPnlSub" class="text-[9px] text-slate-500">以現有持股試算</div>
+            </div>
           </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-indigo-700 font-bold block mb-1">目標未實現損益金額</label>
-            <div id="tw_targetPnlDisplay" class="font-bold text-xs sm:text-base text-slate-400">-%</div>
+
+          <div class="pt-2 border-t border-indigo-200/50 flex justify-between items-center flex-wrap gap-1">
+            <div class="text-[10px] sm:text-xs text-indigo-950 font-bold flex items-center gap-1">
+              <span>🚀</span>
+              <span>補倉加碼後合併達標預期獲利:</span>
+            </div>
+            <div class="text-right">
+              <div id="tw_targetPostPlanPnlDisplay" class="font-bold text-xs sm:text-sm text-slate-400">-%</div>
+              <div id="tw_targetPostPlanSub" class="text-[9px] text-indigo-600 font-medium">尚未規劃補倉筆數</div>
+            </div>
           </div>
         </div>
       </div>
@@ -464,6 +700,22 @@
           </div>
         </div>
 
+        <!-- 📊 持股資金配置比重 (Asset Allocation Weighting Bar) -->
+        <div class="border-t border-slate-800 pt-2.5 space-y-1.5">
+          <div class="flex justify-between items-center text-[10px] sm:text-xs">
+            <span class="text-slate-400 font-semibold flex items-center gap-1">
+              <span>📊</span> <span>持股資金配置權重</span>
+            </span>
+            <span id="us_weightSummaryText" class="text-slate-500 text-[9px] sm:text-[10px]">依現有持股成本佔比</span>
+          </div>
+          <!-- 多色彩條 -->
+          <div id="us_weightBar" class="w-full h-2.5 bg-slate-800 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+            <div class="w-full h-full bg-slate-800 flex items-center justify-center text-[8px] text-slate-600">無庫存成本資料</div>
+          </div>
+          <!-- 標籤圓點清單 -->
+          <div id="us_weightPills" class="flex flex-wrap gap-1.5 pt-0.5"></div>
+        </div>
+
         <!-- 各檔明細清單摺疊區 -->
         <div class="border-t border-slate-800 pt-2 space-y-2">
           <div class="flex justify-between items-center">
@@ -551,14 +803,28 @@
           </span>
         </div>
 
-        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center bg-teal-50/40 p-3 rounded-xl border border-teal-100">
-          <div>
-            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">🎯 設定目標價格 ($)</label>
-            <input id="us_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="us-input save-trigger w-full border border-teal-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-teal-900 outline-none">
+        <div class="pt-2.5 border-t border-slate-100 bg-teal-50/40 p-3 rounded-xl border border-teal-100 space-y-2">
+          <div class="grid grid-cols-2 gap-3 items-center">
+            <div>
+              <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">🎯 設定賣出目標價 ($)</label>
+              <input id="us_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="us-input save-trigger w-full border border-teal-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-teal-900 outline-none">
+            </div>
+            <div>
+              <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">現有持股達標獲利</label>
+              <div id="us_targetPnlDisplay" class="font-bold text-xs sm:text-base text-slate-400">-%</div>
+              <div id="us_targetPnlSub" class="text-[9px] text-slate-500">以現有持股試算</div>
+            </div>
           </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-teal-700 font-bold block mb-1">目標未實現損益金額</label>
-            <div id="us_targetPnlDisplay" class="font-bold text-xs sm:text-base text-slate-400">-%</div>
+
+          <div class="pt-2 border-t border-teal-200/50 flex justify-between items-center flex-wrap gap-1">
+            <div class="text-[10px] sm:text-xs text-teal-950 font-bold flex items-center gap-1">
+              <span>🚀</span>
+              <span>補倉加碼後合併達標預期獲利:</span>
+            </div>
+            <div class="text-right">
+              <div id="us_targetPostPlanPnlDisplay" class="font-bold text-xs sm:text-sm text-slate-400">-%</div>
+              <div id="us_targetPostPlanSub" class="text-[9px] text-teal-600 font-medium">尚未規劃補倉筆數</div>
+            </div>
           </div>
         </div>
       </div>
@@ -625,7 +891,156 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.2.3';
+    const FRONTEND_VERSION = 'v0.3.0';
+    
+    // 🎨 主題與配色系統設定
+    const THEME_ACCENTS = {
+      indigo: { primary: '#4f46e5', hover: '#4338ca', light: '#eef2ff', border: '#c7d2fe', text: '#3730a3', name: '經典靛藍' },
+      emerald: { primary: '#059669', hover: '#047857', light: '#ecfdf5', border: '#a7f3d0', text: '#065f46', name: '翡翠綠' },
+      teal: { primary: '#0d9488', hover: '#0f766e', light: '#f0fdfa', border: '#99f6e4', text: '#115e59', name: '賽博青' },
+      purple: { primary: '#7c3aed', hover: '#6d28d9', light: '#faf5ff', border: '#ddd6fe', text: '#5b21b6', name: '星曜紫' },
+      rose: { primary: '#e11d48', hover: '#be123c', light: '#fff1f2', border: '#fecdd3', text: '#9f1239', name: '玫瑰紅' },
+      amber: { primary: '#d97706', hover: '#b45309', light: '#fffbeb', border: '#fde68a', text: '#92400e', name: '琥珀橘' }
+    };
+
+    let currentThemeMode = localStorage.getItem('calc_theme_mode') || 'light';
+    let currentThemeAccent = localStorage.getItem('calc_theme_accent') || 'indigo';
+    let currentCustomHex = localStorage.getItem('calc_custom_hex') || '#4f46e5';
+    let isGlobalCollapsed = localStorage.getItem('calc_global_collapsed') === 'true';
+
+    function hexToHSL(H) {
+      let r = 0, g = 0, b = 0;
+      if (H.length == 4) {
+        r = "0x" + H[1] + H[1]; g = "0x" + H[2] + H[2]; b = "0x" + H[3] + H[3];
+      } else if (H.length == 7) {
+        r = "0x" + H[1] + H[2]; g = "0x" + H[3] + H[4]; b = "0x" + H[5] + H[6];
+      }
+      r /= 255; g /= 255; b /= 255;
+      let cmin = Math.min(r,g,b), cmax = Math.max(r,g,b), delta = cmax - cmin, h = 0, s = 0, l = 0;
+      if (delta == 0) h = 0;
+      else if (cmax == r) h = ((g - b) / delta) % 6;
+      else if (cmax == g) h = (b - r) / delta + 2;
+      else h = (r - g) / delta + 4;
+      h = Math.round(h * 60);
+      if (h < 0) h += 360;
+      l = (cmax + cmin) / 2;
+      s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+      s = +(s * 100).toFixed(1);
+      l = +(l * 100).toFixed(1);
+      return { h, s, l };
+    }
+
+    function applyTheme() {
+      if (currentThemeMode === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      let palette = THEME_ACCENTS[currentThemeAccent];
+      if (!palette && currentThemeAccent === 'custom' && currentCustomHex) {
+        const { h, s, l } = hexToHSL(currentCustomHex);
+        palette = {
+          primary: currentCustomHex,
+          hover: `hsl(${h}, ${s}%, ${Math.max(15, l - 10)}%)`,
+          light: `hsl(${h}, ${s}%, 96%)`,
+          border: `hsl(${h}, ${s}%, 85%)`,
+          text: `hsl(${h}, ${s}%, 25%)`,
+          name: '自訂色'
+        };
+      }
+      if (!palette) palette = THEME_ACCENTS.indigo;
+
+      const root = document.documentElement;
+      root.style.setProperty('--theme-primary', palette.primary);
+      root.style.setProperty('--theme-primary-hover', palette.hover);
+      root.style.setProperty('--theme-primary-light', palette.light);
+      root.style.setProperty('--theme-primary-border', palette.border);
+      root.style.setProperty('--theme-primary-text', palette.text);
+
+      applyUIMode();
+      renderThemeModalUI();
+    }
+
+    window.setThemeMode = function(mode) {
+      currentThemeMode = mode;
+      localStorage.setItem('calc_theme_mode', mode);
+      applyTheme();
+    };
+
+    window.setThemeAccent = function(accentKey) {
+      currentThemeAccent = accentKey;
+      localStorage.setItem('calc_theme_accent', accentKey);
+      applyTheme();
+    };
+
+    window.setCustomAccent = function(hex) {
+      currentThemeAccent = 'custom';
+      currentCustomHex = hex;
+      localStorage.setItem('calc_theme_accent', 'custom');
+      localStorage.setItem('calc_custom_hex', hex);
+      applyTheme();
+    };
+
+    window.openThemeModal = function() {
+      const m = document.getElementById('themeModal');
+      if (m) m.classList.remove('hidden');
+      renderThemeModalUI();
+    };
+
+    window.closeThemeModal = function() {
+      const m = document.getElementById('themeModal');
+      if (m) m.classList.add('hidden');
+    };
+
+    function renderThemeModalUI() {
+      const lightBtn = document.getElementById('themeModeLightBtn');
+      const darkBtn = document.getElementById('themeModeDarkBtn');
+      if (lightBtn && darkBtn) {
+        if (currentThemeMode === 'dark') {
+          darkBtn.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer bg-slate-800 text-white border-indigo-500 shadow-sm";
+          lightBtn.className = "py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer bg-slate-100 dark:bg-slate-800 text-slate-400 border-slate-300 dark:border-slate-700";
+        } else {
+          lightBtn.className = "py-2.5 px-3 rounded-xl border-2 font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-slate-900 border-indigo-500 shadow-sm";
+          darkBtn.className = "py-2.5 px-3 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition cursor-pointer bg-slate-800 text-slate-400 border-slate-700";
+        }
+      }
+
+      const container = document.getElementById('presetAccentsContainer');
+      if (container) {
+        container.querySelectorAll('.accent-btn').forEach(btn => {
+          const isCurrent = btn.getAttribute('onclick')?.includes(`'${currentThemeAccent}'`);
+          if (isCurrent) {
+            btn.classList.add('ring-2', 'ring-offset-1', 'ring-indigo-500', 'font-black');
+          } else {
+            btn.classList.remove('ring-2', 'ring-offset-1', 'ring-indigo-500', 'font-black');
+          }
+        });
+      }
+
+      const picker = document.getElementById('customAccentColorPicker');
+      const hexDisplay = document.getElementById('customAccentHexDisplay');
+      if (picker && hexDisplay) {
+        picker.value = currentCustomHex;
+        hexDisplay.innerText = currentCustomHex;
+      }
+    }
+
+    window.toggleGlobalCard = function() {
+      isGlobalCollapsed = !isGlobalCollapsed;
+      localStorage.setItem('calc_global_collapsed', isGlobalCollapsed);
+      const body = document.getElementById('globalCardBody');
+      const btn = document.getElementById('globalToggleBtn');
+      if (body) {
+        if (isGlobalCollapsed) {
+          body.classList.add('hidden');
+          if (btn) btn.innerText = '展開 ▾';
+        } else {
+          body.classList.remove('hidden');
+          if (btn) btn.innerText = '收合 ▲';
+        }
+      }
+    };
     
     let sbClient = null; 
     let currentUser = null;
@@ -1277,23 +1692,31 @@
       const container = document.getElementById('mainContainer');
       const cards = document.querySelectorAll('.card-box');
       const summaryCards = document.querySelectorAll('.summary-card');
+      const isDark = (currentThemeMode === 'dark');
+      const cardBg = isDark ? 'bg-slate-900 text-slate-100 border-slate-800' : 'bg-white text-slate-800 border-slate-200';
+      const bodyBg = isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-800';
+
       if (isCompactMode) {
         btn.innerText = "📱 手機介面";
-        body.className = "bg-slate-100 text-slate-800 p-1.5 min-h-screen transition-all";
+        body.className = bodyBg + " p-1.5 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
-        cards.forEach(card => card.className = "card-box bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2");
+        cards.forEach(card => card.className = `card-box ${cardBg} p-3 rounded-xl shadow-sm space-y-2 border`);
         summaryCards.forEach(sc => {
           const isTw = sc.id.startsWith('tw');
-          sc.className = `summary-card bg-slate-900 text-white p-3 rounded-xl shadow-md border ${isTw ? 'border-indigo-500/40' : 'border-teal-500/40'} space-y-2.5`;
+          const isUs = sc.id.startsWith('us');
+          const borderClass = isTw ? 'border-indigo-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40');
+          sc.className = `summary-card bg-slate-900 text-white p-3 rounded-xl shadow-md border ${borderClass} space-y-2.5`;
         });
       } else {
         btn.innerText = "💻 電腦介面";
-        body.className = "bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all";
+        body.className = bodyBg + " p-3 sm:p-6 min-h-screen transition-all";
         container.className = "max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm";
-        cards.forEach(card => card.className = "card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5");
+        cards.forEach(card => card.className = `card-box ${cardBg} p-4 sm:p-6 rounded-2xl shadow-sm space-y-3.5 border`);
         summaryCards.forEach(sc => {
           const isTw = sc.id.startsWith('tw');
-          sc.className = `summary-card bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md border ${isTw ? 'border-indigo-500/40' : 'border-teal-500/40'} space-y-3.5`;
+          const isUs = sc.id.startsWith('us');
+          const borderClass = isTw ? 'border-indigo-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40');
+          sc.className = `summary-card bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md border ${borderClass} space-y-3.5`;
         });
       }
     }
@@ -1608,6 +2031,30 @@
       document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
       document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
       document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+
+      // 🚀 補倉加碼後合併達標預期獲利試算
+      const twPostPlanPnlEl = document.getElementById('tw_targetPostPlanPnlDisplay');
+      const twPostPlanSubEl = document.getElementById('tw_targetPostPlanSub');
+      if (twPostPlanPnlEl) {
+        if (targetPrice > 0 && totalShares > 0) {
+          if (totalAddShares > 0) {
+            const postPlanTargetAmt = (totalShares * targetPrice) - totalCost;
+            const postPlanTargetPct = totalCost > 0 ? (postPlanTargetAmt / totalCost) * 100 : 0;
+            twPostPlanPnlEl.className = `font-bold text-xs sm:text-sm ${getPnlColor('tw', postPlanTargetAmt, 'dark')}`;
+            twPostPlanPnlEl.innerText = `${postPlanTargetPct > 0 ? '+' : ''}${postPlanTargetPct.toFixed(2)}% (${postPlanTargetAmt >= 0 ? '+' : ''}$${formatMoney(postPlanTargetAmt)})`;
+            if (twPostPlanSubEl) twPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 $${formatPrice(finalAvgPrice)})`;
+          } else {
+            twPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-400";
+            twPostPlanPnlEl.innerText = "同現有持股";
+            if (twPostPlanSubEl) twPostPlanSubEl.innerText = "第 2 區尚未設定補倉股數";
+          }
+        } else {
+          twPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-400";
+          twPostPlanPnlEl.innerText = "-%";
+          if (twPostPlanSubEl) twPostPlanSubEl.innerText = "請輸入上方目標價格";
+        }
+      }
+
       calculateTwPortfolioSummary();
     }
 
@@ -1729,6 +2176,31 @@
       document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`; document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
       document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`; document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
       document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+
+      // 🚀 美股補倉加碼後合併達標預期獲利試算
+      const usPostPlanPnlEl = document.getElementById('us_targetPostPlanPnlDisplay');
+      const usPostPlanSubEl = document.getElementById('us_targetPostPlanSub');
+      if (usPostPlanPnlEl) {
+        if (targetPrice > 0 && totalShares > 0) {
+          if (totalAddShares > 0) {
+            const postPlanTargetAmtUSD = (totalShares * targetPrice) - totalCostUSD;
+            const postPlanTargetPctUSD = totalCostUSD > 0 ? (postPlanTargetAmtUSD / totalCostUSD) * 100 : 0;
+            const postPlanTargetAmtTWD = postPlanTargetAmtUSD * exchangeRate;
+            usPostPlanPnlEl.className = `font-bold text-xs sm:text-sm ${getPnlColor('us', postPlanTargetAmtUSD, 'dark')}`;
+            usPostPlanPnlEl.innerText = `${postPlanTargetPctUSD > 0 ? '+' : ''}${postPlanTargetPctUSD.toFixed(2)}% (${postPlanTargetAmtUSD >= 0 ? '+' : ''}$${formatMoney(postPlanTargetAmtUSD)} / NT$${formatMoney(postPlanTargetAmtTWD)})`;
+            if (usPostPlanSubEl) usPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 $${formatPrice(finalAvgPrice)})`;
+          } else {
+            usPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-400";
+            usPostPlanPnlEl.innerText = "同現有持股";
+            if (usPostPlanSubEl) usPostPlanSubEl.innerText = "第 2 區尚未設定補倉股數";
+          }
+        } else {
+          usPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-400";
+          usPostPlanPnlEl.innerText = "-%";
+          if (usPostPlanSubEl) usPostPlanSubEl.innerText = "請輸入上方目標價格";
+        }
+      }
+
       calculateUsPortfolioSummary();
     }
 
@@ -1925,6 +2397,9 @@
           `).join('');
         }
       }
+
+      renderWeightBar('tw', items, totalCost);
+      calculateGlobalSummary();
     }
 
     function calculateUsPortfolioSummary() {
@@ -2103,6 +2578,163 @@
           `).join('');
         }
       }
+
+      renderWeightBar('us', items, totalCostUSD);
+      calculateGlobalSummary();
+    }
+
+    function renderWeightBar(type, items, totalCost) {
+      const barEl = document.getElementById(`${type}_weightBar`);
+      const pillsEl = document.getElementById(`${type}_weightPills`);
+      const summaryTextEl = document.getElementById(`${type}_weightSummaryText`);
+      if (!barEl || !pillsEl) return;
+
+      const validItems = items.filter(it => it.cost > 0 || (it.costUSD && it.costUSD > 0));
+      if (validItems.length === 0 || totalCost <= 0) {
+        barEl.innerHTML = '<div class="w-full h-full bg-slate-800 flex items-center justify-center text-[8px] text-slate-500">無庫存成本資料</div>';
+        pillsEl.innerHTML = '';
+        if (summaryTextEl) summaryTextEl.innerText = '依現有持股成本佔比';
+        return;
+      }
+
+      const palette = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#f97316', '#3b82f6', '#84cc16'];
+      
+      let barHtml = '';
+      let pillsHtml = '';
+
+      validItems.forEach((it, idx) => {
+        const color = palette[idx % palette.length];
+        const costVal = it.cost !== undefined ? it.cost : it.costUSD;
+        const pct = (costVal / totalCost) * 100;
+        const costStr = `$${formatMoney(costVal)}`;
+        barHtml += `
+          <div style="width: ${pct.toFixed(2)}%; background-color: ${color};" 
+               title="${it.key} ${it.name !== it.key ? '(' + it.name + ')' : ''}: ${pct.toFixed(1)}% (${costStr})" 
+               onclick="switchStockFromDetail('${type}', '${it.key}')" 
+               class="h-full hover:brightness-125 transition cursor-pointer"></div>
+        `;
+        pillsHtml += `
+          <button type="button" onclick="switchStockFromDetail('${type}', '${it.key}')" 
+                  class="flex items-center gap-1.5 bg-slate-800/80 hover:bg-slate-700 border border-slate-700/80 px-2 py-0.5 rounded-lg text-[10px] text-slate-300 hover:text-white transition cursor-pointer">
+            <span class="w-2 h-2 rounded-full inline-block flex-shrink-0" style="background-color: ${color};"></span>
+            <span class="font-bold">${it.key}</span>
+            <span class="font-mono text-slate-400">${pct.toFixed(1)}%</span>
+          </button>
+        `;
+      });
+
+      barEl.innerHTML = barHtml;
+      pillsEl.innerHTML = pillsHtml;
+      if (summaryTextEl) summaryTextEl.innerText = `共 ${validItems.length} 檔持股資金配置`;
+    }
+
+    function calculateGlobalSummary() {
+      const globalCard = document.getElementById('globalPortfolioCard');
+      if (!globalCard) return;
+
+      const twStore = cloudData.twStocks || {};
+      const usStore = cloudData.usStocks || {};
+      const exchangeRate = parseFloat(document.getElementById('us_exchangeRate')?.value) || 32.0;
+
+      let twCost = 0, twVal = 0, twPnl = 0;
+      const currentTwInputs = (currentTwKey) ? {
+        n1: parseFloat(document.getElementById('tw_n1')?.value) || 0,
+        p1: parseFloat(document.getElementById('tw_p1')?.value) || 0,
+        cp: parseFloat(document.getElementById('tw_currentPrice')?.value) || parseFloat(document.getElementById('tw_prevClose')?.value) || 0
+      } : null;
+
+      Object.keys(twStore).forEach(k => {
+        const s = twStore[k];
+        let n1 = parseFloat(s.n1) || 0;
+        let p1 = parseFloat(s.p1) || 0;
+        let cp = parseFloat(s.currentPrice) || parseFloat(s.prevClose) || 0;
+        if (currentTwInputs && k === currentTwKey) {
+          n1 = currentTwInputs.n1; p1 = currentTwInputs.p1;
+          if (currentTwInputs.cp > 0) cp = currentTwInputs.cp;
+        }
+        if (n1 > 0 && p1 > 0) {
+          const c = n1 * p1;
+          twCost += c;
+          if (cp > 0) {
+            twVal += n1 * cp;
+            twPnl += (cp - p1) * n1;
+          } else {
+            twVal += c;
+          }
+        }
+      });
+
+      let usCostUSD = 0, usValUSD = 0, usPnlUSD = 0;
+      const currentUsInputs = (currentUsKey) ? {
+        n1: parseFloat(document.getElementById('us_n1')?.value) || 0,
+        p1: parseFloat(document.getElementById('us_p1')?.value) || 0,
+        cp: parseFloat(document.getElementById('us_currentPrice')?.value) || parseFloat(document.getElementById('us_prevClose')?.value) || 0
+      } : null;
+
+      Object.keys(usStore).forEach(k => {
+        const s = usStore[k];
+        let n1 = parseFloat(s.n1) || 0;
+        let p1 = parseFloat(s.p1) || 0;
+        let cp = parseFloat(s.currentPrice) || parseFloat(s.prevClose) || 0;
+        if (currentUsInputs && k === currentUsKey) {
+          n1 = currentUsInputs.n1; p1 = currentUsInputs.p1;
+          if (currentUsInputs.cp > 0) cp = currentUsInputs.cp;
+        }
+        if (n1 > 0 && p1 > 0) {
+          const c = n1 * p1;
+          usCostUSD += c;
+          if (cp > 0) {
+            usValUSD += n1 * cp;
+            usPnlUSD += (cp - p1) * n1;
+          } else {
+            usValUSD += c;
+          }
+        }
+      });
+
+      const usCostTWD = usCostUSD * exchangeRate;
+      const usValTWD = usValUSD * exchangeRate;
+      const usPnlTWD = usPnlUSD * exchangeRate;
+
+      const globalCostTWD = twCost + usCostTWD;
+      const globalValTWD = twVal + usValTWD;
+      const globalPnlTWD = twPnl + usPnlTWD;
+      const globalPnlRate = globalCostTWD > 0 ? (globalPnlTWD / globalCostTWD) * 100 : null;
+
+      const costEl = document.getElementById('global_totalCostTWD');
+      if (costEl) costEl.innerText = `NT$${formatMoney(globalCostTWD)}`;
+
+      const costSubEl = document.getElementById('global_costSub');
+      if (costSubEl) costSubEl.innerText = `🇹🇼 NT$${formatMoney(twCost)} | 🇺🇸 $${formatMoney(usCostUSD)}`;
+
+      const valEl = document.getElementById('global_totalValueTWD');
+      if (valEl) valEl.innerText = `NT$${formatMoney(globalValTWD)}`;
+
+      const pnlEl = document.getElementById('global_totalPnlTWD');
+      if (pnlEl) {
+        pnlEl.className = `text-sm sm:text-base font-bold ${getPnlColor('tw', globalPnlTWD)} tracking-tight`;
+        pnlEl.innerText = globalPnlTWD !== 0 ? `${globalPnlTWD > 0 ? '+' : ''}NT$${formatMoney(globalPnlTWD)}` : 'NT$0';
+      }
+
+      const pnlRateEl = document.getElementById('global_totalPnlRate');
+      if (pnlRateEl) {
+        pnlRateEl.className = `text-[9px] font-bold ${getPnlColor('tw', globalPnlRate)}`;
+        pnlRateEl.innerText = globalPnlRate !== null ? `報酬率: ${globalPnlRate > 0 ? '+' : ''}${globalPnlRate.toFixed(2)}%` : '報酬率: -%';
+      }
+
+      const twRatio = globalCostTWD > 0 ? (twCost / globalCostTWD) * 100 : 50;
+      const usRatio = globalCostTWD > 0 ? (usCostTWD / globalCostTWD) * 100 : 50;
+
+      const ratioTextEl = document.getElementById('global_marketRatio');
+      if (ratioTextEl) ratioTextEl.innerText = `🇹🇼 ${twRatio.toFixed(0)}% : 🇺🇸 ${usRatio.toFixed(0)}%`;
+
+      const twBar = document.getElementById('global_ratioTwBar');
+      const usBar = document.getElementById('global_ratioUsBar');
+      if (twBar) twBar.style.width = `${twRatio.toFixed(1)}%`;
+      if (usBar) usBar.style.width = `${usRatio.toFixed(1)}%`;
+
+      const rateBadge = document.getElementById('global_exchangeRateBadge');
+      if (rateBadge) rateBadge.innerText = `USD 匯率: ${exchangeRate.toFixed(2)}`;
     }
 
     window.refreshAllMarketPrices = async function(type) {
@@ -2207,6 +2839,13 @@
       if (twColorEl) twColorEl.value = twRule;
       if (usColorEl) usColorEl.value = usRule;
 
+      applyTheme();
+      if (isGlobalCollapsed) {
+        const gb = document.getElementById('globalCardBody');
+        const gbtn = document.getElementById('globalToggleBtn');
+        if (gb) gb.classList.add('hidden');
+        if (gbtn) gbtn.innerText = '展開 ▾';
+      }
       applyUIMode(); updateConnectionStatusUI(); switchTab(localStorage.getItem('calc_current_tab') || 'tw');
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
