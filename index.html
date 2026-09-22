@@ -316,15 +316,17 @@
     .collapse-toggle-btn.btn-expanded-state:hover {
       background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%) !important;
     }
-    /* 收合中狀態 (顯示「展開 ▾」)：明亮翡翠綠漸層 + 微光邊框，強烈引導點擊展開 */
+    /* 收合中狀態 (顯示「展開 ▾」)：明亮翡翠綠漸層 + 琥珀暖黃文字 + 微光邊框 */
     .collapse-toggle-btn.btn-collapsed-state {
       background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
-      color: #ffffff !important;
+      color: #fed7aa !important;
       border: 1px solid #34d399 !important;
       box-shadow: 0 0 8px rgba(16, 185, 129, 0.4) !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     }
     .collapse-toggle-btn.btn-collapsed-state:hover {
       background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+      color: #fef08a !important;
     }
   </style>
 </head>
@@ -533,7 +535,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.6</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.7</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1227,7 +1229,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.4.6';
+    const FRONTEND_VERSION = 'v0.4.7';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
