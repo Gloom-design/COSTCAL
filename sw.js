@@ -1,5 +1,5 @@
-// CostCal Service Worker - Version v0.4.9
-const SW_VERSION = 'v0.4.9';
+// CostCal Service Worker - Version v0.5.0
+const SW_VERSION = 'v0.5.0';
 const CACHE_NAME = 'costcal-pwa-' + SW_VERSION;
 const urlsToCache = [
   './',

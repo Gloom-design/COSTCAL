@@ -535,7 +535,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.9</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.5.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -547,37 +547,55 @@
         </button>
       </div>
       
-      <div id="mainHeaderBody" class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-600 dark:text-slate-400 font-medium">系統就緒</div>
-        <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-          <button id="installAppBtn" type="button" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-emerald-300 transition shadow-sm cursor-pointer">
-            📲 安裝 App
+      <div id="mainHeaderBody" class="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        <!-- 頂部狀態列：雲端同步與系統狀態 -->
+        <div class="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium px-0.5">
+          <div class="flex items-center gap-1.5">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span id="syncStatus">系統就緒</span>
+          </div>
+        </div>
+
+        <!-- 上列：功能與系統操作按鈕（滿版均分 flex-1） -->
+        <div class="flex items-center gap-1.5 sm:gap-2 w-full">
+          <button id="installAppBtn" type="button" class="hidden flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 text-[10px] sm:text-xs rounded-xl font-bold border border-emerald-300 dark:border-emerald-700/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95">
+            <span>📲</span><span class="truncate">安裝 App</span>
           </button>
 
-          <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-300 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-sm cursor-pointer flex items-center gap-1.5" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
-            <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-            <span id="monitorStatusText">30s 盤中監控: 關閉</span>
+          <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
+            <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+            <span id="monitorStatusText" class="truncate">30s 盤中監控: 關閉</span>
           </button>
 
-          <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer flex items-center gap-1" title="介面風格與主題配色設定">
-            <span>🎨 配色</span>
+          <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="介面風格與主題配色設定">
+            <span>🎨</span><span class="truncate">配色</span>
           </button>
 
-          <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
-            📱 手機介面
+          <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95">
+            <span class="truncate">📱 手機介面</span>
           </button>
+        </div>
 
-          <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
-            <span id="userInfo" title="目前登入帳號" class="hidden text-[10px] sm:text-xs text-slate-800 bg-slate-100 border border-slate-300 px-2 py-1.5 rounded-xl font-bold max-w-[85px] sm:max-w-[140px] truncate">未登入</span>
-            <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-bold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
+        <!-- 下列：帳號管理與登入選項（未登入時全寬按鈕；已登入時 4 項目滿版均分 flex-1） -->
+        <div class="w-full">
+          <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="w-full h-8 sm:h-8.5 bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] sm:text-xs font-bold rounded-xl shadow-sm transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-95">
+            <span>🔑</span><span>登入 Google 帳號啟用雲端同步</span>
+          </button>
+          
+          <div id="loggedOptions" class="hidden flex items-center gap-1.5 sm:gap-2 w-full">
+            <span id="userInfo" title="目前登入帳號" class="hidden flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-[10px] sm:text-xs flex items-center justify-center text-center truncate whitespace-nowrap shadow-2xs">未登入</span>
             
-            <div id="loggedOptions" class="hidden flex items-center gap-1.5 flex-wrap">
-              <button id="switchAccountBtn" type="button" onclick="switchAccount()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-bold border border-indigo-200 cursor-pointer shadow-sm flex items-center gap-1" title="切換其他 Google 帳號">
-                🔄 切換帳號
-              </button>
-              <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-slate-300 cursor-pointer shadow-sm">登出</button>
-              <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-bold border border-rose-200 cursor-pointer shadow-sm">⚠️ 刪除帳號</button>
-            </div>
+            <button id="switchAccountBtn" type="button" onclick="switchAccount()" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 text-indigo-800 dark:text-indigo-300 text-[10px] sm:text-xs rounded-xl font-bold border border-indigo-200 dark:border-indigo-800/60 cursor-pointer shadow-2xs flex items-center justify-center gap-1 transition whitespace-nowrap active:scale-95" title="切換其他 Google 帳號">
+              <span>🔄</span><span class="truncate">切換帳號</span>
+            </button>
+            
+            <button id="logoutBtn" type="button" onclick="logout()" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 cursor-pointer shadow-2xs flex items-center justify-center transition whitespace-nowrap active:scale-95">
+              <span class="truncate">登出</span>
+            </button>
+            
+            <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 text-[10px] sm:text-xs rounded-xl font-bold border border-rose-200 dark:border-rose-900/60 cursor-pointer shadow-2xs flex items-center justify-center gap-1 transition whitespace-nowrap active:scale-95" title="刪除本機與雲端帳號資料">
+              <span>⚠️</span><span class="truncate">刪除帳號</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1241,7 +1259,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.4.9';
+    const FRONTEND_VERSION = 'v0.5.0';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
@@ -1821,11 +1839,11 @@
       const text = document.getElementById('monitorStatusText');
       if (!btn) return;
       if (isRealtimeMonitorActive) {
-        btn.className = "bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-black transition shadow-sm cursor-pointer flex items-center gap-1.5";
+        btn.className = "flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-[10px] sm:text-xs rounded-xl font-black transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 active:scale-95";
         if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
         if (text) text.innerText = `30s 監控中 (${monitorCountdown}s)`;
       } else {
-        btn.className = "bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold transition shadow-sm cursor-pointer flex items-center gap-1.5";
+        btn.className = "flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-[10px] sm:text-xs rounded-xl font-bold transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 active:scale-95";
         if (dot) dot.className = "w-2 h-2 rounded-full bg-slate-400";
         if (text) text.innerText = "30s 盤中監控: 關閉";
       }
