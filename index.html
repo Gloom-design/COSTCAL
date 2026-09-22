@@ -217,13 +217,28 @@
     html.dark #mainContainer > div.grid.grid-cols-2.bg-slate-200 {
       background-color: #1e293b !important;
     }
-    html.dark #tabTwBtn.bg-white,
-    html.dark #tabUsBtn.bg-white {
-      background-color: #0f172a !important;
-      color: var(--theme-primary, #6366f1) !important;
+    html.dark #tabTwBtn.bg-white {
+      background-color: #1e1b2e !important;
+      color: #fb7185 !important;
+      border-color: #f43f5e !important;
+      box-shadow: 0 0 12px rgba(244, 63, 94, 0.3) !important;
     }
-    html.dark #tabTwBtn.text-slate-600,
-    html.dark #tabUsBtn.text-slate-600 {
+    html.dark #tabUsBtn.bg-white {
+      background-color: #13242b !important;
+      color: #2dd4bf !important;
+      border-color: #14b8a6 !important;
+      box-shadow: 0 0 12px rgba(20, 184, 166, 0.3) !important;
+    }
+    html:not(.dark) #tabTwBtn.bg-white {
+      color: #e11d48 !important;
+      border-color: #fda4af !important;
+    }
+    html:not(.dark) #tabUsBtn.bg-white {
+      color: #0f766e !important;
+      border-color: #99f6e4 !important;
+    }
+    html.dark #tabTwBtn:not(.bg-white),
+    html.dark #tabUsBtn:not(.bg-white) {
       color: #94a3b8 !important;
     }
     /* 統一鮮明收合/展開按鈕樣式 (右上角顯眼設計) */
@@ -486,7 +501,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.4</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.5</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -612,9 +627,9 @@
           <!-- 台美市場比重 -->
           <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-0.5">
             <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">市場配置比重</div>
-            <div id="global_marketRatio" class="text-xs sm:text-sm font-black text-indigo-950 dark:text-indigo-300">🇹🇼 50% : 🇺🇸 50%</div>
+            <div id="global_marketRatio" class="text-xs sm:text-sm font-black text-slate-950 dark:text-white">🇹🇼 50% : 🇺🇸 50%</div>
             <div class="w-full bg-slate-200 dark:bg-slate-900 rounded-full h-1.5 overflow-hidden flex mt-1">
-              <div id="global_ratioTwBar" class="bg-indigo-500 h-full transition-all duration-500" style="width: 50%;"></div>
+              <div id="global_ratioTwBar" class="bg-rose-500 h-full transition-all duration-500" style="width: 50%;"></div>
               <div id="global_ratioUsBar" class="bg-teal-400 h-full transition-all duration-500" style="width: 50%;"></div>
             </div>
           </div>
@@ -623,24 +638,24 @@
     </div>
 
     <div class="grid grid-cols-2 gap-2 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700">
-      <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-black rounded-xl transition-all bg-white text-indigo-950 shadow text-xs sm:text-sm cursor-pointer border border-indigo-200">🇹🇼 台股專用</button>
-      <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-bold rounded-xl transition-all text-slate-800 hover:text-slate-950 text-xs sm:text-sm cursor-pointer">🇺🇸 美股專用</button>
+      <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-black rounded-xl transition-all bg-white text-rose-600 dark:text-rose-400 shadow text-xs sm:text-sm cursor-pointer border border-rose-300 dark:border-rose-500/50">🇹🇼 台股專用</button>
+      <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-bold rounded-xl transition-all text-slate-800 dark:text-slate-400 hover:text-slate-950 text-xs sm:text-sm cursor-pointer border border-transparent">🇺🇸 美股專用</button>
     </div>
 
     <div id="twView" class="space-y-4 sm:space-y-5">
       <!-- 💼 台股全投資組合總覽 (Portfolio Summary) -->
-      <div id="twPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-indigo-300 dark:border-indigo-500/40 space-y-3.5">
+      <div id="twPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-rose-300 dark:border-rose-500/40 space-y-3.5">
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2.5 flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <span class="text-base sm:text-lg">💼</span>
             <div>
-              <h2 class="font-black text-xs sm:text-sm text-indigo-900 dark:text-indigo-400 leading-tight">台股所有投資組合總覽</h2>
+              <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400 leading-tight">台股所有投資組合總覽</h2>
               <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">彙總您名下所有持股之成本與未實現損益</p>
             </div>
           </div>
           <div class="flex items-center gap-2 flex-wrap ml-auto sm:ml-0">
-            <span id="tw_summaryStockCountBadge" class="bg-indigo-50 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
-            <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-indigo-400/40 transition flex items-center gap-1 cursor-pointer">
+            <span id="tw_summaryStockCountBadge" class="bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
+            <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-rose-400/40 transition flex items-center gap-1 cursor-pointer">
               <span>🔄 更新全組合行情</span>
             </button>
             <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
@@ -703,7 +718,7 @@
           <div class="border-t border-slate-200 dark:border-slate-800 pt-2 space-y-2">
             <div class="flex justify-between items-center">
               <span class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">各持股明細損益 (點擊可切換編輯)</span>
-              <button type="button" onclick="togglePortfolioDetail('tw')" id="twToggleDetailBtn" class="text-[10px] text-indigo-800 dark:text-indigo-400 hover:text-indigo-950 dark:hover:text-indigo-300 font-bold underline cursor-pointer">
+              <button type="button" onclick="togglePortfolioDetail('tw')" id="twToggleDetailBtn" class="text-[10px] text-rose-800 dark:text-rose-400 hover:text-rose-950 dark:hover:text-rose-300 font-bold underline cursor-pointer">
                 展開明細 ▾
               </button>
             </div>
@@ -713,20 +728,20 @@
       </div>
 
       <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
-        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-extrabold text-indigo-900 bg-slate-50 outline-none">
+        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-extrabold text-rose-950 bg-slate-50 outline-none">
         </select>
         <div class="flex items-center gap-1.5 flex-wrap">
           <button type="button" onclick="moveStockOrder('tw', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
           <button type="button" onclick="moveStockOrder('tw', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
           <button type="button" onclick="renameStock('tw')" class="bg-amber-50 text-amber-800 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
-          <button type="button" onclick="openAddStockModal('tw')" class="bg-indigo-50 text-indigo-800 px-2.5 py-2 rounded-xl font-bold hover:bg-indigo-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
+          <button type="button" onclick="openAddStockModal('tw')" class="bg-rose-50 text-rose-800 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
           <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-700 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
         </div>
       </div>
 
       <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <div class="flex justify-between items-center border-b pb-2.5">
-          <h2 class="font-black text-indigo-950 dark:text-indigo-400 text-xs sm:text-sm">
+          <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">
             1. 台股設定與代號查詢
           </h2>
           <button type="button" onclick="toggleSectionCollapse('twCard1')" id="twCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
@@ -739,7 +754,7 @@
           <div class="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/60">
             <span class="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
               <span>損益顏色:</span>
-              <select id="twColorRule" onchange="changeColorRule('tw', this.value)" class="bg-transparent font-bold text-indigo-800 dark:text-indigo-400 outline-none cursor-pointer">
+              <select id="twColorRule" onchange="changeColorRule('tw', this.value)" class="bg-transparent font-bold text-rose-800 dark:text-rose-400 outline-none cursor-pointer">
                 <option value="red_up">🔴漲紅 🟢跌綠 (預設)</option>
                 <option value="green_up">🟢漲綠 🔴跌紅</option>
               </select>
@@ -751,17 +766,17 @@
           </div>
           <div class="grid grid-cols-2 gap-3.5">
           <div>
-            <label class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-300 font-bold block mb-1">台股名稱</label>
-            <input id="tw_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-950">
+            <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">台股名稱</label>
+            <input id="tw_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-rose-950">
           </div>
           <div>
-            <label class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-300 font-bold block mb-1">台股代號 (例: 台積電或2330)</label>
-            <input id="tw_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-indigo-950">
+            <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">台股代號 (例: 台積電或2330)</label>
+            <input id="tw_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-rose-950">
           </div>
         </div>
 
         <div class="flex justify-end">
-          <button type="button" onclick="fetchMarketPrice('tw')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
+          <button type="button" onclick="fetchMarketPrice('tw')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
             🔍 即時行情
           </button>
         </div>
@@ -793,8 +808,8 @@
 
         <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center">
           <div>
-            <label class="text-[10px] sm:text-xs text-indigo-900 dark:text-indigo-300 font-bold block mb-1">手動對齊 App 損益率%</label>
-            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -12.5" class="tw-input save-trigger w-full border border-indigo-200 bg-indigo-50/50 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-indigo-800 outline-none">
+            <label class="text-[10px] sm:text-xs text-rose-900 dark:text-rose-300 font-bold block mb-1">手動對齊 App 損益率%</label>
+            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -12.5" class="tw-input save-trigger w-full border border-rose-200 bg-rose-50/50 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-rose-800 outline-none">
           </div>
           <div>
             <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">未實現損益 (現有)</label>
@@ -805,33 +820,33 @@
           </div>
         </div>
 
-        <div class="pt-2.5 border-t border-slate-100 bg-indigo-50/40 p-3 rounded-xl border border-indigo-100 space-y-2">
+        <div class="pt-2.5 border-t border-slate-100 bg-rose-50/40 dark:bg-rose-950/20 p-3 rounded-xl border border-rose-100 dark:border-rose-900/40 space-y-2">
           <div class="grid grid-cols-2 gap-3 items-center">
             <div>
               <div class="flex justify-between items-center mb-1">
-                <label class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-300 font-bold block">🎯 設定賣出目標價</label>
+                <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block">🎯 設定賣出目標價</label>
                 <button type="button" id="tw_targetAlertBtn" onclick="toggleTargetAlert('tw')" title="設定目標價達標推播通知" class="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200">
                   <span id="tw_targetAlertIcon">🔔</span>
                   <span id="tw_targetAlertText">提醒</span>
                 </button>
               </div>
-              <input id="tw_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="tw-input save-trigger w-full border border-indigo-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-indigo-950 outline-none">
+              <input id="tw_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="tw-input save-trigger w-full border border-rose-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-rose-950 outline-none">
             </div>
             <div>
-              <label class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-300 font-bold block mb-1">現有持股達標獲利</label>
+              <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">現有持股達標獲利</label>
               <div id="tw_targetPnlDisplay" class="font-extrabold text-xs sm:text-base text-slate-800 dark:text-slate-400">-%</div>
               <div id="tw_targetPnlSub" class="text-[9px] text-slate-700 dark:text-slate-400 font-semibold">以現有持股試算</div>
             </div>
           </div>
 
-          <div class="pt-2 border-t border-indigo-200/50 flex justify-between items-center flex-wrap gap-1">
-            <div class="text-[10px] sm:text-xs text-indigo-950 dark:text-indigo-200 font-bold flex items-center gap-1">
+          <div class="pt-2 border-t border-rose-200/50 flex justify-between items-center flex-wrap gap-1">
+            <div class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-200 font-bold flex items-center gap-1">
               <span>🚀</span>
               <span>補倉加碼後合併達標預期獲利:</span>
             </div>
             <div class="text-right">
               <div id="tw_targetPostPlanPnlDisplay" class="font-extrabold text-xs sm:text-sm text-slate-800 dark:text-slate-400">-%</div>
-              <div id="tw_targetPostPlanSub" class="text-[9px] text-indigo-800 dark:text-indigo-300 font-bold">尚未規劃補倉筆數</div>
+              <div id="tw_targetPostPlanSub" class="text-[9px] text-rose-800 dark:text-rose-300 font-bold">尚未規劃補倉筆數</div>
             </div>
           </div>
         </div>
@@ -841,10 +856,10 @@
       <div id="twCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
         <div class="flex justify-between items-center border-b pb-2.5 flex-wrap gap-2">
           <div class="flex items-center gap-2">
-            <h2 class="font-black text-indigo-950 dark:text-indigo-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
+            <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
           </div>
           <div class="flex items-center gap-2 ml-auto sm:ml-0">
-            <button type="button" onclick="addTwPlanRow()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-indigo-200 cursor-pointer shadow-sm">
+            <button type="button" onclick="addTwPlanRow()" class="bg-rose-50 hover:bg-rose-100 text-rose-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-rose-200 cursor-pointer shadow-sm">
               ➕ 新增補倉筆數
             </button>
             <button type="button" onclick="toggleSectionCollapse('twCard2')" id="twCard2CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
@@ -865,7 +880,7 @@
 
       <div id="twResultCard" class="card-box bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3">
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
-          <h2 class="font-black text-xs sm:text-sm text-indigo-950 dark:text-indigo-400">
+          <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400">
             3. 台股試算結果
           </h2>
           <button type="button" onclick="toggleSectionCollapse('twResultCard')" id="twResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
@@ -1180,7 +1195,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.4.4';
+    const FRONTEND_VERSION = 'v0.4.5';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
@@ -2124,12 +2139,12 @@
 
       if (type === 'tw') {
         twView.classList.remove('hidden'); usView.classList.add('hidden');
-        twBtn.className = "py-2.5 font-black rounded-xl transition-all bg-white text-indigo-950 shadow text-xs sm:text-sm cursor-pointer border border-indigo-200";
-        usBtn.className = "py-2.5 font-bold rounded-xl transition-all text-slate-800 hover:text-slate-950 text-xs sm:text-sm cursor-pointer";
+        twBtn.className = "py-2.5 font-black rounded-xl transition-all bg-white text-rose-600 dark:text-rose-400 shadow text-xs sm:text-sm cursor-pointer border border-rose-300 dark:border-rose-500/50";
+        usBtn.className = "py-2.5 font-bold rounded-xl transition-all text-slate-800 dark:text-slate-400 hover:text-slate-950 text-xs sm:text-sm cursor-pointer border border-transparent";
       } else {
         usView.classList.remove('hidden'); twView.classList.add('hidden');
-        usBtn.className = "py-2.5 font-black rounded-xl transition-all bg-white text-teal-950 shadow text-xs sm:text-sm cursor-pointer border border-teal-200";
-        twBtn.className = "py-2.5 font-bold rounded-xl transition-all text-slate-800 hover:text-slate-950 text-xs sm:text-sm cursor-pointer";
+        usBtn.className = "py-2.5 font-black rounded-xl transition-all bg-white text-teal-700 dark:text-teal-400 shadow text-xs sm:text-sm cursor-pointer border border-teal-300 dark:border-teal-500/50";
+        twBtn.className = "py-2.5 font-bold rounded-xl transition-all text-slate-800 dark:text-slate-400 hover:text-slate-950 text-xs sm:text-sm cursor-pointer border border-transparent";
         fetchExchangeRate();
       }
     };
@@ -2411,8 +2426,8 @@
           const isTw = sc.id.startsWith('tw');
           const isUs = sc.id.startsWith('us');
           const borderClass = isDark
-            ? (isTw ? 'border-indigo-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40'))
-            : (isTw ? 'border-indigo-200' : (isUs ? 'border-teal-200' : 'border-cyan-200'));
+            ? (isTw ? 'border-rose-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40'))
+            : (isTw ? 'border-rose-200' : (isUs ? 'border-teal-200' : 'border-cyan-200'));
           sc.className = `summary-card ${summaryBg} p-3 rounded-xl border ${borderClass} space-y-2.5`;
         });
       } else {
@@ -2424,8 +2439,8 @@
           const isTw = sc.id.startsWith('tw');
           const isUs = sc.id.startsWith('us');
           const borderClass = isDark
-            ? (isTw ? 'border-indigo-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40'))
-            : (isTw ? 'border-indigo-200' : (isUs ? 'border-teal-200' : 'border-cyan-200'));
+            ? (isTw ? 'border-rose-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40'))
+            : (isTw ? 'border-rose-200' : (isUs ? 'border-teal-200' : 'border-cyan-200'));
           sc.className = `summary-card ${summaryBg} p-4 sm:p-6 rounded-2xl border ${borderClass} space-y-3.5`;
         });
       }
@@ -2544,9 +2559,9 @@
       div.className = "tw-plan-row bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-300 dark:border-slate-700 space-y-2 relative";
       div.innerHTML = `
         <div class="flex justify-between items-center">
-          <span class="tw-plan-title font-black text-[11px] text-indigo-900 dark:text-indigo-300">補倉批次</span>
+          <span class="tw-plan-title font-black text-[11px] text-rose-900 dark:text-rose-300">補倉批次</span>
           <div class="flex gap-1.5">
-            <button type="button" onclick="copyTwPlanRow(this)" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-900 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-indigo-200 cursor-pointer">複製</button>
+            <button type="button" onclick="copyTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-900 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-rose-200 cursor-pointer">複製</button>
             <button type="button" onclick="removeTwPlanRow(this)" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[10px] px-2.5 py-1 rounded-lg border border-rose-200 cursor-pointer">刪除</button>
           </div>
         </div>
@@ -2559,7 +2574,7 @@
                   <span>${alert ? '🔔' : '🔕'}</span>
                   <span class="text-[9px]">${alert ? '警示中' : '提醒'}</span>
                 </button>
-                <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] font-bold text-indigo-700 dark:text-indigo-400 underline cursor-pointer">帶入</button>
+                <button type="button" onclick="copyCurrentPriceToTwRow(this)" class="text-[10px] font-bold text-rose-700 dark:text-rose-400 underline cursor-pointer">帶入</button>
               </div>
             </div>
             <input type="number" step="0.01" value="${p2}" data-alert="${alert ? 'true' : 'false'}" class="tw-plan-p2 save-trigger w-full border rounded-lg p-2 text-xs font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800">
@@ -2759,7 +2774,7 @@
 
             const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
             batchDiv.innerHTML = `
-              <div class="font-extrabold text-indigo-900 dark:text-indigo-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
+              <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
               <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
                 <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(totalAddCost)}</span></div>
                 <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(totalCost)}</span></div>
@@ -2788,7 +2803,7 @@
 
           const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
           batchDiv.innerHTML = `
-            <div class="font-extrabold text-indigo-900 dark:text-indigo-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+            <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
             <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
               <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(batchCost)}</span></div>
               <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(cumulativeCost)}</span></div>
@@ -3149,12 +3164,12 @@
           detailContainer.innerHTML = '<div class="text-slate-700 dark:text-slate-400 font-bold text-xs text-center py-2">尚未建立任何投資組合</div>';
         } else {
           detailContainer.innerHTML = items.map(it => `
-            <div onclick="switchStockFromDetail('tw', '${it.key}')" class="p-2.5 rounded-xl transition cursor-pointer flex items-center justify-between gap-2 text-xs border ${it.isActive ? 'bg-indigo-50 dark:bg-indigo-950/70 border-indigo-300 dark:border-indigo-500/60 shadow-xs' : 'bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700/50'}">
+            <div onclick="switchStockFromDetail('tw', '${it.key}')" class="p-2.5 rounded-xl transition cursor-pointer flex items-center justify-between gap-2 text-xs border ${it.isActive ? 'bg-rose-50 dark:bg-rose-950/70 border-rose-300 dark:border-rose-500/60 shadow-xs' : 'bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border-slate-200 dark:border-slate-700/50'}">
               <div class="space-y-0.5 min-w-0">
                 <div class="flex items-center gap-1.5 flex-wrap">
                   <span class="font-black text-slate-950 dark:text-white">${it.key}</span>
-                  <span class="text-[11px] text-indigo-900 dark:text-indigo-300 font-bold truncate max-w-[110px] sm:max-w-[160px]">${it.name !== it.key ? it.name : ''}</span>
-                  ${it.isActive ? '<span class="text-[9px] bg-indigo-600 text-white font-bold px-1.5 py-0.2 rounded">編輯中</span>' : ''}
+                  <span class="text-[11px] text-rose-900 dark:text-rose-300 font-bold truncate max-w-[110px] sm:max-w-[160px]">${it.name !== it.key ? it.name : ''}</span>
+                  ${it.isActive ? '<span class="text-[9px] bg-rose-600 text-white font-bold px-1.5 py-0.2 rounded">編輯中</span>' : ''}
                 </div>
                 <div class="text-[10px] text-slate-700 dark:text-slate-400 flex items-center gap-2 flex-wrap font-medium">
                   <span>持股: <strong class="text-slate-950 dark:text-slate-100 font-bold">${formatMoney(it.n1)}</strong> 股</span>
