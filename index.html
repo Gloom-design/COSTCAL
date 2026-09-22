@@ -535,7 +535,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.8</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.9</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -761,15 +761,21 @@
         </div>
       </div>
 
-      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
-        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-extrabold text-rose-950 bg-slate-50 outline-none">
+      <div class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-rose-950 dark:text-rose-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-rose-500 cursor-pointer shadow-2xs">
         </select>
         <div class="flex items-center gap-1.5 flex-wrap">
-          <button type="button" onclick="moveStockOrder('tw', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
-          <button type="button" onclick="moveStockOrder('tw', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
-          <button type="button" onclick="renameStock('tw')" class="bg-amber-50 text-amber-800 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
-          <button type="button" onclick="openAddStockModal('tw')" class="bg-rose-50 text-rose-800 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
-          <button type="button" onclick="deleteStock('tw')" class="bg-rose-50 text-rose-700 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
+          <button type="button" onclick="moveStockOrder('tw', -1)" title="順序往前移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
+          <button type="button" onclick="moveStockOrder('tw', 1)" title="順序往後移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▼</button>
+          <button type="button" onclick="renameStock('tw')" title="修改此股票自訂名稱" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+            <span>✏️</span><span>改名</span>
+          </button>
+          <button type="button" onclick="openAddStockModal('tw')" title="新增一筆台股投資組合" class="h-8 sm:h-8.5 px-3 sm:px-3.5 flex items-center gap-1 bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white border border-rose-500 dark:border-rose-400 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-sm active:scale-95">
+            <span>➕</span><span>新增</span>
+          </button>
+          <button type="button" onclick="deleteStock('tw')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+            <span>🗑️</span><span>刪除</span>
+          </button>
         </div>
       </div>
 
@@ -939,8 +945,8 @@
             <div>本次補倉總計: <span id="tw_resAddCost" class="font-extrabold text-slate-950 dark:text-white">$0</span></div>
           </div>
           <div class="pt-2.5">
-            <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
-              💾 即時儲存至雲端
+            <button type="button" onclick="manualSaveData()" class="w-full bg-gradient-to-r from-amber-600 via-amber-500 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer border border-amber-400/50 flex items-center justify-center gap-1.5 active:scale-[0.99]">
+              <span>💾</span><span>即時儲存至雲端</span>
             </button>
           </div>
         </div>
@@ -1032,15 +1038,21 @@
         </div>
       </div>
 
-      <div class="bg-white p-3.5 sm:p-4 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between gap-2 flex-wrap">
-        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[120px] border rounded-xl p-2 text-xs sm:text-sm font-extrabold text-teal-900 bg-slate-50 outline-none">
+      <div class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[120px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-teal-900 dark:text-teal-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-teal-500 cursor-pointer shadow-2xs">
         </select>
         <div class="flex items-center gap-1.5 flex-wrap">
-          <button type="button" onclick="moveStockOrder('us', -1)" title="往上移" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬆️</button>
-          <button type="button" onclick="moveStockOrder('us', 1)" title="往下移" class="bg-slate-100 hover:bg-slate-200 text-slate-800 px-2.5 py-2 rounded-xl font-bold text-[10px] cursor-pointer">⬇️</button>
-          <button type="button" onclick="renameStock('us')" class="bg-amber-50 text-amber-800 px-2.5 py-2 rounded-xl font-bold hover:bg-amber-100 text-[10px] sm:text-xs cursor-pointer">✏️改</button>
-          <button type="button" onclick="openAddStockModal('us')" class="bg-teal-50 text-teal-800 px-2.5 py-2 rounded-xl font-bold hover:bg-teal-100 text-[10px] sm:text-xs cursor-pointer">+新增</button>
-          <button type="button" onclick="deleteStock('us')" class="bg-rose-50 text-rose-700 px-2.5 py-2 rounded-xl font-bold hover:bg-rose-100 text-[10px] sm:text-xs cursor-pointer">刪</button>
+          <button type="button" onclick="moveStockOrder('us', -1)" title="順序往前移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
+          <button type="button" onclick="moveStockOrder('us', 1)" title="順序往後移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▼</button>
+          <button type="button" onclick="renameStock('us')" title="修改此股票自訂名稱" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+            <span>✏️</span><span>改名</span>
+          </button>
+          <button type="button" onclick="openAddStockModal('us')" title="新增一筆美股投資組合" class="h-8 sm:h-8.5 px-3 sm:px-3.5 flex items-center gap-1 bg-teal-600 hover:bg-teal-700 dark:bg-teal-600 dark:hover:bg-teal-500 text-white border border-teal-500 dark:border-teal-400 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-sm active:scale-95">
+            <span>➕</span><span>新增</span>
+          </button>
+          <button type="button" onclick="deleteStock('us')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+            <span>🗑️</span><span>刪除</span>
+          </button>
         </div>
       </div>
 
@@ -1209,8 +1221,8 @@
             <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="font-extrabold text-amber-900 dark:text-amber-300">NT$0</span></div>
           </div>
           <div class="pt-2.5">
-            <button type="button" onclick="manualSaveData()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow transition cursor-pointer">
-              💾 即時儲存至雲端
+            <button type="button" onclick="manualSaveData()" class="w-full bg-gradient-to-r from-amber-600 via-amber-500 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer border border-amber-400/50 flex items-center justify-center gap-1.5 active:scale-[0.99]">
+              <span>💾</span><span>即時儲存至雲端</span>
             </button>
           </div>
         </div>
@@ -1229,7 +1241,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.4.8';
+    const FRONTEND_VERSION = 'v0.4.9';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
