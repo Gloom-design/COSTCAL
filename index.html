@@ -226,6 +226,55 @@
     html.dark #tabUsBtn.text-slate-600 {
       color: #94a3b8 !important;
     }
+    /* 統一鮮明收合/展開按鈕樣式 (右上角顯眼設計) */
+    .collapse-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.25rem;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 0.25rem 0.55rem;
+      border-radius: 0.625rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.1);
+      white-space: nowrap;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    @media (min-width: 640px) {
+      .collapse-toggle-btn {
+        font-size: 0.72rem;
+        padding: 0.3rem 0.65rem;
+      }
+    }
+    .collapse-toggle-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 3px 6px -1px rgb(0 0 0 / 0.18);
+    }
+    .collapse-toggle-btn:active {
+      transform: translateY(0) scale(0.95);
+    }
+    /* 展開中狀態 (顯示「收合 ▲」)：高質感藍靛漸層，清晰顯眼 */
+    .collapse-toggle-btn.btn-expanded-state {
+      background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid #4338ca !important;
+    }
+    .collapse-toggle-btn.btn-expanded-state:hover {
+      background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%) !important;
+    }
+    /* 收合中狀態 (顯示「展開 ▾」)：明亮翡翠綠漸層 + 微光邊框，強烈引導點擊展開 */
+    .collapse-toggle-btn.btn-collapsed-state {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid #34d399 !important;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4) !important;
+    }
+    .collapse-toggle-btn.btn-collapsed-state:hover {
+      background: linear-gradient(135deg, #047857 0%, #059669 100%) !important;
+    }
   </style>
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all">
@@ -420,8 +469,8 @@
           <span class="text-amber-600 font-bold text-sm leading-none">⚠️</span>
           <span>免責聲明</span>
         </div>
-        <button type="button" onclick="toggleSectionCollapse('disclaimer')" id="disclaimerCollapseBtn" class="text-[10px] text-amber-800 hover:text-amber-950 font-bold underline cursor-pointer">
-          收合 ▲
+        <button type="button" onclick="toggleSectionCollapse('disclaimer')" id="disclaimerCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+          <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
         </button>
       </div>
       <div id="disclaimerBody" class="mt-1 leading-relaxed">
@@ -429,48 +478,53 @@
       </div>
     </div>
 
-    <header class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 flex items-center justify-between relative z-25 flex-wrap gap-3">
-      <div>
+    <header id="mainAppHeader" class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-2 relative z-25">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.1</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.4.2</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span id="connectionText">即時連線</span>
           </span>
         </div>
-        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-600 dark:text-slate-400 font-medium mt-0.5">系統就緒</div>
+        <button type="button" onclick="toggleSectionCollapse('mainHeader')" id="mainHeaderCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+          <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+        </button>
       </div>
       
-      <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
-        <button id="installAppBtn" type="button" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-emerald-300 transition shadow-sm cursor-pointer">
-          📲 安裝 App
-        </button>
+      <div id="mainHeaderBody" class="pt-1.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+        <div id="syncStatus" class="text-[9px] sm:text-xs text-slate-600 dark:text-slate-400 font-medium">系統就緒</div>
+        <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+          <button id="installAppBtn" type="button" class="hidden bg-emerald-100 hover:bg-emerald-200 text-emerald-700 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-emerald-300 transition shadow-sm cursor-pointer">
+            📲 安裝 App
+          </button>
 
-        <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-300 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-sm cursor-pointer flex items-center gap-1.5" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
-          <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span id="monitorStatusText">30s 盤中監控: 關閉</span>
-        </button>
+          <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-300 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-sm cursor-pointer flex items-center gap-1.5" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
+            <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
+            <span id="monitorStatusText">30s 盤中監控: 關閉</span>
+          </button>
 
-        <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer flex items-center gap-1" title="介面風格與主題配色設定">
-          <span>🎨 配色</span>
-        </button>
+          <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer flex items-center gap-1" title="介面風格與主題配色設定">
+            <span>🎨 配色</span>
+          </button>
 
-        <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
-          📱 手機介面
-        </button>
+          <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-2.5 sm:px-3 py-2 rounded-xl font-bold border transition shadow-sm cursor-pointer">
+            📱 手機介面
+          </button>
 
-        <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
-          <span id="userInfo" title="目前登入帳號" class="hidden text-[10px] sm:text-xs text-slate-800 bg-slate-100 border border-slate-300 px-2 py-1.5 rounded-xl font-bold max-w-[85px] sm:max-w-[140px] truncate">未登入</span>
-          <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-bold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
-          
-          <div id="loggedOptions" class="hidden flex items-center gap-1.5 flex-wrap">
-            <button id="switchAccountBtn" type="button" onclick="switchAccount()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-bold border border-indigo-200 cursor-pointer shadow-sm flex items-center gap-1" title="切換其他 Google 帳號">
-              🔄 切換帳號
-            </button>
-            <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-slate-300 cursor-pointer shadow-sm">登出</button>
-            <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-bold border border-rose-200 cursor-pointer shadow-sm">⚠️ 刪除帳號</button>
+          <div class="flex items-center gap-1.5 relative z-30 flex-wrap">
+            <span id="userInfo" title="目前登入帳號" class="hidden text-[10px] sm:text-xs text-slate-800 bg-slate-100 border border-slate-300 px-2 py-1.5 rounded-xl font-bold max-w-[85px] sm:max-w-[140px] truncate">未登入</span>
+            <button id="loginBtn" type="button" onclick="loginWithGoogle()" class="bg-indigo-600 text-white text-[10px] sm:text-xs px-3.5 py-2 rounded-xl font-bold hover:bg-indigo-700 cursor-pointer shadow">登入</button>
+            
+            <div id="loggedOptions" class="hidden flex items-center gap-1.5 flex-wrap">
+              <button id="switchAccountBtn" type="button" onclick="switchAccount()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-bold border border-indigo-200 cursor-pointer shadow-sm flex items-center gap-1" title="切換其他 Google 帳號">
+                🔄 切換帳號
+              </button>
+              <button id="logoutBtn" type="button" onclick="logout()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-[10px] sm:text-xs px-3 py-2 rounded-xl font-bold border border-slate-300 cursor-pointer shadow-sm">登出</button>
+              <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 text-[10px] sm:text-xs px-2.5 py-2 rounded-xl font-bold border border-rose-200 cursor-pointer shadow-sm">⚠️ 刪除帳號</button>
+            </div>
           </div>
         </div>
       </div>
@@ -478,29 +532,37 @@
 
     <div id="adminPanel" class="hidden bg-slate-900 text-white p-4 rounded-2xl shadow-md space-y-3 border border-slate-700">
       <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
-        <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
         <div class="flex items-center gap-2 flex-wrap">
-          <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零登入</button>
-          <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步</button>
+          <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
+          <div class="flex items-center gap-2 flex-wrap">
+            <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零登入</button>
+            <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步</button>
+          </div>
         </div>
+        <button type="button" onclick="toggleSectionCollapse('adminPanel')" id="adminPanelCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+          <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+        </button>
       </div>
-      <div class="grid grid-cols-3 gap-2 text-xs pt-1">
-        <div>總人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
-        <div>總登入: <strong id="adminTotalLogins" class="text-indigo-300 font-bold">0 次</strong></div>
-        <div>總同步: <strong id="adminTotalSyncs" class="text-emerald-300 font-bold">0 次</strong></div>
-      </div>
-      <div class="border-t border-slate-700 pt-3 mt-2">
-        <div class="flex justify-between items-center pb-2">
-          <span class="font-bold text-xs text-amber-400">📄 系統檔案版本監控 (無快取連線)</span>
-          <button type="button" onclick="checkSystemVersions()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-[10px] px-2 py-1.5 rounded cursor-pointer border border-slate-500 transition">
-            🔍 重新偵測
-          </button>
+      
+      <div id="adminPanelBody" class="space-y-3">
+        <div class="grid grid-cols-3 gap-2 text-xs pt-1">
+          <div>總人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
+          <div>總登入: <strong id="adminTotalLogins" class="text-indigo-300 font-bold">0 次</strong></div>
+          <div>總同步: <strong id="adminTotalSyncs" class="text-emerald-300 font-bold">0 次</strong></div>
         </div>
-        <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[11px] text-slate-300">
-          <div>index.html: <strong id="adminVerIndex" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
-          <div>stock.js: <strong id="adminVerStock" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
-          <div>manifest.json: <strong id="adminVerManifest" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
-          <div>sw.js: <strong id="adminVerSw" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+        <div class="border-t border-slate-700 pt-3 mt-2">
+          <div class="flex justify-between items-center pb-2">
+            <span class="font-bold text-xs text-amber-400">📄 系統檔案版本監控 (無快取連線)</span>
+            <button type="button" onclick="checkSystemVersions()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-[10px] px-2 py-1.5 rounded cursor-pointer border border-slate-500 transition">
+              🔍 重新偵測
+            </button>
+          </div>
+          <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[11px] text-slate-300">
+            <div>index.html: <strong id="adminVerIndex" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+            <div>stock.js: <strong id="adminVerStock" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+            <div>manifest.json: <strong id="adminVerManifest" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+            <div>sw.js: <strong id="adminVerSw" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+          </div>
         </div>
       </div>
     </div>
@@ -517,8 +579,8 @@
         </div>
         <div class="flex items-center gap-2">
           <span id="global_exchangeRateBadge" class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 font-mono font-bold">USD 匯率: 32.00</span>
-          <button type="button" onclick="toggleSectionCollapse('globalPortfolio')" id="globalPortfolioCollapseBtn" class="text-[10px] text-cyan-800 dark:text-cyan-400 hover:text-cyan-950 dark:hover:text-cyan-300 font-bold underline cursor-pointer">
-            收合 ▲
+          <button type="button" onclick="toggleSectionCollapse('globalPortfolio')" id="globalPortfolioCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
           </button>
         </div>
       </div>
@@ -577,8 +639,8 @@
             <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-indigo-400/40 transition flex items-center gap-1 cursor-pointer">
               <span>🔄 更新全組合行情</span>
             </button>
-            <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="text-[10px] sm:text-xs text-indigo-800 dark:text-indigo-400 hover:text-indigo-950 dark:hover:text-indigo-300 font-bold underline cursor-pointer">
-              收合 ▲
+            <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
             </button>
           </div>
         </div>
@@ -662,9 +724,6 @@
         <div class="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <h2 class="font-black text-indigo-950 dark:text-indigo-400 text-xs sm:text-sm">1. 台股設定與代號查詢</h2>
-            <button type="button" onclick="toggleSectionCollapse('twCard1')" id="twCard1CollapseBtn" class="text-[10px] sm:text-xs text-indigo-700 dark:text-indigo-400 hover:text-indigo-950 dark:hover:text-indigo-200 font-bold underline cursor-pointer">
-              收合 ▲
-            </button>
           </div>
           <div class="flex items-center gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap">
             <span class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
@@ -676,6 +735,9 @@
             </span>
             <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold" value="0.6"></span>
             <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold" value="20"></span>
+            <button type="button" onclick="toggleSectionCollapse('twCard1')" id="twCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
           </div>
         </div>
 
@@ -773,13 +835,15 @@
         <div class="flex justify-between items-center border-b pb-2.5 flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <h2 class="font-black text-indigo-950 dark:text-indigo-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
-            <button type="button" onclick="toggleSectionCollapse('twCard2')" id="twCard2CollapseBtn" class="text-[10px] sm:text-xs text-indigo-700 dark:text-indigo-400 hover:text-indigo-950 dark:hover:text-indigo-200 font-bold underline cursor-pointer">
-              收合 ▲
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="addTwPlanRow()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-indigo-200 cursor-pointer shadow-sm">
+              ➕ 新增補倉筆數
+            </button>
+            <button type="button" onclick="toggleSectionCollapse('twCard2')" id="twCard2CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
             </button>
           </div>
-          <button type="button" onclick="addTwPlanRow()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-indigo-200 cursor-pointer shadow-sm">
-            ➕ 新增補倉筆數
-          </button>
         </div>
 
         <div id="twCard2Body" class="space-y-4">
@@ -797,8 +861,8 @@
           <h2 class="font-black text-xs sm:text-sm text-indigo-950 dark:text-indigo-400 flex items-center gap-1.5">
             <span>📊</span> <span>3. 台股試算結果</span>
           </h2>
-          <button type="button" onclick="toggleSectionCollapse('twResultCard')" id="twResultCardCollapseBtn" class="text-[10px] sm:text-xs text-indigo-700 dark:text-indigo-400 hover:text-indigo-950 dark:hover:text-indigo-200 font-bold underline cursor-pointer">
-            收合 ▲
+          <button type="button" onclick="toggleSectionCollapse('twResultCard')" id="twResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
           </button>
         </div>
         
@@ -843,8 +907,8 @@
             <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-teal-600 hover:bg-teal-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-teal-400/40 transition flex items-center gap-1 cursor-pointer">
               <span>🔄 更新全組合行情</span>
             </button>
-            <button type="button" onclick="toggleSectionCollapse('usPortfolioSummary')" id="usPortfolioSummaryCollapseBtn" class="text-[10px] sm:text-xs text-teal-800 dark:text-teal-400 hover:text-teal-950 dark:hover:text-teal-300 font-bold underline cursor-pointer">
-              收合 ▲
+            <button type="button" onclick="toggleSectionCollapse('usPortfolioSummary')" id="usPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
             </button>
           </div>
         </div>
@@ -928,9 +992,6 @@
         <div class="flex justify-between items-center border-b pb-3 flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">1. 美股設定與代號查詢</h2>
-            <button type="button" onclick="toggleSectionCollapse('usCard1')" id="usCard1CollapseBtn" class="text-[10px] sm:text-xs text-teal-700 dark:text-teal-400 hover:text-teal-950 dark:hover:text-teal-200 font-bold underline cursor-pointer">
-              收合 ▲
-            </button>
           </div>
           <div class="flex items-center gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap">
             <span class="flex items-center gap-1 bg-slate-50 border border-slate-200 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
@@ -943,6 +1004,9 @@
             <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5 font-bold" value="32"></span>
             <button type="button" onclick="fetchExchangeRate()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 px-2 py-1 rounded-lg text-[10px] font-bold border border-teal-200 cursor-pointer">🔄 即時</button>
             <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5 font-bold" value="0"></span>
+            <button type="button" onclick="toggleSectionCollapse('usCard1')" id="usCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
           </div>
         </div>
 
@@ -1030,13 +1094,15 @@
         <div class="flex justify-between items-center border-b pb-2.5 flex-wrap gap-2">
           <div class="flex items-center gap-2">
             <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
-            <button type="button" onclick="toggleSectionCollapse('usCard2')" id="usCard2CollapseBtn" class="text-[10px] sm:text-xs text-teal-700 dark:text-teal-400 hover:text-teal-950 dark:hover:text-teal-200 font-bold underline cursor-pointer">
-              收合 ▲
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="addUsPlanRow()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
+              ➕ 新增補倉筆數
+            </button>
+            <button type="button" onclick="toggleSectionCollapse('usCard2')" id="usCard2CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
             </button>
           </div>
-          <button type="button" onclick="addUsPlanRow()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
-            ➕ 新增補倉筆數
-          </button>
         </div>
 
         <div id="usCard2Body" class="space-y-4">
@@ -1054,8 +1120,8 @@
           <h2 class="font-black text-xs sm:text-sm text-teal-950 dark:text-teal-400 flex items-center gap-1.5">
             <span>📊</span> <span>3. 美股試算結果</span>
           </h2>
-          <button type="button" onclick="toggleSectionCollapse('usResultCard')" id="usResultCardCollapseBtn" class="text-[10px] sm:text-xs text-teal-700 dark:text-teal-400 hover:text-teal-950 dark:hover:text-teal-200 font-bold underline cursor-pointer">
-            收合 ▲
+          <button type="button" onclick="toggleSectionCollapse('usResultCard')" id="usResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
           </button>
         </div>
         
@@ -1104,7 +1170,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.4.1';
+    const FRONTEND_VERSION = 'v0.4.2';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {
@@ -1248,6 +1314,8 @@
     // ----------------------------------------------------
     const COLLAPSE_SECTIONS = [
       'disclaimer',
+      'mainHeader',
+      'adminPanel',
       'globalPortfolio',
       'twPortfolioSummary',
       'twCard1',
@@ -1299,7 +1367,21 @@
         }
       }
       if (btn) {
-        btn.innerText = collapsed ? '展開 ▾' : '收合 ▲';
+        const textSpan = btn.querySelector('.collapse-text');
+        const iconSpan = btn.querySelector('.collapse-icon');
+        if (textSpan && iconSpan) {
+          textSpan.innerText = collapsed ? '展開' : '收合';
+          iconSpan.innerText = collapsed ? '▾' : '▲';
+        } else {
+          btn.innerText = collapsed ? '展開 ▾' : '收合 ▲';
+        }
+        if (collapsed) {
+          btn.classList.add('btn-collapsed-state');
+          btn.classList.remove('btn-expanded-state');
+        } else {
+          btn.classList.add('btn-expanded-state');
+          btn.classList.remove('btn-collapsed-state');
+        }
       }
     }
 
