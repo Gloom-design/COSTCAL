@@ -1673,8 +1673,10 @@
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-    // 💡 後端 API 網址統一設定 (含 PING 心跳檢查)
-    const API_BACKEND_URL = 'https://costcal-test.vercel.app/api/stock';
+    // 💡 後端 API 網址統一設定 (依環境自適應：GitHub Pages / 正式站連 peach，測試站連 test)
+    const API_BACKEND_URL = (location.hostname.includes('test') || location.hostname.includes('localhost') || location.hostname.includes('127.0.0.1'))
+      ? 'https://costcal-test.vercel.app/api/stock'
+      : 'https://costcal-peach.vercel.app/api/stock';
     const SUPABASE_URL = 'https://yzkgacyaoebdiwbsdmmn.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_otTXlOL9Jg7Kn3XrbZAc_A_c6yKLiOj';
     const ADMIN_EMAIL = 'ihmfeporsky@gmail.com';
