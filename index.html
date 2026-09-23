@@ -1035,28 +1035,54 @@
       <div id="globalPortfolioBody" class="space-y-2.5">
         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <!-- 全球總投入成本 -->
-          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-0.5">
-            <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">全球總投資成本</div>
-            <div id="global_totalCostTWD" class="text-sm sm:text-base font-black text-slate-950 dark:text-white tracking-tight">NT$0</div>
-            <div id="global_costSub" class="text-[9px] text-slate-700 dark:text-slate-400 font-semibold truncate">🇹🇼 NT$0 | 🇺🇸 $0</div>
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+            <div class="space-y-0.5">
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">全球總投資成本</div>
+              <div id="global_totalCostTWD" class="text-sm sm:text-base font-black text-slate-950 dark:text-white tracking-tight">NT$0</div>
+            </div>
+            <div id="global_costSub" class="space-y-0.5 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">
+              <div class="text-[9px] sm:text-[10px] text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between">
+                <span class="text-rose-600 dark:text-rose-400 font-bold">🇹🇼 台股</span>
+                <span id="global_costTwVal" class="font-bold text-slate-800 dark:text-slate-200">NT$0</span>
+              </div>
+              <div class="text-[9px] sm:text-[10px] text-slate-700 dark:text-slate-300 font-semibold flex items-center justify-between">
+                <span class="text-teal-600 dark:text-teal-400 font-bold">🇺🇸 美股</span>
+                <span id="global_costUsVal" class="font-bold text-slate-800 dark:text-slate-200">$0</span>
+              </div>
+            </div>
           </div>
           <!-- 全球總市值現值 -->
-          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-0.5">
-            <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">全球總現值市值</div>
-            <div id="global_totalValueTWD" class="text-sm sm:text-base font-black text-sky-950 dark:text-cyan-300 tracking-tight">NT$0</div>
-            <div class="text-[9px] text-slate-700 dark:text-slate-400 font-semibold">折合新台幣總現值</div>
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+            <div class="space-y-0.5">
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">全球總現值市值</div>
+              <div id="global_totalValueTWD" class="text-sm sm:text-base font-black text-sky-950 dark:text-cyan-300 tracking-tight">NT$0</div>
+            </div>
+            <div class="text-[9px] sm:text-[10px] text-slate-600 dark:text-slate-400 font-semibold pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">折合新台幣總現值</div>
           </div>
           <!-- 全球總未實現損益 -->
-          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-0.5">
-            <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">全球未實現損益</div>
-            <div id="global_totalPnlTWD" class="text-sm sm:text-base font-black text-slate-800 dark:text-slate-400 tracking-tight">NT$0</div>
-            <div id="global_totalPnlRate" class="text-[9px] font-black text-slate-700 dark:text-slate-400">報酬率: -%</div>
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+            <div class="space-y-0.5">
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">全球未實現損益</div>
+              <div id="global_totalPnlTWD" class="text-sm sm:text-base font-black text-slate-800 dark:text-slate-400 tracking-tight">NT$0</div>
+            </div>
+            <div id="global_totalPnlRate" class="text-[9px] sm:text-[10px] font-black text-slate-700 dark:text-slate-400 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">報酬率: -%</div>
           </div>
           <!-- 台美市場比重 -->
-          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-0.5">
-            <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">市場配置比重</div>
-            <div id="global_marketRatio" class="text-xs sm:text-sm font-black text-slate-950 dark:text-white">🇹🇼 50% : 🇺🇸 50%</div>
-            <div class="w-full bg-slate-200 dark:bg-slate-900 rounded-full h-1.5 overflow-hidden flex mt-1">
+          <div class="bg-slate-50 dark:bg-slate-800/70 p-2.5 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+            <div class="space-y-0.5">
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-bold">市場配置比重</div>
+            </div>
+            <div id="global_marketRatio" class="space-y-0.5 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">
+              <div class="text-[9px] sm:text-[10px] font-semibold flex items-center justify-between">
+                <span class="text-rose-600 dark:text-rose-400 font-bold">🇹🇼 台股</span>
+                <span id="global_ratioTwText" class="font-black text-rose-600 dark:text-rose-400">50%</span>
+              </div>
+              <div class="text-[9px] sm:text-[10px] font-semibold flex items-center justify-between">
+                <span class="text-teal-600 dark:text-teal-400 font-bold">🇺🇸 美股</span>
+                <span id="global_ratioUsText" class="font-black text-teal-600 dark:text-teal-400">50%</span>
+              </div>
+            </div>
+            <div class="w-full bg-slate-200 dark:bg-slate-900 rounded-full h-1.5 overflow-hidden flex mt-1.5">
               <div id="global_ratioTwBar" class="bg-rose-500 h-full transition-all duration-500" style="width: 50%;"></div>
               <div id="global_ratioUsBar" class="bg-teal-400 h-full transition-all duration-500" style="width: 50%;"></div>
             </div>
@@ -4197,8 +4223,10 @@
       const costEl = document.getElementById('global_totalCostTWD');
       if (costEl) costEl.innerText = `NT$${formatMoney(globalCostTWD)}`;
 
-      const costSubEl = document.getElementById('global_costSub');
-      if (costSubEl) costSubEl.innerText = `🇹🇼 NT$${formatMoney(twCost)} | 🇺🇸 $${formatMoney(usCostUSD)}`;
+      const costTwEl = document.getElementById('global_costTwVal');
+      if (costTwEl) costTwEl.innerText = `NT$${formatMoney(twCost)}`;
+      const costUsEl = document.getElementById('global_costUsVal');
+      if (costUsEl) costUsEl.innerText = `$${formatMoney(usCostUSD)}`;
 
       const valEl = document.getElementById('global_totalValueTWD');
       if (valEl) valEl.innerText = `NT$${formatMoney(globalValTWD)}`;
@@ -4218,8 +4246,10 @@
       const twRatio = globalCostTWD > 0 ? (twCost / globalCostTWD) * 100 : 50;
       const usRatio = globalCostTWD > 0 ? (usCostTWD / globalCostTWD) * 100 : 50;
 
-      const ratioTextEl = document.getElementById('global_marketRatio');
-      if (ratioTextEl) ratioTextEl.innerText = `🇹🇼 ${twRatio.toFixed(0)}% : 🇺🇸 ${usRatio.toFixed(0)}%`;
+      const ratioTwEl = document.getElementById('global_ratioTwText');
+      if (ratioTwEl) ratioTwEl.innerText = `${twRatio.toFixed(0)}%`;
+      const ratioUsEl = document.getElementById('global_ratioUsText');
+      if (ratioUsEl) ratioUsEl.innerText = `${usRatio.toFixed(0)}%`;
 
       const twBar = document.getElementById('global_ratioTwBar');
       const usBar = document.getElementById('global_ratioUsBar');
