@@ -7,13 +7,12 @@
   <title>台美股多組合攤平與損益計算器</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <script data-config='{"config":{"properties":{}}}' bis-use="true"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class'
     };
   </script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style id="themeDynamicStyles">
     :root {
       --theme-primary: #4f46e5;
@@ -240,6 +239,93 @@
     html.dark #tabTwBtn:not(.bg-white),
     html.dark #tabUsBtn:not(.bg-white) {
       color: #94a3b8 !important;
+    }
+    html:not(.dark) #tabTwBtn:not(.bg-white),
+    html:not(.dark) #tabUsBtn:not(.bg-white) {
+      color: #334155 !important;
+      font-weight: 700 !important;
+    }
+    html:not(.dark) #mainContainer > div.grid.grid-cols-2 {
+      background-color: #e2e8f0 !important;
+      border-color: #cbd5e1 !important;
+    }
+    /* ══════════════════════════════════════════════════════════════
+       ☀️ 白色風 (Light Mode) 頂部工具按鈕與標籤高對比度清晰保障
+       ══════════════════════════════════════════════════════════════ */
+    html:not(.dark) #mainHeaderBody button#realtimeMonitorBtn,
+    html:not(.dark) #mainHeaderBody button#themeMenuBtn,
+    html:not(.dark) #mainHeaderBody button#modeToggleBtn,
+    html:not(.dark) #mainHeaderBody button#logoutBtn,
+    html:not(.dark) #mainHeaderBody #userInfo {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) #mainHeaderBody button#switchAccountBtn {
+      background-color: #eef2ff !important;
+      color: #3730a3 !important;
+      border-color: #c7d2fe !important;
+    }
+    html:not(.dark) #mainHeaderBody button#deleteAccountBtn {
+      background-color: #fff1f2 !important;
+      color: #be123c !important;
+      border-color: #fecdd3 !important;
+    }
+    html:not(.dark) #global_exchangeRateBadge {
+      background-color: #f1f5f9 !important;
+      color: #0f172a !important;
+      border-color: #cbd5e1 !important;
+    }
+    /* ══════════════════════════════════════════════════════════════
+       👑 管理者專屬後台面板：全模式高對比文字清晰保護
+       ══════════════════════════════════════════════════════════════ */
+    #adminPanel {
+      background-color: #0f172a !important;
+      color: #f8fafc !important;
+      border-color: #334155 !important;
+    }
+    #adminPanel .text-amber-400 {
+      color: #fbbf24 !important;
+    }
+    #adminPanel .text-cyan-300 {
+      color: #67e8f9 !important;
+    }
+    #adminPanel .text-indigo-300 {
+      color: #a5b4fc !important;
+    }
+    #adminPanel .text-emerald-300 {
+      color: #6ee7b7 !important;
+    }
+    #adminPanel .text-slate-300,
+    #adminPanel .text-slate-400 {
+      color: #cbd5e1 !important;
+    }
+    /* ══════════════════════════════════════════════════════════════
+       🌙 深色風 (Dark Mode) 頂部工具按鈕與標籤風格適配
+       ══════════════════════════════════════════════════════════════ */
+    html.dark #mainHeaderBody button#realtimeMonitorBtn,
+    html.dark #mainHeaderBody button#themeMenuBtn,
+    html.dark #mainHeaderBody button#modeToggleBtn,
+    html.dark #mainHeaderBody button#logoutBtn,
+    html.dark #mainHeaderBody #userInfo {
+      background-color: #1e293b !important;
+      color: #e2e8f0 !important;
+      border-color: #334155 !important;
+    }
+    html.dark #mainHeaderBody button#switchAccountBtn {
+      background-color: rgba(30, 27, 75, 0.6) !important;
+      color: #a5b4fc !important;
+      border-color: rgba(55, 48, 163, 0.6) !important;
+    }
+    html.dark #mainHeaderBody button#deleteAccountBtn {
+      background-color: rgba(76, 5, 25, 0.6) !important;
+      color: #fda4af !important;
+      border-color: rgba(159, 18, 57, 0.6) !important;
+    }
+    html.dark #global_exchangeRateBadge {
+      background-color: #1e293b !important;
+      color: #cbd5e1 !important;
+      border-color: #334155 !important;
     }
     /* ══════════════════════════════════════════════════════════════
        🎯 全站所有卡片與區塊水平內距 (Padding) 絕對一致，確保右上角收合按鈕 100% 垂直對齊
@@ -535,7 +621,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.5.0</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.5.1</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1259,7 +1345,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.5.0';
+    const FRONTEND_VERSION = 'v0.5.1';
     
     // 🎨 主題與配色系統設定
     const THEME_ACCENTS = {

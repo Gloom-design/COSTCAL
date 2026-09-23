@@ -6,7 +6,7 @@
   "background_color": "#f8fafc",
   "theme_color": "#4f46e5",
   "description": "即時連線、試算台美股分批補倉與攤平損益的專業工具",
-  "version": "v0.5.0",
+  "version": "v0.5.1",
   "icons": [
     {
       "src": "icon-192.png",
