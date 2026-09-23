@@ -2,7 +2,7 @@ name: AI Auto-Update Code
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, staging ]
 
 jobs:
   update-code:
@@ -111,4 +111,4 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@[github.com/$](https://github.com/$){{ github.repository }}.git
           git add index.html
           git commit -m "🤖 AI Auto-update completed" || exit 0
-          git push origin main
+          git push origin ${{ github.ref_name }}
