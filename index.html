@@ -1145,33 +1145,50 @@
           <!-- KPI 數據核心面板 -->
           <div class="grid grid-cols-2 gap-2.5">
             <!-- 總投資成本 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本</div>
-              <div id="tw_summaryTotalCost" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight">$0</div>
-              <div id="tw_summaryCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate">現有投入資金</div>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本 (NTD / USD)</div>
+                <div class="space-y-0.5">
+                  <div id="tw_summaryTotalCost" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">NTD$0</div>
+                  <div id="tw_summaryTotalCostUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="tw_summaryCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">現有庫存成本 (共 0 組合)</div>
             </div>
 
             <!-- 總未實現損益 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
-              <div id="tw_summaryTotalPnl" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight">$0</div>
-              <div id="tw_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400">總損益率: -%</div>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
+                <div class="space-y-0.5">
+                  <div id="tw_summaryTotalPnl" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight leading-tight">NTD$0</div>
+                  <div id="tw_summaryTotalPnlUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="tw_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">總損益率: -%</div>
             </div>
 
             <!-- 總現值 (總市值) -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
-              <div id="tw_summaryTotalValue" class="text-sm sm:text-base font-black text-sky-950 dark:text-cyan-300">$0</div>
-              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">以現價/前收計算</div>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
+                <div class="space-y-0.5">
+                  <div id="tw_summaryTotalValue" class="text-base sm:text-xl font-black text-sky-950 dark:text-cyan-300 tracking-tight leading-tight">NTD$0</div>
+                  <div id="tw_summaryTotalValueUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">以現價/前收計算</div>
             </div>
 
             <!-- 損益分佈概況 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
-              <div id="tw_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap">
-                <span>0 檔</span>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
+                <div id="tw_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap min-h-[1.5rem] items-center">
+                  <span>0 檔</span>
+                </div>
               </div>
-              <div id="tw_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate">補倉預計加碼: $0</div>
+              <div id="tw_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">補倉預計加碼: NTD$0 (USD$0)</div>
             </div>
           </div>
 
@@ -1396,14 +1413,14 @@
           </div>
           <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-200 dark:border-slate-800 pb-2.5">
             <span class="text-slate-800 dark:text-slate-300 font-semibold">綜合調整後平均成本：</span>
-            <strong id="tw_resAvgPrice" class="text-slate-950 dark:text-yellow-300 text-base sm:text-2xl font-black">$0.00</strong>
+            <strong id="tw_resAvgPrice" class="text-slate-950 dark:text-yellow-300 text-base sm:text-2xl font-black">NTD$0.00</strong>
           </div>
 
           <div id="twBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-200 dark:border-slate-800 pb-3"></div>
 
           <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-800 dark:text-slate-300 font-medium">
-            <div>原成本總額: <span id="tw_resOriginalCost" class="font-extrabold text-slate-950 dark:text-slate-200">$0</span></div>
-            <div>本次補倉總計: <span id="tw_resAddCost" class="font-extrabold text-slate-950 dark:text-white">$0</span></div>
+            <div>原成本總額: <span id="tw_resOriginalCost" class="font-extrabold text-slate-950 dark:text-slate-200">NTD$0</span></div>
+            <div>本次補倉總計: <span id="tw_resAddCost" class="font-extrabold text-slate-950 dark:text-white">NTD$0</span></div>
           </div>
           <div class="pt-2.5">
             <button type="button" onclick="manualSaveData()" class="w-full bg-gradient-to-r from-amber-600 via-amber-500 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer border border-amber-400/50 flex items-center justify-center gap-1.5 active:scale-[0.99]">
@@ -1441,33 +1458,50 @@
           <!-- KPI 數據核心面板 -->
           <div class="grid grid-cols-2 gap-2.5">
             <!-- 總投資成本 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本 (USD / TWD)</div>
-              <div id="us_summaryTotalCostUSD" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight">$0</div>
-              <div id="us_summaryCostTWD" class="text-[10px] font-bold text-sky-950 dark:text-cyan-300">NT$0</div>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本 (NTD / USD)</div>
+                <div class="space-y-0.5">
+                  <div id="us_summaryTotalCostTWD" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">NTD$0</div>
+                  <div id="us_summaryTotalCostUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="us_summaryCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">現有庫存成本 (共 0 組合)</div>
             </div>
 
             <!-- 總未實現損益 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
-              <div id="us_summaryTotalPnlUSD" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight">$0</div>
-              <div id="us_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400">總損益率: -%</div>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
+                <div class="space-y-0.5">
+                  <div id="us_summaryTotalPnlTWD" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight leading-tight">NTD$0</div>
+                  <div id="us_summaryTotalPnlUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="us_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">總損益率: -%</div>
             </div>
 
             <!-- 總現值 (總市值) -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
-              <div id="us_summaryTotalValueUSD" class="text-sm sm:text-base font-black text-sky-950 dark:text-cyan-300">$0</div>
-              <div id="us_summaryTotalValueTWD" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">折合 NT$0</div>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
+                <div class="space-y-0.5">
+                  <div id="us_summaryTotalValueTWD" class="text-base sm:text-xl font-black text-sky-950 dark:text-cyan-300 tracking-tight leading-tight">NTD$0</div>
+                  <div id="us_summaryTotalValueUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">折合台幣與美元現值</div>
             </div>
 
             <!-- 損益分佈概況 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 space-y-1">
-              <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
-              <div id="us_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap">
-                <span>0 檔</span>
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
+                <div id="us_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap min-h-[1.5rem] items-center">
+                  <span>0 檔</span>
+                </div>
               </div>
-              <div id="us_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate">補倉預計投入: $0</div>
+              <div id="us_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">補倉預計投入: NTD$0 (USD$0)</div>
             </div>
           </div>
 
@@ -1681,24 +1715,23 @@
             <span class="text-slate-800 dark:text-slate-300 font-semibold">原始股數 /分批補倉股數 / 總股數：</span>
             <span><strong id="us_resN1" class="text-slate-900 dark:text-slate-300 font-bold">0.0</strong> / <strong id="us_resN2" class="text-slate-950 dark:text-white font-extrabold">0.0</strong> / <strong id="us_resTotalN" class="text-teal-950 dark:text-teal-300 font-black">0.0 股</strong></span>
           </div>
-          <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5">
-            <span class="text-slate-800 dark:text-slate-300 font-semibold">綜合調整後平均成本：</span>
-            <strong id="us_resAvgPrice" class="text-slate-950 dark:text-yellow-300 text-base sm:text-2xl font-black">$0.00</strong>
-          </div>
           <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-200 dark:border-slate-800 pb-2.5">
-            <span class="text-slate-800 dark:text-slate-300 font-semibold">綜合均價(台幣)：</span>
-            <strong id="us_resAvgPriceTWD" class="text-sky-950 dark:text-cyan-300 text-sm sm:text-base font-black">NT$0.00</strong>
+            <span class="text-slate-800 dark:text-slate-300 font-semibold">綜合調整後平均成本：</span>
+            <div class="text-right">
+              <div id="us_resAvgPriceTWD" class="text-sky-950 dark:text-cyan-300 text-sm sm:text-base font-black">NTD$0.00</div>
+              <div id="us_resAvgPrice" class="text-slate-950 dark:text-yellow-300 text-xs sm:text-sm font-extrabold">USD$0.00</div>
+            </div>
           </div>
 
           <div id="usBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-200 dark:border-slate-800 pb-3"></div>
 
           <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs pt-1 text-slate-800 dark:text-slate-300 font-medium">
-            <div>原成本總額(美元): <span id="us_resOriginalCostUSD" class="font-extrabold text-slate-950 dark:text-slate-200">$0</span></div>
-            <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="font-extrabold text-sky-950 dark:text-cyan-300">NT$0</span></div>
+            <div>原成本總額(台幣): <span id="us_resOriginalCostTWD" class="font-extrabold text-sky-950 dark:text-cyan-300">NTD$0</span></div>
+            <div>原成本總額(美元): <span id="us_resOriginalCostUSD" class="font-extrabold text-slate-950 dark:text-slate-200">USD$0</span></div>
           </div>
           <div class="grid grid-cols-2 gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-medium">
-            <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="font-extrabold text-slate-950 dark:text-white">$0</span></div>
-            <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="font-extrabold text-amber-900 dark:text-amber-300">NT$0</span></div>
+            <div>本次補倉總計(台幣): <span id="us_resAddCostTWD" class="font-extrabold text-amber-900 dark:text-amber-300">NTD$0</span></div>
+            <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="font-extrabold text-slate-950 dark:text-white">USD$0</span></div>
           </div>
           <div class="pt-2.5">
             <button type="button" onclick="manualSaveData()" class="w-full bg-gradient-to-r from-amber-600 via-amber-500 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold py-3 rounded-xl text-xs sm:text-sm shadow-md hover:shadow-lg transition cursor-pointer border border-amber-400/50 flex items-center justify-center gap-1.5 active:scale-[0.99]">
@@ -3482,19 +3515,19 @@
       pnlEl.querySelector('span:first-child').innerText = displayPnlPct !== null ? `${displayPnlPct > 0 ? '+' : ''}${displayPnlPct.toFixed(2)}%` : '-%';
       if (pnlAmt !== null) {
         pnlAmtEl.className = `text-xs font-bold ${getPnlColor('tw', pnlAmt)}`;
-        pnlAmtEl.innerText = `(${pnlAmt >= 0 ? '+' : ''}$${formatMoney(pnlAmt)})`;
+        pnlAmtEl.innerText = `(${pnlAmt >= 0 ? '+' : ''}NTD$${formatMoney(pnlAmt)})`;
       } else pnlAmtEl.innerText = '';
 
       if (targetPnlAmt !== null && targetPnlPct !== null) {
         targetPnlEl.className = `font-bold text-xs sm:text-base ${getPnlColor('tw', targetPnlAmt)}`;
-        targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlAmt >= 0 ? '+' : ''}$${formatMoney(targetPnlAmt)})`;
+        targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlAmt >= 0 ? '+' : ''}NTD$${formatMoney(targetPnlAmt)})`;
       } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-700 dark:text-slate-400"; targetPnlEl.innerText = '-%'; }
 
       const batchContainer = document.getElementById('twBatchResultsContainer'); batchContainer.innerHTML = '';
       if (n1 <= 0 || p1 <= 0) {
         document.getElementById('tw_resN1').innerText = '0.0'; document.getElementById('tw_resN2').innerText = '0.0';
-        document.getElementById('tw_resTotalN').innerText = '0.0 股'; document.getElementById('tw_resAvgPrice').innerText = '$0.00';
-        document.getElementById('tw_resOriginalCost').innerText = '$0'; document.getElementById('tw_resAddCost').innerText = '$0';
+        document.getElementById('tw_resTotalN').innerText = '0.0 股'; document.getElementById('tw_resAvgPrice').innerText = 'NTD$0.00';
+        document.getElementById('tw_resOriginalCost').innerText = 'NTD$0'; document.getElementById('tw_resAddCost').innerText = 'NTD$0';
         calculateTwPortfolioSummary();
         return;
       }
@@ -3513,18 +3546,18 @@
             const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
 
             document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-            document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `NTD$${formatPrice(finalAvgPrice)}`;
+            document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
 
             const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
             batchDiv.innerHTML = `
               <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
               <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-                <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(totalAddCost)}</span></div>
-                <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(totalCost)}</span></div>
+                <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalAddCost)}</span></div>
+                <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalCost)}</span></div>
                 <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
                 <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
-                <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(finalAvgPrice)}</span></div>
+                <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(finalAvgPrice)}</span></div>
                 <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
               </div>`;
             batchContainer.appendChild(batchDiv);
@@ -3549,11 +3582,11 @@
           batchDiv.innerHTML = `
             <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
             <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-              <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(batchCost)}</span></div>
-              <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(cumulativeCost)}</span></div>
+              <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(batchCost)}</span></div>
+              <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(cumulativeCost)}</span></div>
               <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
               <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
-              <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(batchAvgPrice)}</span></div>
+              <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(batchAvgPrice)}</span></div>
               <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
             </div>`;
           batchContainer.appendChild(batchDiv);
@@ -3563,8 +3596,8 @@
       const totalShares = n1 + totalAddShares; const totalCost = totalOriginalCost + totalAddCost;
       finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
       document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-      document.getElementById('tw_resOriginalCost').innerText = `$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `$${formatMoney(totalAddCost)}`;
+      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `NTD$${formatPrice(finalAvgPrice)}`;
+      document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
 
       // 🚀 補倉加碼後合併達標預期獲利試算
       const twPostPlanPnlEl = document.getElementById('tw_targetPostPlanPnlDisplay');
@@ -3575,8 +3608,8 @@
             const postPlanTargetAmt = (totalShares * targetPrice) - totalCost;
             const postPlanTargetPct = totalCost > 0 ? (postPlanTargetAmt / totalCost) * 100 : 0;
             twPostPlanPnlEl.className = `font-extrabold text-xs sm:text-sm ${getPnlColor('tw', postPlanTargetAmt)}`;
-            twPostPlanPnlEl.innerText = `${postPlanTargetPct > 0 ? '+' : ''}${postPlanTargetPct.toFixed(2)}% (${postPlanTargetAmt >= 0 ? '+' : ''}$${formatMoney(postPlanTargetAmt)})`;
-            if (twPostPlanSubEl) twPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 $${formatPrice(finalAvgPrice)})`;
+            twPostPlanPnlEl.innerText = `${postPlanTargetPct > 0 ? '+' : ''}${postPlanTargetPct.toFixed(2)}% (${postPlanTargetAmt >= 0 ? '+' : ''}NTD$${formatMoney(postPlanTargetAmt)})`;
+            if (twPostPlanSubEl) twPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 NTD$${formatPrice(finalAvgPrice)})`;
           } else {
             twPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-400";
             twPostPlanPnlEl.innerText = "同現有持股";
@@ -3617,7 +3650,7 @@
         if (pnlAmtUSD !== null) {
           const pnlAmtTWD = pnlAmtUSD * exchangeRate;
           pnlAmtEl.className = `text-xs font-bold ${getPnlColor('us', pnlAmtUSD)} ml-1`;
-          pnlAmtEl.innerText = `(${pnlAmtUSD >= 0 ? '+' : ''}$${formatMoney(pnlAmtUSD)} / NT$${formatMoney(pnlAmtTWD)})`;
+          pnlAmtEl.innerText = `(${pnlAmtUSD >= 0 ? '+' : ''}NTD$${formatMoney(pnlAmtTWD)} / USD$${formatMoney(pnlAmtUSD)})`;
         } else pnlAmtEl.innerText = '';
       }
 
@@ -3625,17 +3658,17 @@
         if (targetPnlUSD !== null && targetPnlPct !== null) {
           const targetPnlTWD = targetPnlUSD * exchangeRate;
           targetPnlEl.className = `font-bold text-xs sm:text-base ${getPnlColor('us', targetPnlUSD)}`;
-          targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlUSD >= 0 ? '+' : ''}$${formatMoney(targetPnlUSD)} / NT$${formatMoney(targetPnlTWD)})`;
+          targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlUSD >= 0 ? '+' : ''}NTD$${formatMoney(targetPnlTWD)} / USD$${formatMoney(targetPnlUSD)})`;
         } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-700 dark:text-slate-400"; targetPnlEl.innerText = '-%'; }
       }
 
       const batchContainer = document.getElementById('usBatchResultsContainer'); batchContainer.innerHTML = '';
       if (n1 <= 0 || p1 <= 0) {
         document.getElementById('us_resN1').innerText = '0.0'; document.getElementById('us_resN2').innerText = '0.0';
-        document.getElementById('us_resTotalN').innerText = '0.0 股'; document.getElementById('us_resAvgPrice').innerText = '$0.00';
-        document.getElementById('us_resAvgPriceTWD').innerText = 'NT$0.00'; document.getElementById('us_resOriginalCostUSD').innerText = '$0';
-        document.getElementById('us_resOriginalCostTWD').innerText = 'NT$0'; document.getElementById('us_resAddCostUSD').innerText = '$0';
-        document.getElementById('us_resAddCostTWD').innerText = 'NT$0';
+        document.getElementById('us_resTotalN').innerText = '0.0 股'; document.getElementById('us_resAvgPriceTWD').innerText = 'NTD$0.00';
+        document.getElementById('us_resAvgPrice').innerText = 'USD$0.00'; document.getElementById('us_resOriginalCostTWD').innerText = 'NTD$0';
+        document.getElementById('us_resOriginalCostUSD').innerText = 'USD$0'; document.getElementById('us_resAddCostTWD').innerText = 'NTD$0';
+        document.getElementById('us_resAddCostUSD').innerText = 'USD$0';
         calculateUsPortfolioSummary();
         return;
       }
@@ -3651,23 +3684,23 @@
           const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
 
           document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-          document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`; document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
-          document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`; document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
-          document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
+          document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`; document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
+          document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`; document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+          document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
 
           const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
           const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
           batchDiv.innerHTML = `
             <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
             <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-              <div>1. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(totalAddCostUSD)}</span></div>
-              <div>2. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NT$${formatMoney(totalAddCostUSD * exchangeRate)}</span></div>
-              <div>3. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(totalCostUSD)}</span></div>
-              <div>4. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NT$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
+              <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(totalAddCostUSD * exchangeRate)}</span></div>
+              <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalAddCostUSD)}</span></div>
+              <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
+              <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalCostUSD)}</span></div>
               <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
               <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
-              <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(finalAvgPrice)}</span></div>
+              <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(finalAvgPrice * exchangeRate)} (USD$${formatPrice(finalAvgPrice)})</span></div>
               <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
             </div>`;
           batchContainer.appendChild(batchDiv);
@@ -3690,13 +3723,13 @@
           batchDiv.innerHTML = `
             <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
             <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-              <div>1. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(batchCostUSD)}</span></div>
-              <div>2. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NT$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
-              <div>3. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">$${formatMoney(cumulativeCostUSD)}</span></div>
-              <div>4. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NT$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
+              <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
+              <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(batchCostUSD)}</span></div>
+              <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
+              <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(cumulativeCostUSD)}</span></div>
               <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
               <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
-              <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(batchAvgPrice)}</span></div>
+              <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(batchAvgPrice * exchangeRate)} (USD$${formatPrice(batchAvgPrice)})</span></div>
               <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
             </div>`;
           batchContainer.appendChild(batchDiv);
@@ -3706,10 +3739,10 @@
       const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
       finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
       document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-      document.getElementById('us_resAvgPriceTWD').innerText = `NT$${formatPrice(finalAvgPrice * exchangeRate)}`; document.getElementById('us_resOriginalCostUSD').innerText = `$${formatMoney(origUSD)}`;
-      document.getElementById('us_resOriginalCostTWD').innerText = `NT$${formatMoney(origUSD * exchangeRate)}`; document.getElementById('us_resAddCostUSD').innerText = `$${formatMoney(totalAddCostUSD + fee)}`;
-      document.getElementById('us_resAddCostTWD').innerText = `NT$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
+      document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`; document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
+      document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`; document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+      document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
 
       // 🚀 美股補倉加碼後合併達標預期獲利試算
       const usPostPlanPnlEl = document.getElementById('us_targetPostPlanPnlDisplay');
@@ -3721,8 +3754,8 @@
             const postPlanTargetPctUSD = totalCostUSD > 0 ? (postPlanTargetAmtUSD / totalCostUSD) * 100 : 0;
             const postPlanTargetAmtTWD = postPlanTargetAmtUSD * exchangeRate;
             usPostPlanPnlEl.className = `font-extrabold text-xs sm:text-sm ${getPnlColor('us', postPlanTargetAmtUSD)}`;
-            usPostPlanPnlEl.innerText = `${postPlanTargetPctUSD > 0 ? '+' : ''}${postPlanTargetPctUSD.toFixed(2)}% (${postPlanTargetAmtUSD >= 0 ? '+' : ''}$${formatMoney(postPlanTargetAmtUSD)} / NT$${formatMoney(postPlanTargetAmtTWD)})`;
-            if (usPostPlanSubEl) usPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 $${formatPrice(finalAvgPrice)})`;
+            usPostPlanPnlEl.innerText = `${postPlanTargetPctUSD > 0 ? '+' : ''}${postPlanTargetPctUSD.toFixed(2)}% (${postPlanTargetAmtUSD >= 0 ? '+' : ''}NTD$${formatMoney(postPlanTargetAmtTWD)} / USD$${formatMoney(postPlanTargetAmtUSD)})`;
+            if (usPostPlanSubEl) usPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 NTD$${formatPrice(finalAvgPrice * exchangeRate)} / USD$${formatPrice(finalAvgPrice)})`;
           } else {
             usPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-400";
             usPostPlanPnlEl.innerText = "同現有持股";
@@ -3861,23 +3894,37 @@
       });
 
       const totalPnlRate = (costWithPrice > 0) ? (totalPnl / costWithPrice) * 100 : null;
+      const exchangeRate = parseFloat(document.getElementById('us_exchangeRate')?.value) || 32;
+      const totalCostUSD = exchangeRate > 0 ? totalCost / exchangeRate : 0;
+      const totalValueUSD = exchangeRate > 0 ? totalValue / exchangeRate : 0;
+      const totalPnlUSD = exchangeRate > 0 ? totalPnl / exchangeRate : 0;
+      const totalPlanAddCostUSD = exchangeRate > 0 ? totalPlanAddCost / exchangeRate : 0;
 
       const badgeEl = document.getElementById('tw_summaryStockCountBadge');
       if (badgeEl) badgeEl.innerText = `共 ${activeHoldingsCount} 檔持股`;
 
       const costEl = document.getElementById('tw_summaryTotalCost');
-      if (costEl) costEl.innerText = `$${formatMoney(totalCost)}`;
+      if (costEl) costEl.innerText = `NTD$${formatMoney(totalCost)}`;
+      const costUSDEl = document.getElementById('tw_summaryTotalCostUSD');
+      if (costUSDEl) costUSDEl.innerText = `USD$${formatMoney(totalCostUSD)}`;
 
       const costSubEl = document.getElementById('tw_summaryCostSub');
       if (costSubEl) costSubEl.innerText = `現有庫存成本 (共 ${keys.length} 組合)`;
 
       const valEl = document.getElementById('tw_summaryTotalValue');
-      if (valEl) valEl.innerText = `$${formatMoney(totalValue)}`;
+      if (valEl) valEl.innerText = `NTD$${formatMoney(totalValue)}`;
+      const valUSDEl = document.getElementById('tw_summaryTotalValueUSD');
+      if (valUSDEl) valUSDEl.innerText = `USD$${formatMoney(totalValueUSD)}`;
 
       const pnlEl = document.getElementById('tw_summaryTotalPnl');
       if (pnlEl) {
-        pnlEl.className = `text-base sm:text-xl font-bold ${getPnlColor('tw', totalPnl)} tracking-tight`;
-        pnlEl.innerText = totalPnl !== 0 ? `${totalPnl > 0 ? '+' : ''}$${formatMoney(totalPnl)}` : '$0';
+        pnlEl.className = `text-base sm:text-xl font-black ${getPnlColor('tw', totalPnl)} tracking-tight leading-tight`;
+        pnlEl.innerText = totalPnl !== 0 ? `${totalPnl > 0 ? '+' : ''}NTD$${formatMoney(totalPnl)}` : 'NTD$0';
+      }
+      const pnlUSDEl = document.getElementById('tw_summaryTotalPnlUSD');
+      if (pnlUSDEl) {
+        pnlUSDEl.className = `text-[10px] sm:text-[11px] font-bold ${getPnlColor('tw', totalPnlUSD)} leading-tight`;
+        pnlUSDEl.innerText = totalPnlUSD !== 0 ? `${totalPnlUSD > 0 ? '+' : ''}USD$${formatMoney(totalPnlUSD)}` : 'USD$0';
       }
 
       const pnlRateEl = document.getElementById('tw_summaryPnlRate');
@@ -3899,7 +3946,7 @@
 
       const planAddSubEl = document.getElementById('tw_summaryPlanAddCostSub');
       if (planAddSubEl) {
-        planAddSubEl.innerText = `補倉預計加碼: $${formatMoney(totalPlanAddCost)}`;
+        planAddSubEl.innerText = `補倉預計加碼: NTD$${formatMoney(totalPlanAddCost)} (USD$${formatMoney(totalPlanAddCostUSD)})`;
       }
 
       const detailContainer = document.getElementById('twPortfolioDetailList');
@@ -3917,14 +3964,14 @@
                 </div>
                 <div class="text-[10px] text-slate-700 dark:text-slate-400 flex items-center gap-2 flex-wrap font-medium">
                   <span>持股: <strong class="text-slate-950 dark:text-slate-100 font-bold">${formatMoney(it.n1)}</strong> 股</span>
-                  <span>均價: <strong class="text-slate-950 dark:text-slate-100 font-bold">$${formatPrice(it.p1)}</strong></span>
-                  <span>市價: <strong class="${it.cp > 0 ? 'text-sky-950 dark:text-cyan-300 font-black' : 'text-slate-500 dark:text-slate-400'}">${it.cp > 0 ? '$' + formatPrice(it.cp) : '未查詢'}</strong></span>
+                  <span>均價: <strong class="text-slate-950 dark:text-slate-100 font-bold">NTD$${formatPrice(it.p1)}</strong></span>
+                  <span>市價: <strong class="${it.cp > 0 ? 'text-sky-950 dark:text-cyan-300 font-black' : 'text-slate-500 dark:text-slate-400'}">${it.cp > 0 ? 'NTD$' + formatPrice(it.cp) : '未查詢'}</strong></span>
                 </div>
               </div>
               <div class="text-right space-y-0.5 flex-shrink-0">
-                <div class="text-[10px] text-slate-900 dark:text-slate-300 font-extrabold">成本: $${formatMoney(it.cost)}</div>
+                <div class="text-[10px] text-slate-900 dark:text-slate-300 font-extrabold">成本: NTD$${formatMoney(it.cost)}</div>
                 <div class="text-[11px] font-black ${getPnlColor('tw', it.pnl)}">
-                  ${it.pnl !== null ? `${it.pnl >= 0 ? '+' : ''}$${formatMoney(it.pnl)} (${it.pnlPct >= 0 ? '+' : ''}${it.pnlPct.toFixed(2)}%)` : '<span class="text-slate-600 dark:text-slate-400 font-medium">無現價</span>'}
+                  ${it.pnl !== null ? `${it.pnl >= 0 ? '+' : ''}NTD$${formatMoney(it.pnl)} (${it.pnlPct >= 0 ? '+' : ''}${it.pnlPct.toFixed(2)}%)` : '<span class="text-slate-600 dark:text-slate-400 font-medium">無現價</span>'}
                 </div>
               </div>
             </div>
@@ -4039,32 +4086,39 @@
       const totalCostTWD = totalCostUSD * exchangeRate;
       const totalValueTWD = totalValueUSD * exchangeRate;
       const totalPnlTWD = totalPnlUSD * exchangeRate;
+      const totalPlanAddCostTWD = totalPlanAddCostUSD * exchangeRate;
 
       const badgeEl = document.getElementById('us_summaryStockCountBadge');
       if (badgeEl) badgeEl.innerText = `共 ${activeHoldingsCount} 檔持股`;
 
-      const costEl = document.getElementById('us_summaryTotalCostUSD');
-      if (costEl) costEl.innerText = `$${formatMoney(totalCostUSD)}`;
+      const costTwdEl = document.getElementById('us_summaryTotalCostTWD');
+      if (costTwdEl) costTwdEl.innerText = `NTD$${formatMoney(totalCostTWD)}`;
+      const costUsdEl = document.getElementById('us_summaryTotalCostUSD');
+      if (costUsdEl) costUsdEl.innerText = `USD$${formatMoney(totalCostUSD)}`;
 
-      const costTwdEl = document.getElementById('us_summaryCostTWD');
-      if (costTwdEl) costTwdEl.innerText = `折合 NT$${formatMoney(totalCostTWD)}`;
-
-      const valEl = document.getElementById('us_summaryTotalValueUSD');
-      if (valEl) valEl.innerText = `$${formatMoney(totalValueUSD)}`;
+      const costSubEl = document.getElementById('us_summaryCostSub');
+      if (costSubEl) costSubEl.innerText = `現有庫存成本 (共 ${keys.length} 組合)`;
 
       const valTwdEl = document.getElementById('us_summaryTotalValueTWD');
-      if (valTwdEl) valTwdEl.innerText = `折合 NT$${formatMoney(totalValueTWD)}`;
+      if (valTwdEl) valTwdEl.innerText = `NTD$${formatMoney(totalValueTWD)}`;
+      const valUsdEl = document.getElementById('us_summaryTotalValueUSD');
+      if (valUsdEl) valUsdEl.innerText = `USD$${formatMoney(totalValueUSD)}`;
 
-      const pnlEl = document.getElementById('us_summaryTotalPnlUSD');
-      if (pnlEl) {
-        pnlEl.className = `text-base sm:text-xl font-bold ${getPnlColor('us', totalPnlUSD)} tracking-tight`;
-        pnlEl.innerText = totalPnlUSD !== 0 ? `${totalPnlUSD > 0 ? '+' : ''}$${formatMoney(totalPnlUSD)}` : '$0';
+      const pnlTwdEl = document.getElementById('us_summaryTotalPnlTWD');
+      if (pnlTwdEl) {
+        pnlTwdEl.className = `text-base sm:text-xl font-black ${getPnlColor('us', totalPnlTWD)} tracking-tight leading-tight`;
+        pnlTwdEl.innerText = totalPnlTWD !== 0 ? `${totalPnlTWD > 0 ? '+' : ''}NTD$${formatMoney(totalPnlTWD)}` : 'NTD$0';
+      }
+      const pnlUsdEl = document.getElementById('us_summaryTotalPnlUSD');
+      if (pnlUsdEl) {
+        pnlUsdEl.className = `text-[10px] sm:text-[11px] font-bold ${getPnlColor('us', totalPnlUSD)} leading-tight`;
+        pnlUsdEl.innerText = totalPnlUSD !== 0 ? `${totalPnlUSD > 0 ? '+' : ''}USD$${formatMoney(totalPnlUSD)}` : 'USD$0';
       }
 
       const pnlRateEl = document.getElementById('us_summaryPnlRate');
       if (pnlRateEl) {
         pnlRateEl.className = `text-[10px] font-bold ${getPnlColor('us', totalPnlUSD)}`;
-        pnlRateEl.innerText = totalPnlRate !== null ? `總損益率: ${totalPnlRate > 0 ? '+' : ''}${totalPnlRate.toFixed(2)}% (${totalPnlTWD >= 0 ? '+' : ''}NT$${formatMoney(totalPnlTWD)})` : '總損益率: -%';
+        pnlRateEl.innerText = totalPnlRate !== null ? `總損益率: ${totalPnlRate > 0 ? '+' : ''}${totalPnlRate.toFixed(2)}%` : '總損益率: -%';
       }
 
       const distEl = document.getElementById('us_summaryDist');
@@ -4080,7 +4134,7 @@
 
       const planAddSubEl = document.getElementById('us_summaryPlanAddCostSub');
       if (planAddSubEl) {
-        planAddSubEl.innerText = `補倉預計投入: $${formatMoney(totalPlanAddCostUSD)} (NT$${formatMoney(totalPlanAddCostUSD * exchangeRate)})`;
+        planAddSubEl.innerText = `補倉預計投入: NTD$${formatMoney(totalPlanAddCostTWD)} (USD$${formatMoney(totalPlanAddCostUSD)})`;
       }
 
       const detailContainer = document.getElementById('usPortfolioDetailList');
@@ -4098,14 +4152,14 @@
                 </div>
                 <div class="text-[10px] text-slate-700 dark:text-slate-400 flex items-center gap-2 flex-wrap font-medium">
                   <span>持股: <strong class="text-slate-950 dark:text-slate-100 font-bold">${formatMoney(it.n1)}</strong> 股</span>
-                  <span>均價: <strong class="text-slate-950 dark:text-slate-100 font-bold">$${formatPrice(it.p1)}</strong></span>
-                  <span>市價: <strong class="${it.cp > 0 ? 'text-teal-950 dark:text-teal-300 font-black' : 'text-slate-500 dark:text-slate-400'}">${it.cp > 0 ? '$' + formatPrice(it.cp) : '未查詢'}</strong></span>
+                  <span>均價: <strong class="text-slate-950 dark:text-slate-100 font-bold">USD$${formatPrice(it.p1)}</strong></span>
+                  <span>市價: <strong class="${it.cp > 0 ? 'text-teal-950 dark:text-teal-300 font-black' : 'text-slate-500 dark:text-slate-400'}">${it.cp > 0 ? 'USD$' + formatPrice(it.cp) : '未查詢'}</strong></span>
                 </div>
               </div>
               <div class="text-right space-y-0.5 flex-shrink-0">
-                <div class="text-[10px] text-slate-900 dark:text-slate-300 font-extrabold">成本: $${formatMoney(it.costUSD)}</div>
+                <div class="text-[10px] text-slate-900 dark:text-slate-300 font-extrabold">成本: NTD$${formatMoney(it.costUSD * exchangeRate)} (USD$${formatMoney(it.costUSD)})</div>
                 <div class="text-[11px] font-black ${getPnlColor('us', it.pnlUSD)}">
-                  ${it.pnlUSD !== null ? `${it.pnlUSD >= 0 ? '+' : ''}$${formatMoney(it.pnlUSD)} (${it.pnlPct >= 0 ? '+' : ''}${it.pnlPct.toFixed(2)}%)` : '<span class="text-slate-600 dark:text-slate-400 font-medium">無現價</span>'}
+                  ${it.pnlUSD !== null ? `${it.pnlUSD >= 0 ? '+' : ''}NTD$${formatMoney(it.pnlUSD * exchangeRate)} (${it.pnlPct >= 0 ? '+' : ''}${it.pnlPct.toFixed(2)}%)` : '<span class="text-slate-600 dark:text-slate-400 font-medium">無現價</span>'}
                 </div>
               </div>
             </div>
