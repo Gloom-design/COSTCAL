@@ -229,30 +229,79 @@
       border-color: #cbd5e1 !important;
     }
     /* ══════════════════════════════════════════════════════════════
-       ☀️ 白色風 (Light Mode) 頂部工具按鈕與標籤高對比度清晰保障
+       ☀️ 白色風 (Light Mode) 頂部工具按鈕與標籤「相關性分類色彩」
        ══════════════════════════════════════════════════════════════ */
-    html:not(.dark) #mainHeaderBody button#realtimeMonitorBtn,
-    html:not(.dark) #mainHeaderBody button#layoutMenuBtn,
-    html:not(.dark) #mainHeaderBody button#themeMenuBtn,
-    html:not(.dark) #mainHeaderBody button#modeToggleBtn,
-    html:not(.dark) #mainHeaderBody button#logoutBtn,
-    html:not(.dark) #mainHeaderBody #userInfo {
-      background-color: #f1f5f9 !important;
-      color: #0f172a !important;
-      border-color: #cbd5e1 !important;
+    /* 📈 類別 1：盤中即時監控 (Emerald 翡翠薄荷綠系) */
+    html:not(.dark) #mainHeaderBody button#realtimeMonitorBtn {
+      background-color: #ecfdf5 !important;
+      color: #065f46 !important;
+      border-color: #a7f3d0 !important;
     }
+    html:not(.dark) #mainHeaderBody button#realtimeMonitorBtn:hover {
+      background-color: #d1fae5 !important;
+    }
+
+    /* 📐 類別 2：版面結構與檢視維度 (Sky 晴空天藍系) */
+    html:not(.dark) #mainHeaderBody button#layoutMenuBtn,
+    html:not(.dark) #mainHeaderBody button#modeToggleBtn {
+      background-color: #f0f9ff !important;
+      color: #0369a1 !important;
+      border-color: #bae6fd !important;
+    }
+    html:not(.dark) #mainHeaderBody button#layoutMenuBtn:hover,
+    html:not(.dark) #mainHeaderBody button#modeToggleBtn:hover {
+      background-color: #e0f2fe !important;
+    }
+
+    /* 🎨 類別 3：視覺風格與主題配色 (Purple 紫羅蘭花系) */
+    html:not(.dark) #mainHeaderBody button#themeMenuBtn {
+      background-color: #faf5ff !important;
+      color: #6b21a8 !important;
+      border-color: #e9d5ff !important;
+    }
+    html:not(.dark) #mainHeaderBody button#themeMenuBtn:hover {
+      background-color: #f3e8ff !important;
+    }
+
+    /* 👤 類別 4：使用者帳號身分與切換 (Indigo 權威藍靛系) */
+    html:not(.dark) #mainHeaderBody #userInfo,
     html:not(.dark) #mainHeaderBody button#switchAccountBtn {
       background-color: #eef2ff !important;
       color: #3730a3 !important;
       border-color: #c7d2fe !important;
     }
+    html:not(.dark) #mainHeaderBody button#switchAccountBtn:hover {
+      background-color: #e0e7ff !important;
+    }
+
+    /* 🚪 類別 5：會話管理安全登出 (Slate 中性石板灰系) */
+    html:not(.dark) #mainHeaderBody button#logoutBtn {
+      background-color: #f1f5f9 !important;
+      color: #334155 !important;
+      border-color: #cbd5e1 !important;
+    }
+    html:not(.dark) #mainHeaderBody button#logoutBtn:hover {
+      background-color: #e2e8f0 !important;
+    }
+
+    /* ⚠️ 類別 6：高風險刪除帳號 (Rose 警示玫瑰紅系) */
     html:not(.dark) #mainHeaderBody button#deleteAccountBtn {
       background-color: #fff1f2 !important;
       color: #be123c !important;
       border-color: #fecdd3 !important;
     }
+    html:not(.dark) #mainHeaderBody button#deleteAccountBtn:hover {
+      background-color: #ffe4e6 !important;
+    }
+
+    /* 🏷️ 頂部系統版本與連線狀態標籤呼應 */
+    html:not(.dark) #backendVersionBadge {
+      background-color: #eef2ff !important;
+      color: #4338ca !important;
+      border-color: #c7d2fe !important;
+    }
     html:not(.dark) #global_exchangeRateBadge {
-      background-color: #f1f5f9 !important;
+      background-color: #f8fafc !important;
       color: #0f172a !important;
       border-color: #cbd5e1 !important;
     }
@@ -281,27 +330,76 @@
       color: #cbd5e1 !important;
     }
     /* ══════════════════════════════════════════════════════════════
-       🌙 深色風 (Dark Mode) 頂部工具按鈕與標籤風格適配
+       🌙 深色風 (Dark Mode) 頂部工具按鈕與標籤「相關性分類色彩」
        ══════════════════════════════════════════════════════════════ */
-    html.dark #mainHeaderBody button#realtimeMonitorBtn,
+    /* 📈 類別 1：盤中即時監控 (Emerald 翡翠薄荷綠系) */
+    html.dark #mainHeaderBody button#realtimeMonitorBtn {
+      background-color: rgba(6, 78, 59, 0.4) !important;
+      color: #34d399 !important;
+      border-color: rgba(52, 211, 153, 0.35) !important;
+    }
+    html.dark #mainHeaderBody button#realtimeMonitorBtn:hover {
+      background-color: rgba(6, 78, 59, 0.65) !important;
+    }
+
+    /* 📐 類別 2：版面結構與檢視維度 (Sky 晴空天藍系) */
     html.dark #mainHeaderBody button#layoutMenuBtn,
-    html.dark #mainHeaderBody button#themeMenuBtn,
-    html.dark #mainHeaderBody button#modeToggleBtn,
-    html.dark #mainHeaderBody button#logoutBtn,
-    html.dark #mainHeaderBody #userInfo {
-      background-color: #1e293b !important;
-      color: #e2e8f0 !important;
-      border-color: #334155 !important;
+    html.dark #mainHeaderBody button#modeToggleBtn {
+      background-color: rgba(12, 74, 110, 0.4) !important;
+      color: #38bdf8 !important;
+      border-color: rgba(56, 189, 248, 0.35) !important;
     }
+    html.dark #mainHeaderBody button#layoutMenuBtn:hover,
+    html.dark #mainHeaderBody button#modeToggleBtn:hover {
+      background-color: rgba(12, 74, 110, 0.65) !important;
+    }
+
+    /* 🎨 類別 3：視覺風格與主題配色 (Purple 紫羅蘭花系) */
+    html.dark #mainHeaderBody button#themeMenuBtn {
+      background-color: rgba(88, 28, 135, 0.4) !important;
+      color: #c084fc !important;
+      border-color: rgba(192, 132, 252, 0.35) !important;
+    }
+    html.dark #mainHeaderBody button#themeMenuBtn:hover {
+      background-color: rgba(88, 28, 135, 0.65) !important;
+    }
+
+    /* 👤 類別 4：使用者帳號身分與切換 (Indigo 權威藍靛系) */
+    html.dark #mainHeaderBody #userInfo,
     html.dark #mainHeaderBody button#switchAccountBtn {
-      background-color: rgba(30, 27, 75, 0.6) !important;
+      background-color: rgba(49, 46, 129, 0.45) !important;
       color: #a5b4fc !important;
-      border-color: rgba(55, 48, 163, 0.6) !important;
+      border-color: rgba(165, 180, 252, 0.35) !important;
     }
+    html.dark #mainHeaderBody button#switchAccountBtn:hover {
+      background-color: rgba(49, 46, 129, 0.7) !important;
+    }
+
+    /* 🚪 類別 5：會話管理安全登出 (Slate 中性石板灰系) */
+    html.dark #mainHeaderBody button#logoutBtn {
+      background-color: #1e293b !important;
+      color: #cbd5e1 !important;
+      border-color: #475569 !important;
+    }
+    html.dark #mainHeaderBody button#logoutBtn:hover {
+      background-color: #334155 !important;
+    }
+
+    /* ⚠️ 類別 6：高風險刪除帳號 (Rose 警示玫瑰紅系) */
     html.dark #mainHeaderBody button#deleteAccountBtn {
-      background-color: rgba(76, 5, 25, 0.6) !important;
+      background-color: rgba(136, 19, 55, 0.4) !important;
       color: #fda4af !important;
-      border-color: rgba(159, 18, 57, 0.6) !important;
+      border-color: rgba(251, 113, 133, 0.35) !important;
+    }
+    html.dark #mainHeaderBody button#deleteAccountBtn:hover {
+      background-color: rgba(136, 19, 55, 0.65) !important;
+    }
+
+    /* 🏷️ 頂部系統版本與連線狀態標籤呼應 */
+    html.dark #backendVersionBadge {
+      background-color: rgba(49, 46, 129, 0.4) !important;
+      color: #a5b4fc !important;
+      border-color: rgba(165, 180, 252, 0.3) !important;
     }
     html.dark #global_exchangeRateBadge {
       background-color: #1e293b !important;
@@ -787,9 +885,9 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.6.0</span>
-          <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
-          <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+          <span class="bg-indigo-100 text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60">v0.6.1</span>
+          <span id="backendVersionBadge" class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60">尚未查詢</span>
+          <span id="connectionBadge" class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <span id="connectionText">即時連線</span>
           </span>
@@ -814,20 +912,20 @@
             <span>📲</span><span class="truncate">安裝 App</span>
           </button>
 
-          <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
-            <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
+          <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-950/70 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 text-[10px] sm:text-xs rounded-xl font-bold transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
+            <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
             <span id="monitorStatusText" class="truncate">30s 盤中監控: 關閉</span>
           </button>
 
-          <button onclick="openLayoutModal()" id="layoutMenuBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="自訂移動版面與排序設定">
+          <button onclick="openLayoutModal()" id="layoutMenuBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-950/70 text-sky-900 dark:text-sky-300 text-[10px] sm:text-xs rounded-xl font-bold border border-sky-300 dark:border-sky-700/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="自訂移動版面與排序設定">
             <span>📐</span><span class="truncate">排版</span>
           </button>
 
-          <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="介面風格與主題配色設定">
+          <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-purple-50 dark:bg-purple-950/40 hover:bg-purple-100 dark:hover:bg-purple-950/70 text-purple-900 dark:text-purple-300 text-[10px] sm:text-xs rounded-xl font-bold border border-purple-300 dark:border-purple-700/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="介面風格與主題配色設定">
             <span>🎨</span><span class="truncate">配色</span>
           </button>
 
-          <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95">
+          <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-950/70 text-sky-900 dark:text-sky-300 text-[10px] sm:text-xs rounded-xl font-bold border border-sky-300 dark:border-sky-700/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95">
             <span class="truncate">📱 手機介面</span>
           </button>
         </div>
@@ -839,9 +937,9 @@
           </button>
           
           <div id="loggedOptions" class="hidden flex items-center gap-1.5 sm:gap-2 w-full">
-            <span id="userInfo" title="目前登入帳號" class="hidden flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-[10px] sm:text-xs flex items-center justify-center text-center truncate whitespace-nowrap shadow-2xs">未登入</span>
+            <span id="userInfo" title="目前登入帳號" class="hidden flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-900 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/60 rounded-xl font-bold text-[10px] sm:text-xs flex items-center justify-center text-center truncate whitespace-nowrap shadow-2xs">未登入</span>
             
-            <button id="switchAccountBtn" type="button" onclick="switchAccount()" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 text-indigo-800 dark:text-indigo-300 text-[10px] sm:text-xs rounded-xl font-bold border border-indigo-200 dark:border-indigo-800/60 cursor-pointer shadow-2xs flex items-center justify-center gap-1 transition whitespace-nowrap active:scale-95" title="切換其他 Google 帳號">
+            <button id="switchAccountBtn" type="button" onclick="switchAccount()" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900/80 text-indigo-900 dark:text-indigo-300 text-[10px] sm:text-xs rounded-xl font-bold border border-indigo-200 dark:border-indigo-800/60 cursor-pointer shadow-2xs flex items-center justify-center gap-1 transition whitespace-nowrap active:scale-95" title="切換其他 Google 帳號">
               <span>🔄</span><span class="truncate">切換帳號</span>
             </button>
             
@@ -849,7 +947,7 @@
               <span class="truncate">登出</span>
             </button>
             
-            <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-700 dark:text-rose-300 text-[10px] sm:text-xs rounded-xl font-bold border border-rose-200 dark:border-rose-900/60 cursor-pointer shadow-2xs flex items-center justify-center gap-1 transition whitespace-nowrap active:scale-95" title="刪除本機與雲端帳號資料">
+            <button id="deleteAccountBtn" type="button" onclick="deleteAccount()" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 dark:hover:bg-rose-900/80 text-rose-800 dark:text-rose-300 text-[10px] sm:text-xs rounded-xl font-bold border border-rose-200 dark:border-rose-900/60 cursor-pointer shadow-2xs flex items-center justify-center gap-1 transition whitespace-nowrap active:scale-95" title="刪除本機與雲端帳號資料">
               <span>⚠️</span><span class="truncate">刪除帳號</span>
             </button>
           </div>
@@ -2327,12 +2425,12 @@
       const text = document.getElementById('monitorStatusText');
       if (!btn) return;
       if (isRealtimeMonitorActive) {
-        btn.className = "flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-emerald-50 dark:bg-emerald-950/80 hover:bg-emerald-100 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 text-[10px] sm:text-xs rounded-xl font-black transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 active:scale-95";
-        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+        btn.className = "flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-emerald-100 dark:bg-emerald-900/80 hover:bg-emerald-200 text-emerald-950 dark:text-emerald-200 border-2 border-emerald-500 text-[10px] sm:text-xs rounded-xl font-black transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 active:scale-95";
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0";
         if (text) text.innerText = `30s 監控中 (${monitorCountdown}s)`;
       } else {
-        btn.className = "flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 text-[10px] sm:text-xs rounded-xl font-bold transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 active:scale-95";
-        if (dot) dot.className = "w-2 h-2 rounded-full bg-slate-400";
+        btn.className = "flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-950/70 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 text-[10px] sm:text-xs rounded-xl font-bold transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 active:scale-95";
+        if (dot) dot.className = "w-2 h-2 rounded-full bg-emerald-400 shrink-0";
         if (text) text.innerText = "30s 盤中監控: 關閉";
       }
     }
