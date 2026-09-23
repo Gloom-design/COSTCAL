@@ -412,8 +412,9 @@
     .move-btn-group {
       display: inline-flex;
       align-items: center;
+      height: 1.85rem;
       border-radius: 9999px;
-      padding: 2.5px;
+      padding: 2px;
       gap: 2px;
       user-select: none;
       flex-shrink: 0;
@@ -421,6 +422,12 @@
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       background-color: #f1f5f9;
       border: 1px solid #cbd5e1;
+      box-sizing: border-box;
+    }
+    @media (min-width: 640px) {
+      .move-btn-group {
+        height: 2rem;
+      }
     }
     html.dark .move-btn-group {
       background-color: #0f172a;
@@ -432,8 +439,8 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 1.65rem;
-      height: 1.65rem;
+      width: 1.55rem;
+      height: 1.55rem;
       font-size: 0.72rem;
       font-weight: 900;
       border-radius: 9999px;
@@ -450,9 +457,9 @@
     @media (min-width: 640px) {
       .card-move-btn,
       .main-move-btn {
-        width: 1.75rem;
-        height: 1.75rem;
-        font-size: 0.76rem;
+        width: 1.65rem;
+        height: 1.65rem;
+        font-size: 0.75rem;
       }
     }
     html.dark .card-move-btn,
@@ -615,9 +622,10 @@
       align-items: center;
       justify-content: center;
       gap: 0.25rem;
+      height: 1.85rem;
       font-size: 0.65rem;
       font-weight: 800;
-      padding: 0.25rem 0.55rem;
+      padding: 0 0.55rem;
       min-width: 4.2rem;
       text-align: center;
       border-radius: 0.625rem;
@@ -627,13 +635,14 @@
       white-space: nowrap;
       user-select: none;
       flex-shrink: 0;
-      margin-left: auto;
-      margin-right: 0 !important;
+      box-sizing: border-box;
+      line-height: 1;
     }
     @media (min-width: 640px) {
       .collapse-toggle-btn {
+        height: 2rem;
         font-size: 0.72rem;
-        padding: 0.3rem 0.65rem;
+        padding: 0 0.65rem;
         min-width: 4.6rem;
       }
     }
@@ -964,7 +973,7 @@
             <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步</button>
           </div>
         </div>
-        <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+        <div class="flex items-center gap-1.5 ml-auto">
           <div class="move-btn-group global-move-group">
             <button type="button" onclick="moveMainSection('adminPanel', -1)" data-main-move="adminPanel" data-dir="-1" title="版面上移" class="main-move-btn">▲</button>
             <button type="button" onclick="moveMainSection('adminPanel', 1)" data-main-move="adminPanel" data-dir="1" title="版面下移" class="main-move-btn">▼</button>
@@ -1008,8 +1017,8 @@
             <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">依即時匯率換算為新台幣總額</p>
           </div>
         </div>
-        <div class="flex items-center gap-2 ml-auto sm:ml-0">
-          <span id="global_exchangeRateBadge" class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 font-mono font-bold">USD 匯率: 32.00</span>
+        <div class="flex items-center gap-1.5 ml-auto">
+          <span id="global_exchangeRateBadge" class="h-[1.85rem] sm:h-8 flex items-center bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-[10px] px-2 rounded-lg border border-slate-300 dark:border-slate-700 font-mono font-bold">USD 匯率: 32.00</span>
           <div class="move-btn-group global-move-group">
             <button type="button" onclick="moveMainSection('globalPortfolioCard', -1)" data-main-move="globalPortfolioCard" data-dir="-1" title="版面上移" class="main-move-btn">▲</button>
             <button type="button" onclick="moveMainSection('globalPortfolioCard', 1)" data-main-move="globalPortfolioCard" data-dir="1" title="版面下移" class="main-move-btn">▼</button>
@@ -1069,25 +1078,29 @@
         <!-- 💼 台股全投資組合總覽 (Portfolio Summary) -->
         <div id="twPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-rose-300 dark:border-rose-500/40 space-y-3.5">
           <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2.5 flex-wrap gap-2">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2 min-w-0">
               <span class="text-base sm:text-lg">💼</span>
-              <div>
+              <div class="min-w-0">
                 <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400 leading-tight">台股所有投資組合總覽</h2>
-                <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">彙總您名下所有持股之成本與未實現損益</p>
+                <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate sm:whitespace-normal">彙總您名下所有持股之成本與未實現損益</p>
               </div>
             </div>
-            <div class="flex items-center gap-2 flex-wrap ml-auto sm:ml-0">
-              <span id="tw_summaryStockCountBadge" class="bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
-              <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-rose-400/40 transition flex items-center gap-1 cursor-pointer">
-                <span>🔄 更新全組合行情</span>
-              </button>
-              <div class="move-btn-group tw-move-group">
-                <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
-                <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+            <div class="flex items-center justify-between sm:justify-end gap-2 flex-wrap flex-1 sm:flex-initial w-full sm:w-auto ml-auto">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="tw_summaryStockCountBadge" class="h-[1.85rem] sm:h-8 flex items-center bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 text-[10px] font-bold px-2.5 rounded-lg">共 0 檔持股</span>
+                <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] px-2.5 rounded-lg font-bold border border-rose-400/40 transition cursor-pointer">
+                  <span>🔄 更新全組合行情</span>
+                </button>
               </div>
-              <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-                <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-              </button>
+              <div class="flex items-center gap-1.5 ml-auto">
+                <div class="move-btn-group tw-move-group">
+                  <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
+                  <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+                </div>
+                <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+                  <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+                </button>
+              </div>
             </div>
           </div>
 
@@ -1155,21 +1168,23 @@
       </div>
 
       <div id="twStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-rose-950 dark:text-rose-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-rose-500 cursor-pointer shadow-2xs">
+        <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[140px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-rose-950 dark:text-rose-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-rose-500 cursor-pointer shadow-2xs">
         </select>
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <button type="button" onclick="moveStockOrder('tw', -1)" title="順序往前移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
-          <button type="button" onclick="moveStockOrder('tw', 1)" title="順序往後移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▼</button>
-          <button type="button" onclick="renameStock('tw')" title="修改此股票自訂名稱" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
-            <span>✏️</span><span>改名</span>
-          </button>
-          <button type="button" onclick="openAddStockModal('tw')" title="新增一筆台股投資組合" class="h-8 sm:h-8.5 px-3 sm:px-3.5 flex items-center gap-1 bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white border border-rose-500 dark:border-rose-400 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-sm active:scale-95">
-            <span>➕</span><span>新增</span>
-          </button>
-          <button type="button" onclick="deleteStock('tw')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
-            <span>🗑️</span><span>刪除</span>
-          </button>
-          <div class="move-btn-group tw-move-group ml-1">
+        <div class="flex items-center justify-between gap-1.5 flex-wrap flex-1 w-full sm:w-auto">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button type="button" onclick="moveStockOrder('tw', -1)" title="順序往前移" class="h-8 sm:h-8.5 w-8 sm:w-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
+            <button type="button" onclick="moveStockOrder('tw', 1)" title="順序往後移" class="h-8 sm:h-8.5 w-8 sm:w-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▼</button>
+            <button type="button" onclick="renameStock('tw')" title="修改此股票自訂名稱" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+              <span>✏️</span><span>改名</span>
+            </button>
+            <button type="button" onclick="openAddStockModal('tw')" title="新增一筆台股投資組合" class="h-8 sm:h-8.5 px-3 sm:px-3.5 flex items-center gap-1 bg-rose-600 hover:bg-rose-700 dark:bg-rose-600 dark:hover:bg-rose-500 text-white border border-rose-500 dark:border-rose-400 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-sm active:scale-95">
+              <span>➕</span><span>新增</span>
+            </button>
+            <button type="button" onclick="deleteStock('tw')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+              <span>🗑️</span><span>刪除</span>
+            </button>
+          </div>
+          <div class="move-btn-group tw-move-group ml-auto">
             <button type="button" onclick="moveCalculationCard('selector', -1)" data-card-move="selector" data-dir="-1" title="操作列版面上移" class="card-move-btn">▲</button>
             <button type="button" onclick="moveCalculationCard('selector', 1)" data-card-move="selector" data-dir="1" title="操作列版面下移" class="card-move-btn">▼</button>
           </div>
@@ -1181,7 +1196,7 @@
           <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">
             1. 台股設定與代號查詢
           </h2>
-          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+          <div class="flex items-center gap-1.5 ml-auto">
             <div class="move-btn-group tw-move-group">
               <button type="button" onclick="moveCalculationCard('card1', -1)" data-card-move="card1" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
               <button type="button" onclick="moveCalculationCard('card1', 1)" data-card-move="card1" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
@@ -1301,9 +1316,9 @@
           <div class="flex items-center gap-2">
             <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
           </div>
-          <div class="flex items-center gap-2 ml-auto sm:ml-0">
-            <button type="button" onclick="addTwPlanRow()" class="bg-rose-50 hover:bg-rose-100 text-rose-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-rose-200 cursor-pointer shadow-sm">
-              ➕ 新增補倉筆數
+          <div class="flex items-center gap-1.5 ml-auto">
+            <button type="button" onclick="addTwPlanRow()" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-800 px-3 rounded-xl font-bold text-[10px] sm:text-xs border border-rose-200 cursor-pointer shadow-sm">
+              <span>➕</span><span>新增補倉筆數</span>
             </button>
             <div class="move-btn-group tw-move-group">
               <button type="button" onclick="moveCalculationCard('card2', -1)" data-card-move="card2" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
@@ -1330,7 +1345,7 @@
           <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400">
             3. 台股試算結果
           </h2>
-          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+          <div class="flex items-center gap-1.5 ml-auto">
             <div class="move-btn-group tw-move-group">
               <button type="button" onclick="moveCalculationCard('result', -1)" data-card-move="result" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
               <button type="button" onclick="moveCalculationCard('result', 1)" data-card-move="result" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
@@ -1370,25 +1385,29 @@
       <!-- 💼 美股全投資組合總覽 (Portfolio Summary) -->
       <div id="usPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-teal-300 dark:border-teal-500/40 space-y-3.5">
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2.5 flex-wrap gap-2">
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 min-w-0">
             <span class="text-base sm:text-lg">💼</span>
-            <div>
+            <div class="min-w-0">
               <h2 class="font-black text-xs sm:text-sm text-teal-900 dark:text-teal-400 leading-tight">美股所有投資組合總覽</h2>
-              <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">彙總您名下所有持股之成本與未實現損益 (含台幣換算)</p>
+              <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate sm:whitespace-normal">彙總您名下所有持股之成本與未實現損益 (含台幣換算)</p>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-wrap ml-auto sm:ml-0">
-            <span id="us_summaryStockCountBadge" class="bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
-            <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-teal-600 hover:bg-teal-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-teal-400/40 transition flex items-center gap-1 cursor-pointer">
-              <span>🔄 更新全組合行情</span>
-            </button>
-            <div class="move-btn-group us-move-group">
-              <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
-              <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+          <div class="flex items-center justify-between sm:justify-end gap-2 flex-wrap flex-1 sm:flex-initial w-full sm:w-auto ml-auto">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span id="us_summaryStockCountBadge" class="h-[1.85rem] sm:h-8 flex items-center bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800/80 text-[10px] font-bold px-2.5 rounded-lg">共 0 檔持股</span>
+              <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-teal-600 hover:bg-teal-700 text-white text-[10px] px-2.5 rounded-lg font-bold border border-teal-400/40 transition cursor-pointer">
+                <span>🔄 更新全組合行情</span>
+              </button>
             </div>
-            <button type="button" onclick="toggleSectionCollapse('usPortfolioSummary')" id="usPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-            </button>
+            <div class="flex items-center gap-1.5 ml-auto">
+              <div class="move-btn-group us-move-group">
+                <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
+                <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+              </div>
+              <button type="button" onclick="toggleSectionCollapse('usPortfolioSummary')" id="usPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+                <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1456,21 +1475,23 @@
       </div>
 
       <div id="usStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
-        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[120px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-teal-900 dark:text-teal-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-teal-500 cursor-pointer shadow-2xs">
+        <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[140px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-teal-900 dark:text-teal-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-teal-500 cursor-pointer shadow-2xs">
         </select>
-        <div class="flex items-center gap-1.5 flex-wrap">
-          <button type="button" onclick="moveStockOrder('us', -1)" title="順序往前移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
-          <button type="button" onclick="moveStockOrder('us', 1)" title="順序往後移" class="w-8 h-8 sm:w-8.5 sm:h-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▼</button>
-          <button type="button" onclick="renameStock('us')" title="修改此股票自訂名稱" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
-            <span>✏️</span><span>改名</span>
-          </button>
-          <button type="button" onclick="openAddStockModal('us')" title="新增一筆美股投資組合" class="h-8 sm:h-8.5 px-3 sm:px-3.5 flex items-center gap-1 bg-teal-600 hover:bg-teal-700 dark:bg-teal-600 dark:hover:bg-teal-500 text-white border border-teal-500 dark:border-teal-400 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-sm active:scale-95">
-            <span>➕</span><span>新增</span>
-          </button>
-          <button type="button" onclick="deleteStock('us')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
-            <span>🗑️</span><span>刪除</span>
-          </button>
-          <div class="move-btn-group us-move-group ml-1">
+        <div class="flex items-center justify-between gap-1.5 flex-wrap flex-1 w-full sm:w-auto">
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button type="button" onclick="moveStockOrder('us', -1)" title="順序往前移" class="h-8 sm:h-8.5 w-8 sm:w-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
+            <button type="button" onclick="moveStockOrder('us', 1)" title="順序往後移" class="h-8 sm:h-8.5 w-8 sm:w-8.5 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▼</button>
+            <button type="button" onclick="renameStock('us')" title="修改此股票自訂名稱" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+              <span>✏️</span><span>改名</span>
+            </button>
+            <button type="button" onclick="openAddStockModal('us')" title="新增一筆美股投資組合" class="h-8 sm:h-8.5 px-3 sm:px-3.5 flex items-center gap-1 bg-teal-600 hover:bg-teal-700 dark:bg-teal-600 dark:hover:bg-teal-500 text-white border border-teal-500 dark:border-teal-400 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-sm active:scale-95">
+              <span>➕</span><span>新增</span>
+            </button>
+            <button type="button" onclick="deleteStock('us')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
+              <span>🗑️</span><span>刪除</span>
+            </button>
+          </div>
+          <div class="move-btn-group us-move-group ml-auto">
             <button type="button" onclick="moveCalculationCard('selector', -1)" data-card-move="selector" data-dir="-1" title="操作列版面上移" class="card-move-btn">▲</button>
             <button type="button" onclick="moveCalculationCard('selector', 1)" data-card-move="selector" data-dir="1" title="操作列版面下移" class="card-move-btn">▼</button>
           </div>
@@ -1482,7 +1503,7 @@
           <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">
             1. 美股設定與代號查詢
           </h2>
-          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+          <div class="flex items-center gap-1.5 ml-auto">
             <div class="move-btn-group us-move-group">
               <button type="button" onclick="moveCalculationCard('card1', -1)" data-card-move="card1" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
               <button type="button" onclick="moveCalculationCard('card1', 1)" data-card-move="card1" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
@@ -1593,9 +1614,9 @@
           <div class="flex items-center gap-2">
             <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
           </div>
-          <div class="flex items-center gap-2 ml-auto sm:ml-0">
-            <button type="button" onclick="addUsPlanRow()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
-              ➕ 新增補倉筆數
+          <div class="flex items-center gap-1.5 ml-auto">
+            <button type="button" onclick="addUsPlanRow()" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
+              <span>➕</span><span>新增補倉筆數</span>
             </button>
             <div class="move-btn-group us-move-group">
               <button type="button" onclick="moveCalculationCard('card2', -1)" data-card-move="card2" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
@@ -1622,7 +1643,7 @@
           <h2 class="font-black text-xs sm:text-sm text-teal-950 dark:text-teal-400">
             3. 美股試算結果
           </h2>
-          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+          <div class="flex items-center gap-1.5 ml-auto">
             <div class="move-btn-group us-move-group">
               <button type="button" onclick="moveCalculationCard('result', -1)" data-card-move="result" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
               <button type="button" onclick="moveCalculationCard('result', 1)" data-card-move="result" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
