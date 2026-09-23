@@ -1,4 +1,4 @@
-// CostCal Stock API - Version v0.2
+// CostCal Stock API - Version V0.0
 // API Endpoint: https://costcal-test.vercel.app/api/stock
 
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
@@ -114,7 +114,7 @@ export default async function handler(req, res) {
   if (symbol === 'PING') {
     return res.status(200).json({
       status: 'ok',
-      apiVersion: 'v0.2'
+      apiVersion: 'V0.0'
     });
   }
 
@@ -153,7 +153,7 @@ export default async function handler(req, res) {
       name: result.name,
       currentPrice: result.currentPrice,
       prevClose: result.prevClose,
-      apiVersion: 'v0.2'
+      apiVersion: 'V0.0'
     });
 
   } catch (error) {
