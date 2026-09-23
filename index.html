@@ -190,6 +190,7 @@
     html.dark .border-slate-100 {
       border-color: #334155 !important;
     }
+    html.dark #tabSwitcherCard,
     html.dark #mainContainer > div.grid.grid-cols-2.bg-slate-200 {
       background-color: #1e293b !important;
     }
@@ -222,6 +223,7 @@
       color: #334155 !important;
       font-weight: 700 !important;
     }
+    html:not(.dark) #tabSwitcherCard,
     html:not(.dark) #mainContainer > div.grid.grid-cols-2 {
       background-color: #e2e8f0 !important;
       border-color: #cbd5e1 !important;
@@ -230,6 +232,7 @@
        ☀️ 白色風 (Light Mode) 頂部工具按鈕與標籤高對比度清晰保障
        ══════════════════════════════════════════════════════════════ */
     html:not(.dark) #mainHeaderBody button#realtimeMonitorBtn,
+    html:not(.dark) #mainHeaderBody button#layoutMenuBtn,
     html:not(.dark) #mainHeaderBody button#themeMenuBtn,
     html:not(.dark) #mainHeaderBody button#modeToggleBtn,
     html:not(.dark) #mainHeaderBody button#logoutBtn,
@@ -281,6 +284,7 @@
        🌙 深色風 (Dark Mode) 頂部工具按鈕與標籤風格適配
        ══════════════════════════════════════════════════════════════ */
     html.dark #mainHeaderBody button#realtimeMonitorBtn,
+    html.dark #mainHeaderBody button#layoutMenuBtn,
     html.dark #mainHeaderBody button#themeMenuBtn,
     html.dark #mainHeaderBody button#modeToggleBtn,
     html.dark #mainHeaderBody button#logoutBtn,
@@ -303,6 +307,49 @@
       background-color: #1e293b !important;
       color: #cbd5e1 !important;
       border-color: #334155 !important;
+    }
+    /* ══════════════════════════════════════════════════════════════
+       📐 自訂版面移動箭頭按鈕樣式 (微型極簡、不干擾收合對齊)
+       ══════════════════════════════════════════════════════════════ */
+    .card-move-btn,
+    .main-move-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.35rem;
+      height: 1.35rem;
+      font-size: 0.6rem;
+      font-weight: 800;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      color: #475569;
+      user-select: none;
+      flex-shrink: 0;
+    }
+    html.dark .card-move-btn,
+    html.dark .main-move-btn {
+      border-color: #334155;
+      background-color: #1e293b;
+      color: #94a3b8;
+    }
+    .card-move-btn:hover:not(:disabled),
+    .main-move-btn:hover:not(:disabled) {
+      background-color: #e2e8f0;
+      color: #0f172a;
+    }
+    html.dark .card-move-btn:hover:not(:disabled),
+    html.dark .main-move-btn:hover:not(:disabled) {
+      background-color: #334155;
+      color: #f8fafc;
+    }
+    .card-move-btn:disabled,
+    .main-move-btn:disabled {
+      opacity: 0.2;
+      cursor: not-allowed;
+      pointer-events: none;
     }
     /* ══════════════════════════════════════════════════════════════
        🎯 全站所有卡片與區塊水平內距 (Padding) 絕對一致，確保右上角收合按鈕 100% 垂直對齊
@@ -544,6 +591,51 @@
     </div>
   </div>
 
+  <!-- 📐 版面排版與排序設定 Modal -->
+  <div id="layoutModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-2xl max-w-sm sm:max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 dark:border-slate-800 space-y-4 max-h-[90vh] flex flex-col">
+      <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5">
+        <h3 class="font-bold text-sm sm:text-base flex items-center gap-2 text-slate-900 dark:text-white">
+          <span>📐</span> <span>自訂版面排版與排序</span>
+        </h3>
+        <button type="button" onclick="closeLayoutModal()" class="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer p-1">✕</button>
+      </div>
+
+      <div class="overflow-y-auto space-y-4 pr-1 flex-1 text-xs">
+        <p class="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/60 font-medium">
+          💡 點擊 <strong class="text-slate-900 dark:text-white">▲ / ▼</strong> 可自由移動區塊與卡片順序。排序結果將即時同步備份至雲端帳號及本機，換裝置依然保持。
+        </p>
+
+        <!-- 全域主區塊排列 -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-slate-900 dark:text-slate-100 text-xs">全域主區塊排列</span>
+            <span class="text-[10px] text-slate-600 dark:text-slate-400 font-medium">（免責聲明與主標題固定置頂）</span>
+          </div>
+          <div id="layoutMainList" class="space-y-1.5"></div>
+        </div>
+
+        <!-- 試算核心卡片排列 -->
+        <div class="space-y-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+          <div class="flex items-center justify-between">
+            <span class="font-black text-slate-900 dark:text-slate-100 text-xs">試算卡片排列 (台美股通用)</span>
+            <span class="text-[10px] text-slate-600 dark:text-slate-400 font-medium">（各分頁內部順序）</span>
+          </div>
+          <div id="layoutCardsList" class="space-y-1.5"></div>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2 flex-shrink-0">
+        <button type="button" onclick="resetDefaultLayout()" class="w-full bg-amber-100 hover:bg-amber-200 dark:bg-amber-950/70 dark:hover:bg-amber-900 text-amber-950 dark:text-amber-200 font-black py-2.5 rounded-xl transition border border-amber-300 dark:border-amber-700 text-xs cursor-pointer flex items-center justify-center gap-1.5 active:scale-95 shadow-xs">
+          <span>🔄</span> <span>一鍵還原預設版面</span>
+        </button>
+        <button type="button" onclick="closeLayoutModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-xl transition shadow text-xs cursor-pointer active:scale-95">
+          完成
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
     
     <!-- ⚠️ 免責聲明 -->
@@ -566,7 +658,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.5.2</span>
+          <span class="bg-indigo-100 text-indigo-900 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full">v0.6.0</span>
           <span id="backendVersionBadge" class="bg-slate-100 text-slate-700 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-slate-300">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -596,6 +688,10 @@
           <button onclick="toggleRealtimeMonitor()" id="realtimeMonitorBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95" title="啟動或關閉盤中每 30 秒自動抓取市價與到價推播監控">
             <span id="monitorStatusDot" class="w-2 h-2 rounded-full bg-slate-400 shrink-0"></span>
             <span id="monitorStatusText" class="truncate">30s 盤中監控: 關閉</span>
+          </button>
+
+          <button onclick="openLayoutModal()" id="layoutMenuBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="自訂移動版面與排序設定">
+            <span>📐</span><span class="truncate">排版</span>
           </button>
 
           <button onclick="openThemeModal()" id="themeMenuBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] sm:text-xs rounded-xl font-bold border border-slate-300 dark:border-slate-700 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="介面風格與主題配色設定">
@@ -641,9 +737,15 @@
             <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步</button>
           </div>
         </div>
-        <button type="button" onclick="toggleSectionCollapse('adminPanel')" id="adminPanelCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-          <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-        </button>
+        <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+          <div class="inline-flex items-center gap-1">
+            <button type="button" onclick="moveMainSection('adminPanel', -1)" data-main-move="adminPanel" data-dir="-1" title="版面上移" class="main-move-btn">▲</button>
+            <button type="button" onclick="moveMainSection('adminPanel', 1)" data-main-move="adminPanel" data-dir="1" title="版面下移" class="main-move-btn">▼</button>
+          </div>
+          <button type="button" onclick="toggleSectionCollapse('adminPanel')" id="adminPanelCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+          </button>
+        </div>
       </div>
       
       <div id="adminPanelBody" class="space-y-3">
@@ -681,6 +783,10 @@
         </div>
         <div class="flex items-center gap-2 ml-auto sm:ml-0">
           <span id="global_exchangeRateBadge" class="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-300 text-[10px] px-2 py-0.5 rounded-lg border border-slate-300 dark:border-slate-700 font-mono font-bold">USD 匯率: 32.00</span>
+          <div class="inline-flex items-center gap-1">
+            <button type="button" onclick="moveMainSection('globalPortfolioCard', -1)" data-main-move="globalPortfolioCard" data-dir="-1" title="版面上移" class="main-move-btn">▲</button>
+            <button type="button" onclick="moveMainSection('globalPortfolioCard', 1)" data-main-move="globalPortfolioCard" data-dir="1" title="版面下移" class="main-move-btn">▼</button>
+          </div>
           <button type="button" onclick="toggleSectionCollapse('globalPortfolio')" id="globalPortfolioCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
             <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
           </button>
@@ -720,32 +826,43 @@
       </div>
     </div>
 
-    <div class="grid grid-cols-2 gap-2 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700">
-      <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-black rounded-xl transition-all bg-white text-rose-600 dark:text-rose-400 shadow text-xs sm:text-sm cursor-pointer border border-rose-300 dark:border-rose-500/50">🇹🇼 台股專用</button>
-      <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-bold rounded-xl transition-all text-slate-800 dark:text-slate-400 hover:text-slate-950 text-xs sm:text-sm cursor-pointer border border-transparent">🇺🇸 美股專用</button>
-    </div>
+    <div id="stocksContainer" class="space-y-4 sm:space-y-5">
+      <div id="tabSwitcherCard" class="flex items-center justify-between gap-2 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700">
+        <div class="grid grid-cols-2 gap-2 flex-1">
+          <button id="tabTwBtn" type="button" onclick="switchTab('tw')" class="py-2.5 font-black rounded-xl transition-all bg-white text-rose-600 dark:text-rose-400 shadow text-xs sm:text-sm cursor-pointer border border-rose-300 dark:border-rose-500/50">🇹🇼 台股專用</button>
+          <button id="tabUsBtn" type="button" onclick="switchTab('us')" class="py-2.5 font-bold rounded-xl transition-all text-slate-800 dark:text-slate-400 hover:text-slate-950 text-xs sm:text-sm cursor-pointer border border-transparent">🇺🇸 美股專用</button>
+        </div>
+        <div class="inline-flex items-center gap-1 px-1">
+          <button type="button" onclick="moveMainSection('stocksContainer', -1)" data-main-move="stocksContainer" data-dir="-1" title="核心試算區版面上移" class="main-move-btn">▲</button>
+          <button type="button" onclick="moveMainSection('stocksContainer', 1)" data-main-move="stocksContainer" data-dir="1" title="核心試算區版面下移" class="main-move-btn">▼</button>
+        </div>
+      </div>
 
-    <div id="twView" class="space-y-4 sm:space-y-5">
-      <!-- 💼 台股全投資組合總覽 (Portfolio Summary) -->
-      <div id="twPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-rose-300 dark:border-rose-500/40 space-y-3.5">
-        <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2.5 flex-wrap gap-2">
-          <div class="flex items-center gap-2">
-            <span class="text-base sm:text-lg">💼</span>
-            <div>
-              <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400 leading-tight">台股所有投資組合總覽</h2>
-              <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">彙總您名下所有持股之成本與未實現損益</p>
+      <div id="twView" class="space-y-4 sm:space-y-5">
+        <!-- 💼 台股全投資組合總覽 (Portfolio Summary) -->
+        <div id="twPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-rose-300 dark:border-rose-500/40 space-y-3.5">
+          <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2.5 flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="text-base sm:text-lg">💼</span>
+              <div>
+                <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400 leading-tight">台股所有投資組合總覽</h2>
+                <p class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold">彙總您名下所有持股之成本與未實現損益</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap ml-auto sm:ml-0">
+              <span id="tw_summaryStockCountBadge" class="bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
+              <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-rose-400/40 transition flex items-center gap-1 cursor-pointer">
+                <span>🔄 更新全組合行情</span>
+              </button>
+              <div class="inline-flex items-center gap-1">
+                <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
+                <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+              </div>
+              <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+                <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+              </button>
             </div>
           </div>
-          <div class="flex items-center gap-2 flex-wrap ml-auto sm:ml-0">
-            <span id="tw_summaryStockCountBadge" class="bg-rose-50 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800/80 text-[10px] font-bold px-2.5 py-1 rounded-lg">共 0 檔持股</span>
-            <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-rose-600 hover:bg-rose-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-rose-400/40 transition flex items-center gap-1 cursor-pointer">
-              <span>🔄 更新全組合行情</span>
-            </button>
-            <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-            </button>
-          </div>
-        </div>
 
         <div id="twPortfolioSummaryBody" class="space-y-3.5">
           <!-- KPI 數據核心面板 -->
@@ -810,7 +927,7 @@
         </div>
       </div>
 
-      <div class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+      <div id="twStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
         <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="flex-1 min-w-[120px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-rose-950 dark:text-rose-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-rose-500 cursor-pointer shadow-2xs">
         </select>
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -825,6 +942,10 @@
           <button type="button" onclick="deleteStock('tw')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
             <span>🗑️</span><span>刪除</span>
           </button>
+          <div class="inline-flex items-center gap-1 ml-1 border-l border-slate-200 dark:border-slate-700 pl-1.5">
+            <button type="button" onclick="moveCalculationCard('selector', -1)" data-card-move="selector" data-dir="-1" title="操作列版面上移" class="card-move-btn">▲</button>
+            <button type="button" onclick="moveCalculationCard('selector', 1)" data-card-move="selector" data-dir="1" title="操作列版面下移" class="card-move-btn">▼</button>
+          </div>
         </div>
       </div>
 
@@ -833,9 +954,15 @@
           <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">
             1. 台股設定與代號查詢
           </h2>
-          <button type="button" onclick="toggleSectionCollapse('twCard1')" id="twCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-          </button>
+          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+            <div class="inline-flex items-center gap-1">
+              <button type="button" onclick="moveCalculationCard('card1', -1)" data-card-move="card1" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('card1', 1)" data-card-move="card1" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
+            <button type="button" onclick="toggleSectionCollapse('twCard1')" id="twCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
+          </div>
         </div>
 
         <div id="twCard1Body" class="space-y-3.5">
@@ -951,6 +1078,10 @@
             <button type="button" onclick="addTwPlanRow()" class="bg-rose-50 hover:bg-rose-100 text-rose-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-rose-200 cursor-pointer shadow-sm">
               ➕ 新增補倉筆數
             </button>
+            <div class="inline-flex items-center gap-1">
+              <button type="button" onclick="moveCalculationCard('card2', -1)" data-card-move="card2" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('card2', 1)" data-card-move="card2" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
             <button type="button" onclick="toggleSectionCollapse('twCard2')" id="twCard2CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
               <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
             </button>
@@ -972,9 +1103,15 @@
           <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400">
             3. 台股試算結果
           </h2>
-          <button type="button" onclick="toggleSectionCollapse('twResultCard')" id="twResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-          </button>
+          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+            <div class="inline-flex items-center gap-1">
+              <button type="button" onclick="moveCalculationCard('result', -1)" data-card-move="result" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('result', 1)" data-card-move="result" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
+            <button type="button" onclick="toggleSectionCollapse('twResultCard')" id="twResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
+          </div>
         </div>
         
         <div id="twResultCardBody" class="space-y-3">
@@ -1018,6 +1155,10 @@
             <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="bg-teal-600 hover:bg-teal-700 text-white text-[10px] px-2.5 py-1 rounded-lg font-bold border border-teal-400/40 transition flex items-center gap-1 cursor-pointer">
               <span>🔄 更新全組合行情</span>
             </button>
+            <div class="inline-flex items-center gap-1">
+              <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+            </div>
             <button type="button" onclick="toggleSectionCollapse('usPortfolioSummary')" id="usPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
               <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
             </button>
@@ -1087,7 +1228,7 @@
         </div>
       </div>
 
-      <div class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
+      <div id="usStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 flex-wrap">
         <select id="usStockSelector" onchange="switchStock('us', this.value)" class="flex-1 min-w-[120px] border border-slate-300 dark:border-slate-700 rounded-xl p-2 text-xs sm:text-sm font-black text-teal-900 dark:text-teal-300 bg-slate-50 dark:bg-slate-800 outline-none focus:border-teal-500 cursor-pointer shadow-2xs">
         </select>
         <div class="flex items-center gap-1.5 flex-wrap">
@@ -1102,6 +1243,10 @@
           <button type="button" onclick="deleteStock('us')" title="刪除目前選取的股票" class="h-8 sm:h-8.5 px-2.5 sm:px-3 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/70 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/70 rounded-xl font-bold text-[11px] sm:text-xs transition cursor-pointer shadow-2xs active:scale-95">
             <span>🗑️</span><span>刪除</span>
           </button>
+          <div class="inline-flex items-center gap-1 ml-1 border-l border-slate-200 dark:border-slate-700 pl-1.5">
+            <button type="button" onclick="moveCalculationCard('selector', -1)" data-card-move="selector" data-dir="-1" title="操作列版面上移" class="card-move-btn">▲</button>
+            <button type="button" onclick="moveCalculationCard('selector', 1)" data-card-move="selector" data-dir="1" title="操作列版面下移" class="card-move-btn">▼</button>
+          </div>
         </div>
       </div>
 
@@ -1110,9 +1255,15 @@
           <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">
             1. 美股設定與代號查詢
           </h2>
-          <button type="button" onclick="toggleSectionCollapse('usCard1')" id="usCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-          </button>
+          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+            <div class="inline-flex items-center gap-1">
+              <button type="button" onclick="moveCalculationCard('card1', -1)" data-card-move="card1" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('card1', 1)" data-card-move="card1" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
+            <button type="button" onclick="toggleSectionCollapse('usCard1')" id="usCard1CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
+          </div>
         </div>
 
         <div id="usCard1Body" class="space-y-3.5">
@@ -1219,6 +1370,10 @@
             <button type="button" onclick="addUsPlanRow()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 py-1.5 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
               ➕ 新增補倉筆數
             </button>
+            <div class="inline-flex items-center gap-1">
+              <button type="button" onclick="moveCalculationCard('card2', -1)" data-card-move="card2" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('card2', 1)" data-card-move="card2" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
             <button type="button" onclick="toggleSectionCollapse('usCard2')" id="usCard2CollapseBtn" class="collapse-toggle-btn btn-expanded-state">
               <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
             </button>
@@ -1240,9 +1395,15 @@
           <h2 class="font-black text-xs sm:text-sm text-teal-950 dark:text-teal-400">
             3. 美股試算結果
           </h2>
-          <button type="button" onclick="toggleSectionCollapse('usResultCard')" id="usResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
-            <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-          </button>
+          <div class="flex items-center gap-1.5 ml-auto sm:ml-0">
+            <div class="inline-flex items-center gap-1">
+              <button type="button" onclick="moveCalculationCard('result', -1)" data-card-move="result" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('result', 1)" data-card-move="result" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
+            <button type="button" onclick="toggleSectionCollapse('usResultCard')" id="usResultCardCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
+          </div>
         </div>
         
         <div id="usResultCardBody" class="space-y-3">
@@ -1278,6 +1439,7 @@
       </div>
     </div>
   </div>
+</div>
 
   <script type="module">
     import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
@@ -1290,8 +1452,45 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'v0.5.2';
+    const FRONTEND_VERSION = 'v0.6.0';
     
+    // 📐 自訂版面配置預設值與項目對應表
+    const DEFAULT_LAYOUT_CONFIG = {
+      mainOrder: ['adminPanel', 'globalPortfolioCard', 'stocksContainer'],
+      cardsOrder: ['summary', 'selector', 'card1', 'card2', 'result']
+    };
+
+    const CARD_MAP = {
+      tw: {
+        summary: 'twPortfolioSummaryCard',
+        selector: 'twStockSelectorCard',
+        card1: 'twCard1',
+        card2: 'twCard2',
+        result: 'twResultCard'
+      },
+      us: {
+        summary: 'usPortfolioSummaryCard',
+        selector: 'usStockSelectorCard',
+        card1: 'usCard1',
+        card2: 'usCard2',
+        result: 'usResultCard'
+      }
+    };
+
+    const MAIN_NAMES = {
+      adminPanel: { icon: '👑', name: '管理者專屬後台', sub: '僅管理員登入時顯示' },
+      globalPortfolioCard: { icon: '🌍', name: '全球資產合併總覽', sub: '台美股資產折合台幣總額' },
+      stocksContainer: { icon: '📊', name: '台美股核心試算區', sub: '含分頁切換列與各項試算卡片' }
+    };
+
+    const CARD_NAMES = {
+      summary: { icon: '💼', name: '投資組合總覽面板', sub: '彙總名下所有持股損益與資金配置' },
+      selector: { icon: '🗂️', name: '股票切換與操作列', sub: '股票選單、改名、新增、刪除' },
+      card1: { icon: '1️⃣', name: '1. 現有持股試算與行情', sub: '股數、均價、即時市價、停利目標價' },
+      card2: { icon: '2️⃣', name: '2. 分批補倉規劃', sub: '多批次買入試算或目標均價反算' },
+      result: { icon: '3️⃣', name: '3. 試算結果與雲端儲存', sub: '攤平後均價、成本與即時儲存按鈕' }
+    };
+
     // 🎨 主題風格設定 (明暗模式)
     let currentThemeMode = localStorage.getItem('calc_theme_mode') || 'light';
     let isGlobalCollapsed = localStorage.getItem('calc_global_collapsed') === 'true';
@@ -1340,6 +1539,213 @@
           darkBtn.className = "py-3 px-3 rounded-xl border font-bold text-xs flex flex-col items-center justify-center gap-1.5 transition cursor-pointer active:scale-95 bg-slate-100 text-slate-500 border-slate-300 hover:text-slate-800";
         }
       }
+    }
+
+    // ----------------------------------------------------
+    // 📐 自訂版面排版、動態排序與雲端同步引擎
+    // ----------------------------------------------------
+    window.openLayoutModal = function() {
+      const modal = document.getElementById('layoutModal');
+      if (modal) modal.classList.remove('hidden');
+      renderLayoutModalUI();
+    };
+
+    window.closeLayoutModal = function() {
+      const modal = document.getElementById('layoutModal');
+      if (modal) modal.classList.add('hidden');
+    };
+
+    function renderLayoutModalUI() {
+      const mainList = document.getElementById('layoutMainList');
+      const cardsList = document.getElementById('layoutCardsList');
+      if (!mainList || !cardsList) return;
+
+      const mainOrder = (cloudData.layoutConfig && Array.isArray(cloudData.layoutConfig.mainOrder))
+        ? cloudData.layoutConfig.mainOrder
+        : DEFAULT_LAYOUT_CONFIG.mainOrder;
+      const cardsOrder = (cloudData.layoutConfig && Array.isArray(cloudData.layoutConfig.cardsOrder))
+        ? cloudData.layoutConfig.cardsOrder
+        : DEFAULT_LAYOUT_CONFIG.cardsOrder;
+
+      mainList.innerHTML = mainOrder.map((key, idx) => {
+        const info = MAIN_NAMES[key] || { icon: '📦', name: key, sub: '' };
+        const isFirst = (idx === 0);
+        const isLast = (idx === mainOrder.length - 1);
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100">
+            <div class="flex items-center gap-2 min-w-0 pr-2">
+              <span class="text-base flex-shrink-0">${info.icon}</span>
+              <div class="min-w-0">
+                <div class="font-bold text-xs truncate">${info.name}</div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${info.sub}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button type="button" onclick="moveMainSection('${key}', -1)" ${isFirst ? 'disabled' : ''} class="w-7 h-7 flex items-center justify-center rounded-lg border font-bold text-xs transition cursor-pointer active:scale-95 ${isFirst ? 'opacity-25 pointer-events-none border-slate-200 dark:border-slate-800 text-slate-400' : 'bg-white dark:bg-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 shadow-2xs'}">▲</button>
+              <button type="button" onclick="moveMainSection('${key}', 1)" ${isLast ? 'disabled' : ''} class="w-7 h-7 flex items-center justify-center rounded-lg border font-bold text-xs transition cursor-pointer active:scale-95 ${isLast ? 'opacity-25 pointer-events-none border-slate-200 dark:border-slate-800 text-slate-400' : 'bg-white dark:bg-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 shadow-2xs'}">▼</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      cardsList.innerHTML = cardsOrder.map((key, idx) => {
+        const info = CARD_NAMES[key] || { icon: '📄', name: key, sub: '' };
+        const isFirst = (idx === 0);
+        const isLast = (idx === cardsOrder.length - 1);
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-800 dark:text-slate-100">
+            <div class="flex items-center gap-2 min-w-0 pr-2">
+              <span class="text-base flex-shrink-0">${info.icon}</span>
+              <div class="min-w-0">
+                <div class="font-bold text-xs truncate">${info.name}</div>
+                <div class="text-[10px] text-slate-500 dark:text-slate-400 truncate">${info.sub}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1 flex-shrink-0">
+              <button type="button" onclick="moveCalculationCard('${key}', -1)" ${isFirst ? 'disabled' : ''} class="w-7 h-7 flex items-center justify-center rounded-lg border font-bold text-xs transition cursor-pointer active:scale-95 ${isFirst ? 'opacity-25 pointer-events-none border-slate-200 dark:border-slate-800 text-slate-400' : 'bg-white dark:bg-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 shadow-2xs'}">▲</button>
+              <button type="button" onclick="moveCalculationCard('${key}', 1)" ${isLast ? 'disabled' : ''} class="w-7 h-7 flex items-center justify-center rounded-lg border font-bold text-xs transition cursor-pointer active:scale-95 ${isLast ? 'opacity-25 pointer-events-none border-slate-200 dark:border-slate-800 text-slate-400' : 'bg-white dark:bg-slate-700 hover:bg-slate-100 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600 shadow-2xs'}">▼</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.moveMainSection = function(key, direction) {
+      if (!cloudData.layoutConfig || !Array.isArray(cloudData.layoutConfig.mainOrder)) {
+        cloudData.layoutConfig = {
+          mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
+          cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
+        };
+      }
+      const order = cloudData.layoutConfig.mainOrder;
+      const idx = order.indexOf(key);
+      if (idx === -1) return;
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= order.length) return;
+
+      const temp = order[idx];
+      order[idx] = order[targetIdx];
+      order[targetIdx] = temp;
+
+      applyLayoutOrder();
+      renderLayoutModalUI();
+      saveToLocalStorage();
+      if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
+    };
+
+    window.moveCalculationCard = function(cardKey, direction) {
+      if (!cloudData.layoutConfig || !Array.isArray(cloudData.layoutConfig.cardsOrder)) {
+        cloudData.layoutConfig = {
+          mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
+          cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
+        };
+      }
+      const order = cloudData.layoutConfig.cardsOrder;
+      const idx = order.indexOf(cardKey);
+      if (idx === -1) return;
+      const targetIdx = idx + direction;
+      if (targetIdx < 0 || targetIdx >= order.length) return;
+
+      const temp = order[idx];
+      order[idx] = order[targetIdx];
+      order[targetIdx] = temp;
+
+      applyLayoutOrder();
+      renderLayoutModalUI();
+      saveToLocalStorage();
+      if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
+    };
+
+    window.resetDefaultLayout = function() {
+      cloudData.layoutConfig = {
+        mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
+        cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
+      };
+      applyLayoutOrder();
+      renderLayoutModalUI();
+      saveToLocalStorage();
+      if (currentUser && sbClient && navigator.onLine) manualSaveDataSilent();
+      
+      const syncStatus = document.getElementById('syncStatus');
+      if (syncStatus) {
+        const prev = syncStatus.innerText;
+        syncStatus.innerText = '✅ 已還原預設版面';
+        setTimeout(() => { if (syncStatus.innerText === '✅ 已還原預設版面') syncStatus.innerText = prev; }, 2500);
+      }
+    };
+
+    function applyLayoutOrder() {
+      if (!cloudData.layoutConfig || !Array.isArray(cloudData.layoutConfig.mainOrder) || !Array.isArray(cloudData.layoutConfig.cardsOrder)) {
+        cloudData.layoutConfig = {
+          mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
+          cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
+        };
+      }
+
+      // 1. 排列全域主區塊 (在 mainContainer 內，排在免責聲明與主標題之後)
+      const mainContainer = document.getElementById('mainContainer');
+      if (mainContainer && Array.isArray(cloudData.layoutConfig.mainOrder)) {
+        cloudData.layoutConfig.mainOrder.forEach(key => {
+          const el = document.getElementById(key);
+          if (el && el.parentNode === mainContainer) {
+            mainContainer.appendChild(el);
+          }
+        });
+      }
+
+      // 2. 排列台股與美股內部 5 張試算卡片
+      if (Array.isArray(cloudData.layoutConfig.cardsOrder)) {
+        const twView = document.getElementById('twView');
+        if (twView) {
+          cloudData.layoutConfig.cardsOrder.forEach(k => {
+            const id = CARD_MAP.tw[k];
+            const el = document.getElementById(id);
+            if (el && el.parentNode === twView) twView.appendChild(el);
+          });
+        }
+
+        const usView = document.getElementById('usView');
+        if (usView) {
+          cloudData.layoutConfig.cardsOrder.forEach(k => {
+            const id = CARD_MAP.us[k];
+            const el = document.getElementById(id);
+            if (el && el.parentNode === usView) usView.appendChild(el);
+          });
+        }
+      }
+
+      updateMoveButtonStates();
+    }
+
+    function updateMoveButtonStates() {
+      const mainOrder = cloudData.layoutConfig?.mainOrder || DEFAULT_LAYOUT_CONFIG.mainOrder;
+      const cardsOrder = cloudData.layoutConfig?.cardsOrder || DEFAULT_LAYOUT_CONFIG.cardsOrder;
+
+      // 更新主區塊上的微型移動按鈕狀態
+      document.querySelectorAll('[data-main-move]').forEach(btn => {
+        const key = btn.getAttribute('data-main-move');
+        const dir = parseInt(btn.getAttribute('data-dir'), 10);
+        const idx = mainOrder.indexOf(key);
+        if (idx === -1) return;
+        if (dir === -1) {
+          btn.disabled = (idx === 0);
+        } else if (dir === 1) {
+          btn.disabled = (idx === mainOrder.length - 1);
+        }
+      });
+
+      // 更新試算卡片上的微型移動按鈕狀態
+      document.querySelectorAll('[data-card-move]').forEach(btn => {
+        const key = btn.getAttribute('data-card-move');
+        const dir = parseInt(btn.getAttribute('data-dir'), 10);
+        const idx = cardsOrder.indexOf(key);
+        if (idx === -1) return;
+        if (dir === -1) {
+          btn.disabled = (idx === 0);
+        } else if (dir === 1) {
+          btn.disabled = (idx === cardsOrder.length - 1);
+        }
+      });
     }
 
     // ----------------------------------------------------
@@ -1434,7 +1840,16 @@
     let isSyncing = false;
     let latestApiVer = '';
 
-    let cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
+    let cloudData = { 
+      twStocks: {}, 
+      twOrder: [], 
+      usStocks: {}, 
+      usOrder: [],
+      layoutConfig: {
+        mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
+        cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
+      }
+    };
     let currentTwKey = localStorage.getItem('calc_current_tw_key') || "";
     let currentUsKey = localStorage.getItem('calc_current_us_key') || "";
     let pendingGuestData = null;
@@ -1879,7 +2294,18 @@
     }
 
     function sanitizeStockData(data) {
-      if (!data) return { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
+      if (!data) {
+        return {
+          twStocks: {},
+          twOrder: [],
+          usStocks: {},
+          usOrder: [],
+          layoutConfig: {
+            mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
+            cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
+          }
+        };
+      }
       let newTwStocks = {};
       let newTwOrder = [];
 
@@ -1931,6 +2357,32 @@
         data.usOrder = [];
       }
 
+      // 📐 排序配置校驗與備份保留 (Layout Configuration Sanitization)
+      const validMainKeys = ['adminPanel', 'globalPortfolioCard', 'stocksContainer'];
+      const validCardKeys = ['summary', 'selector', 'card1', 'card2', 'result'];
+
+      if (data.layoutConfig && typeof data.layoutConfig === 'object') {
+        let mOrder = Array.isArray(data.layoutConfig.mainOrder)
+          ? data.layoutConfig.mainOrder.filter(k => validMainKeys.includes(k))
+          : [];
+        validMainKeys.forEach(k => { if (!mOrder.includes(k)) mOrder.push(k); });
+
+        let cOrder = Array.isArray(data.layoutConfig.cardsOrder)
+          ? data.layoutConfig.cardsOrder.filter(k => validCardKeys.includes(k))
+          : [];
+        validCardKeys.forEach(k => { if (!cOrder.includes(k)) cOrder.push(k); });
+
+        data.layoutConfig = {
+          mainOrder: mOrder,
+          cardsOrder: cOrder
+        };
+      } else {
+        data.layoutConfig = {
+          mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
+          cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
+        };
+      }
+
       return data;
     }
 
@@ -1939,7 +2391,7 @@
         const localRaw = localStorage.getItem(getLocalStorageKey());
         if (localRaw) {
           const parsed = JSON.parse(localRaw);
-          if (parsed && (Object.keys(parsed.twStocks || {}).length > 0 || Object.keys(parsed.usStocks || {}).length > 0)) {
+          if (parsed && (Object.keys(parsed.twStocks || {}).length > 0 || Object.keys(parsed.usStocks || {}).length > 0 || parsed.layoutConfig)) {
             cloudData = sanitizeStockData(parsed);
             return true;
           }
@@ -3650,7 +4102,7 @@
         else {
           document.getElementById('syncStatus').innerText = '載入中...';
           const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
-          if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0)) {
+          if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0 || data.portfolio_data.layoutConfig)) {
             let localParsed = null; try { const localRaw = localStorage.getItem(getLocalStorageKey()); if (localRaw) localParsed = JSON.parse(localRaw); } catch(e) {}
             if (localParsed && (localParsed.updated_at || 0) > (new Date(data.updated_at).getTime() || 0)) {
               cloudData = sanitizeStockData(localParsed); manualSaveDataSilent();
@@ -3671,7 +4123,7 @@
             isInitializing = true;
             document.getElementById('syncStatus').innerText = '載入中...';
             const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
-            if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0)) {
+            if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0 || data.portfolio_data.layoutConfig)) {
               cloudData = sanitizeStockData(data.portfolio_data); saveToLocalStorage(); initDefaultView();
             } else {
               if (pendingGuestData && Object.keys(pendingGuestData.twStocks || {}).length > 0) { document.getElementById('dataChoiceModal').classList.remove('hidden'); cloudData = sanitizeStockData(pendingGuestData); initDefaultView(); }
@@ -3680,7 +4132,7 @@
             isInitializing = false; loadAdminStats();
             document.getElementById('syncStatus').innerText = '雲端已同步';
           } else if (event === 'SIGNED_OUT') {
-            currentUser = null; cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] };
+            currentUser = null; cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [], layoutConfig: { mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder], cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder] } };
             loadFromLocalStorage(); initDefaultView(); updateAuthUI();
             document.getElementById('syncStatus').innerText = navigator.onLine ? '訪客模式 (未登入)' : '離線模式';
           }
@@ -3692,7 +4144,7 @@
     window.resolveDataChoice = async function(choice) {
       document.getElementById('dataChoiceModal').classList.add('hidden'); isInitializing = false;
       if (choice === 'keep_local') { saveUIToCurrentStock('tw'); saveUIToCurrentStock('us'); saveToLocalStorage(); await manualSaveDataSilent(); alert('同步成功！'); }
-      else { cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [] }; initDefaultView(); saveToLocalStorage(); }
+      else { cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [], layoutConfig: { mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder], cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder] } }; initDefaultView(); saveToLocalStorage(); }
     };
     function initDefaultView() {
       renderStockSelector('tw'); renderStockSelector('us');
@@ -3701,6 +4153,7 @@
       if (!currentUsKey || !cloudData.usOrder.includes(currentUsKey)) { currentUsKey = cloudData.usOrder.length > 0 ? cloudData.usOrder[0] : ""; if (currentUsKey) localStorage.setItem('calc_current_us_key', currentUsKey); }
       loadStockToUI('tw', currentTwKey); loadStockToUI('us', currentUsKey);
       calculateTwPortfolioSummary(); calculateUsPortfolioSummary();
+      applyLayoutOrder();
     }
     function updateAuthUI() {
       const userInfoEl = document.getElementById('userInfo'); 
