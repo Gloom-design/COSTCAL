@@ -1386,6 +1386,7 @@
           <div class="pt-2 border-t border-slate-100">
             <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">或目標攤平均價 (目標均價 - 模式B)</label>
             <input id="tw_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50">
+            <div id="tw_ptarget_hint" class="empty:hidden"></div>
           </div>
         </div>
       </div>
@@ -1413,7 +1414,7 @@
           </div>
           <div class="flex justify-between items-center text-xs sm:text-sm pt-0.5 border-b border-slate-200 dark:border-slate-800 pb-2.5">
             <span class="text-slate-800 dark:text-slate-300 font-semibold">綜合調整後平均成本：</span>
-            <strong id="tw_resAvgPrice" class="text-slate-950 dark:text-yellow-300 text-base sm:text-2xl font-black">NTD$0.00</strong>
+            <strong id="tw_resAvgPrice" class="text-slate-950 dark:text-yellow-300 text-base sm:text-2xl font-black">$0.00</strong>
           </div>
 
           <div id="twBatchResultsContainer" class="space-y-3 pt-1 border-b border-slate-200 dark:border-slate-800 pb-3"></div>
@@ -1690,6 +1691,7 @@
           <div class="pt-2 border-t border-slate-100">
             <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">或目標攤平均價 ($ Target - 模式B)</label>
             <input id="us_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50">
+            <div id="us_ptarget_hint" class="empty:hidden"></div>
           </div>
         </div>
       </div>
@@ -3140,6 +3142,7 @@
         document.getElementById('tw_manualPnlPct').value = ''; document.getElementById('tw_prevClose').value = '';
         document.getElementById('tw_currentPrice').value = ''; document.getElementById('tw_targetPrice').value = '';
         document.getElementById('tw_ptarget').value = ''; document.getElementById('twPlansContainer').innerHTML = '';
+        const twHint = document.getElementById('tw_ptarget_hint'); if (twHint) twHint.innerHTML = '';
         updateTargetAlertBtnUI('tw', false);
         calculateTw();
       } else {
@@ -3148,6 +3151,7 @@
         document.getElementById('us_p1').value = ''; document.getElementById('us_prevClose').value = '';
         document.getElementById('us_currentPrice').value = ''; document.getElementById('us_targetPrice').value = '';
         document.getElementById('us_ptarget').value = ''; document.getElementById('usPlansContainer').innerHTML = '';
+        const usHint = document.getElementById('us_ptarget_hint'); if (usHint) usHint.innerHTML = '';
         updateTargetAlertBtnUI('us', false);
         calculateUs();
       }
@@ -3380,7 +3384,22 @@
         if (el) el.innerText = `補倉批次 #${idx + 1}`;
       });
     }
-    function bindTwPlanEvents(rowEl) { rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); })); }
+    function bindTwPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); }));
+      const n2El = rowEl.querySelector('.tw-plan-n2');
+      if (n2El) {
+        n2El.addEventListener('input', (e) => {
+          if (e.isTrusted) {
+            const pt = document.getElementById('tw_ptarget');
+            if (pt && pt.value) {
+              pt.value = '';
+              const hint = document.getElementById('tw_ptarget_hint');
+              if (hint) hint.innerHTML = '';
+            }
+          }
+        });
+      }
+    }
 
     window.addUsPlanRow = function(p2 = "", n2 = "", alert = false) {
       const container = document.getElementById('usPlansContainer');
@@ -3424,7 +3443,7 @@
     };
     window.copyCurrentPriceToRow = function(btn) {
       const cp = document.getElementById('us_currentPrice').value;
-      if (cp) { btn.closest('.us-plan-row').querySelector('.us-plan-p2').value = cp; calculateUs(); }
+      if (cp) { btn.closest('.us-plan-row').querySelector('.us-plan-p2').value = cp; calculateUs(); saveData(); }
     };
     function relabelUsPlans() {
       document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
@@ -3432,7 +3451,22 @@
         if (el) el.innerText = `補倉批次 #${idx + 1}`;
       });
     }
-    function bindUsPlanEvents(rowEl) { rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); })); }
+    function bindUsPlanEvents(rowEl) {
+      rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); }));
+      const n2El = rowEl.querySelector('.us-plan-n2');
+      if (n2El) {
+        n2El.addEventListener('input', (e) => {
+          if (e.isTrusted) {
+            const pt = document.getElementById('us_ptarget');
+            if (pt && pt.value) {
+              pt.value = '';
+              const hint = document.getElementById('us_ptarget_hint');
+              if (hint) hint.innerHTML = '';
+            }
+          }
+        });
+      }
+    }
 
     window.switchStock = async function(type, key) {
       if (!key) return;
@@ -3524,80 +3558,173 @@
       } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-700 dark:text-slate-400"; targetPnlEl.innerText = '-%'; }
 
       const batchContainer = document.getElementById('twBatchResultsContainer'); batchContainer.innerHTML = '';
+      const twHintEl = document.getElementById('tw_ptarget_hint');
+      if (twHintEl) twHintEl.innerHTML = '';
+
       if (n1 <= 0 || p1 <= 0) {
         document.getElementById('tw_resN1').innerText = '0.0'; document.getElementById('tw_resN2').innerText = '0.0';
-        document.getElementById('tw_resTotalN').innerText = '0.0 股'; document.getElementById('tw_resAvgPrice').innerText = 'NTD$0.00';
+        document.getElementById('tw_resTotalN').innerText = '0.0 股'; document.getElementById('tw_resAvgPrice').innerText = '$0.00';
         document.getElementById('tw_resOriginalCost').innerText = 'NTD$0'; document.getElementById('tw_resAddCost').innerText = 'NTD$0';
+        if (twHintEl && !isNaN(ptargetIn) && ptargetIn > 0) {
+          twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+          twHintEl.innerText = "⚠️ 請先填寫第 1 區「目前庫存股數(N1)」與「目前持有成本(P1)」";
+        }
         calculateTwPortfolioSummary();
         return;
       }
 
       let totalAddShares = 0; let totalAddCost = 0; let finalAvgPrice = p1;
+      let isModeBActive = false;
+
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
         const firstRow = document.querySelector('.tw-plan-row');
-        const p2 = firstRow ? (parseFloat(firstRow.querySelector('.tw-plan-p2').value) || 0) : 0;
-        if (p2 > 0 && ptargetIn > p2) {
-          let roughN2 = (n1 * (p1 - ptargetIn)) / (ptargetIn - p2);
-          if (roughN2 > 0) {
-            totalAddShares = ((n1 * (p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / (ptargetIn - p2);
-            const addFee = calcTwBuyFee(p2, totalAddShares, discount, minFee);
-            totalAddCost = (totalAddShares * p2) + addFee; finalAvgPrice = ptargetIn;
-            const totalCost = totalOriginalCost + totalAddCost; const totalShares = n1 + totalAddShares;
-            const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+        let p2Input = firstRow ? firstRow.querySelector('.tw-plan-p2') : null;
+        let p2 = p2Input ? (parseFloat(p2Input.value) || 0) : 0;
 
-            document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-            document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `NTD$${formatPrice(finalAvgPrice)}`;
-            document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
+        // 若未填寫 P2，自動從「目前市價」或「昨收價」帶入
+        if (p2 <= 0) {
+          if (currentPrice > 0) {
+            p2 = currentPrice;
+            if (p2Input && !p2Input.value) p2Input.value = currentPrice;
+          } else if (prevClose > 0) {
+            p2 = prevClose;
+            if (p2Input && !p2Input.value) p2Input.value = prevClose;
+          }
+        }
 
-            const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-            batchDiv.innerHTML = `
-              <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
-              <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-                <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalAddCost)}</span></div>
-                <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalCost)}</span></div>
-                <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
-                <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
-                <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(finalAvgPrice)}</span></div>
-                <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-              </div>`;
-            batchContainer.appendChild(batchDiv);
-            calculateTwPortfolioSummary();
-            return;
+        if (p2 <= 0) {
+          if (twHintEl) {
+            twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+            twHintEl.innerText = "⚠️ 請在上方「預計買入 (P2)」填寫買入價，或於第 1 區填寫「目前市價」，才能反算加碼股數。";
+          }
+        } else if (p1 === p2) {
+          if (twHintEl) {
+            twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+            twHintEl.innerText = `⚠️ 目前持股成本 ($${formatPrice(p1)}) 與預計買入價 ($${formatPrice(p2)}) 相同，無法反算均價。`;
+          }
+        } else {
+          const isAveragingDown = (p1 > p2);
+          const inRange = isAveragingDown ? (ptargetIn > p2 && ptargetIn < p1) : (ptargetIn > p1 && ptargetIn < p2);
+
+          if (!inRange) {
+            if (twHintEl) {
+              twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+              if (isAveragingDown) {
+                if (ptargetIn >= p1) {
+                  twHintEl.innerText = `⚠️ 攤平目標均價 ($${formatPrice(ptargetIn)}) 需低於持股成本 ($${formatPrice(p1)})`;
+                } else {
+                  twHintEl.innerText = `⚠️ 攤平目標均價 ($${formatPrice(ptargetIn)}) 需高於預計買入價 ($${formatPrice(p2)})`;
+                }
+              } else {
+                twHintEl.innerText = `⚠️ 加碼追價目標均價需介於持股成本 ($${formatPrice(p1)}) 與買入價 ($${formatPrice(p2)}) 之間`;
+              }
+            }
+          } else {
+            let roughN2 = Math.abs((n1 * (p1 - ptargetIn)) / (ptargetIn - p2));
+            if (roughN2 > 0) {
+              totalAddShares = ((n1 * Math.abs(p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / Math.abs(ptargetIn - p2);
+              const addFee = calcTwBuyFee(p2, totalAddShares, discount, minFee);
+              totalAddCost = (totalAddShares * p2) + addFee;
+              finalAvgPrice = ptargetIn;
+              const totalCost = totalOriginalCost + totalAddCost;
+              const totalShares = n1 + totalAddShares;
+              const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+
+              isModeBActive = true;
+
+              if (firstRow) {
+                const n2Input = firstRow.querySelector('.tw-plan-n2');
+                if (n2Input) {
+                  n2Input.value = totalAddShares.toFixed(1);
+                  n2Input.dataset.modeBAuto = "true";
+                }
+              }
+
+              if (twHintEl) {
+                twHintEl.className = "text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-300 dark:border-emerald-800/60 mt-1.5 space-y-1 shadow-xs";
+                twHintEl.innerHTML = `
+                  <div class="flex justify-between items-center flex-wrap gap-1">
+                    <span>⚡ <strong>模式B反算成功</strong>：以買入價 $${formatPrice(p2)} 補倉</span>
+                    <span class="text-sky-900 dark:text-cyan-300 font-black text-xs sm:text-sm">需加碼 ${totalAddShares.toFixed(1)} 股</span>
+                  </div>
+                  <div class="text-[10px] text-slate-700 dark:text-slate-300 flex justify-between items-center">
+                    <span>預計需投入資金: <strong class="text-slate-900 dark:text-white">NTD$${formatMoney(totalAddCost)}</strong> (含手續費 NTD$${formatMoney(addFee)})</span>
+                    <span>調整後均價: <strong class="text-amber-800 dark:text-yellow-300">$${formatPrice(finalAvgPrice)}</strong></span>
+                  </div>`;
+              }
+
+              document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
+              document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+              document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
+              document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+              document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`;
+              document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
+
+              const batchDiv = document.createElement('div');
+              batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+              batchDiv.innerHTML = `
+                <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1 flex justify-between items-center">
+                  <span>📦 補倉批次 #1 (模式B反算)</span>
+                  <span class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">以買入價 $${formatPrice(p2)}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+                  <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalAddCost)}</span></div>
+                  <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalCost)}</span></div>
+                  <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
+                  <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
+                  <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(finalAvgPrice)}</span></div>
+                  <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+                </div>`;
+              batchContainer.appendChild(batchDiv);
+            }
           }
         }
       }
 
-      let cumulativeShares = n1; let cumulativeCost = totalOriginalCost;
-      document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
-        const p2 = parseFloat(row.querySelector('.tw-plan-p2').value) || 0;
-        const n2 = parseFloat(row.querySelector('.tw-plan-n2').value) || 0;
-        if (p2 > 0 && n2 > 0) {
-          totalAddShares += n2;
-          const batchCost = (p2 * n2) + calcTwBuyFee(p2, n2, discount, minFee);
-          totalAddCost += batchCost; cumulativeShares += n2; cumulativeCost += batchCost;
-          const batchAvgPrice = cumulativeCost / cumulativeShares;
-          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
-
-          const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-          batchDiv.innerHTML = `
-            <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
-            <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-              <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(batchCost)}</span></div>
-              <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(cumulativeCost)}</span></div>
-              <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
-              <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
-              <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(batchAvgPrice)}</span></div>
-              <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-            </div>`;
-          batchContainer.appendChild(batchDiv);
+      if (!isModeBActive) {
+        const firstRow = document.querySelector('.tw-plan-row');
+        if (firstRow) {
+          const n2Input = firstRow.querySelector('.tw-plan-n2');
+          if (n2Input && n2Input.dataset.modeBAuto === "true" && (isNaN(ptargetIn) || ptargetIn <= 0)) {
+            n2Input.value = '';
+            delete n2Input.dataset.modeBAuto;
+          }
         }
-      });
+
+        let cumulativeShares = n1; let cumulativeCost = totalOriginalCost;
+        document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
+          const p2 = parseFloat(row.querySelector('.tw-plan-p2').value) || 0;
+          const n2 = parseFloat(row.querySelector('.tw-plan-n2').value) || 0;
+          if (p2 > 0 && n2 > 0) {
+            totalAddShares += n2;
+            const batchCost = (p2 * n2) + calcTwBuyFee(p2, n2, discount, minFee);
+            totalAddCost += batchCost; cumulativeShares += n2; cumulativeCost += batchCost;
+            const batchAvgPrice = cumulativeCost / cumulativeShares;
+            const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+            const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+            batchDiv.innerHTML = `
+              <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+              <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+                <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(batchCost)}</span></div>
+                <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(cumulativeCost)}</span></div>
+                <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
+                <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
+                <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(batchAvgPrice)}</span></div>
+                <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              </div>`;
+            batchContainer.appendChild(batchDiv);
+          }
+        });
+
+        const totalShares = n1 + totalAddShares; const totalCost = totalOriginalCost + totalAddCost;
+        finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
+        document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+        document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
+        document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
+      }
 
       const totalShares = n1 + totalAddShares; const totalCost = totalOriginalCost + totalAddCost;
-      finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
-      document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-      document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `NTD$${formatPrice(finalAvgPrice)}`;
-      document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
 
       // 🚀 補倉加碼後合併達標預期獲利試算
       const twPostPlanPnlEl = document.getElementById('tw_targetPostPlanPnlDisplay');
@@ -3609,7 +3736,7 @@
             const postPlanTargetPct = totalCost > 0 ? (postPlanTargetAmt / totalCost) * 100 : 0;
             twPostPlanPnlEl.className = `font-extrabold text-xs sm:text-sm ${getPnlColor('tw', postPlanTargetAmt)}`;
             twPostPlanPnlEl.innerText = `${postPlanTargetPct > 0 ? '+' : ''}${postPlanTargetPct.toFixed(2)}% (${postPlanTargetAmt >= 0 ? '+' : ''}NTD$${formatMoney(postPlanTargetAmt)})`;
-            if (twPostPlanSubEl) twPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 NTD$${formatPrice(finalAvgPrice)})`;
+            if (twPostPlanSubEl) twPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 $${formatPrice(finalAvgPrice)})`;
           } else {
             twPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-400";
             twPostPlanPnlEl.innerText = "同現有持股";
@@ -3632,6 +3759,7 @@
       const exchangeRate = parseFloat(document.getElementById('us_exchangeRate').value) || 32;
       const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
       const targetPrice = parseFloat(document.getElementById('us_targetPrice').value) || 0;
+      const prevClose = parseFloat(document.getElementById('us_prevClose').value) || 0;
       const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
 
       const pnlPct = (p1 > 0 && currentPrice > 0) ? ((currentPrice - p1) / p1) * 100 : null;
@@ -3663,86 +3791,180 @@
       }
 
       const batchContainer = document.getElementById('usBatchResultsContainer'); batchContainer.innerHTML = '';
+      const usHintEl = document.getElementById('us_ptarget_hint');
+      if (usHintEl) usHintEl.innerHTML = '';
+
       if (n1 <= 0 || p1 <= 0) {
         document.getElementById('us_resN1').innerText = '0.0'; document.getElementById('us_resN2').innerText = '0.0';
         document.getElementById('us_resTotalN').innerText = '0.0 股'; document.getElementById('us_resAvgPriceTWD').innerText = 'NTD$0.00';
         document.getElementById('us_resAvgPrice').innerText = 'USD$0.00'; document.getElementById('us_resOriginalCostTWD').innerText = 'NTD$0';
         document.getElementById('us_resOriginalCostUSD').innerText = 'USD$0'; document.getElementById('us_resAddCostTWD').innerText = 'NTD$0';
         document.getElementById('us_resAddCostUSD').innerText = 'USD$0';
+        if (usHintEl && !isNaN(ptargetIn) && ptargetIn > 0) {
+          usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+          usHintEl.innerText = "⚠️ 請先填寫第 1 區「目前庫存股數(N1)」與「目前持有成本(P1)」";
+        }
         calculateUsPortfolioSummary();
         return;
       }
 
       const origUSD = n1 * p1; let totalAddShares = 0; let totalAddCostUSD = 0; let finalAvgPrice = p1;
+      let isModeBActive = false;
+
       if (!isNaN(ptargetIn) && ptargetIn > 0) {
         const firstRow = document.querySelector('.us-plan-row');
-        const p2 = firstRow ? (parseFloat(firstRow.querySelector('.us-plan-p2').value) || 0) : 0;
-        if (p2 > 0 && ptargetIn > p2) {
-          totalAddShares = ((n1 * (p1 - ptargetIn)) + fee) / (ptargetIn - p2);
-          if (totalAddShares > 0) totalAddCostUSD = totalAddShares * p2;
-          finalAvgPrice = ptargetIn;
-          const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
+        let p2Input = firstRow ? firstRow.querySelector('.us-plan-p2') : null;
+        let p2 = p2Input ? (parseFloat(p2Input.value) || 0) : 0;
 
-          document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-          document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
-          document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`; document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
-          document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`; document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
-          document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
+        if (p2 <= 0) {
+          if (currentPrice > 0) {
+            p2 = currentPrice;
+            if (p2Input && !p2Input.value) p2Input.value = currentPrice;
+          } else if (prevClose > 0) {
+            p2 = prevClose;
+            if (p2Input && !p2Input.value) p2Input.value = prevClose;
+          }
+        }
 
-          const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
-          const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-          batchDiv.innerHTML = `
-            <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #1 (模式B反算)</div>
-            <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-              <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(totalAddCostUSD * exchangeRate)}</span></div>
-              <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalAddCostUSD)}</span></div>
-              <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
-              <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalCostUSD)}</span></div>
-              <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
-              <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
-              <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(finalAvgPrice * exchangeRate)} (USD$${formatPrice(finalAvgPrice)})</span></div>
-              <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-            </div>`;
-          batchContainer.appendChild(batchDiv);
-          calculateUsPortfolioSummary();
-          return;
+        if (p2 <= 0) {
+          if (usHintEl) {
+            usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+            usHintEl.innerText = "⚠️ 請在上方「預計買入 ($ P2)」填寫買入價，或於第 1 區填寫「目前市價」，才能反算加碼股數。";
+          }
+        } else if (p1 === p2) {
+          if (usHintEl) {
+            usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+            usHintEl.innerText = `⚠️ 目前持股成本 (USD$${formatPrice(p1)}) 與預計買入價 (USD$${formatPrice(p2)}) 相同，無法反算均價。`;
+          }
+        } else {
+          const isAveragingDown = (p1 > p2);
+          const inRange = isAveragingDown ? (ptargetIn > p2 && ptargetIn < p1) : (ptargetIn > p1 && ptargetIn < p2);
+
+          if (!inRange) {
+            if (usHintEl) {
+              usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+              if (isAveragingDown) {
+                if (ptargetIn >= p1) {
+                  usHintEl.innerText = `⚠️ 攤平目標均價 (USD$${formatPrice(ptargetIn)}) 需低於持股成本 (USD$${formatPrice(p1)})`;
+                } else {
+                  usHintEl.innerText = `⚠️ 攤平目標均價 (USD$${formatPrice(ptargetIn)}) 需高於預計買入價 (USD$${formatPrice(p2)})`;
+                }
+              } else {
+                usHintEl.innerText = `⚠️ 加碼追價目標均價需介於持股成本 (USD$${formatPrice(p1)}) 與買入價 (USD$${formatPrice(p2)}) 之間`;
+              }
+            }
+          } else {
+            totalAddShares = ((n1 * Math.abs(p1 - ptargetIn)) + fee) / Math.abs(ptargetIn - p2);
+            if (totalAddShares > 0) {
+              totalAddCostUSD = totalAddShares * p2;
+              finalAvgPrice = ptargetIn;
+              const totalCostUSD = origUSD + totalAddCostUSD + fee;
+              const totalShares = n1 + totalAddShares;
+              const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+
+              isModeBActive = true;
+
+              if (firstRow) {
+                const n2Input = firstRow.querySelector('.us-plan-n2');
+                if (n2Input) {
+                  n2Input.value = totalAddShares.toFixed(1);
+                  n2Input.dataset.modeBAuto = "true";
+                }
+              }
+
+              if (usHintEl) {
+                usHintEl.className = "text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-300 dark:border-emerald-800/60 mt-1.5 space-y-1 shadow-xs";
+                usHintEl.innerHTML = `
+                  <div class="flex justify-between items-center flex-wrap gap-1">
+                    <span>⚡ <strong>模式B反算成功</strong>：以買入價 USD$${formatPrice(p2)} 補倉</span>
+                    <span class="text-teal-900 dark:text-cyan-300 font-black text-xs sm:text-sm">需加碼 ${totalAddShares.toFixed(1)} 股</span>
+                  </div>
+                  <div class="text-[10px] text-slate-700 dark:text-slate-300 flex justify-between items-center">
+                    <span>預計需投入資金: <strong class="text-slate-900 dark:text-white">USD$${formatMoney(totalAddCostUSD + fee)}</strong> (折合 NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)})</span>
+                    <span>調整後均價: <strong class="text-amber-800 dark:text-yellow-300">USD$${formatPrice(finalAvgPrice)}</strong></span>
+                  </div>`;
+              }
+
+              document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
+              document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+              document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
+              document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
+              document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`;
+              document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
+              document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`;
+              document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+              document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
+
+              const batchDiv = document.createElement('div');
+              batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+              batchDiv.innerHTML = `
+                <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1 flex justify-between items-center">
+                  <span>📦 補倉批次 #1 (模式B反算)</span>
+                  <span class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">以買入價 USD$${formatPrice(p2)}</span>
+                </div>
+                <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+                  <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}</span></div>
+                  <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalAddCostUSD + fee)}</span></div>
+                  <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
+                  <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalCostUSD)}</span></div>
+                  <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
+                  <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
+                  <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(finalAvgPrice * exchangeRate)} (USD$${formatPrice(finalAvgPrice)})</span></div>
+                  <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+                </div>`;
+              batchContainer.appendChild(batchDiv);
+            }
+          }
         }
       }
 
-      let cumulativeShares = n1; let cumulativeCostUSD = origUSD;
-      document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
-        const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
-        const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
-        if (p2 > 0 && n2 > 0) {
-          totalAddShares += n2; const batchCostUSD = p2 * n2; totalAddCostUSD += batchCostUSD;
-          cumulativeShares += n2; cumulativeCostUSD += batchCostUSD;
-          const batchAvgPrice = cumulativeCostUSD / cumulativeShares;
-          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
-
-          const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-          batchDiv.innerHTML = `
-            <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
-            <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-              <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
-              <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(batchCostUSD)}</span></div>
-              <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
-              <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(cumulativeCostUSD)}</span></div>
-              <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
-              <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
-              <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(batchAvgPrice * exchangeRate)} (USD$${formatPrice(batchAvgPrice)})</span></div>
-              <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-            </div>`;
-          batchContainer.appendChild(batchDiv);
+      if (!isModeBActive) {
+        const firstRow = document.querySelector('.us-plan-row');
+        if (firstRow) {
+          const n2Input = firstRow.querySelector('.us-plan-n2');
+          if (n2Input && n2Input.dataset.modeBAuto === "true" && (isNaN(ptargetIn) || ptargetIn <= 0)) {
+            n2Input.value = '';
+            delete n2Input.dataset.modeBAuto;
+          }
         }
-      });
+
+        let cumulativeShares = n1; let cumulativeCostUSD = origUSD;
+        document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
+          const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
+          const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
+          if (p2 > 0 && n2 > 0) {
+            totalAddShares += n2; const batchCostUSD = p2 * n2; totalAddCostUSD += batchCostUSD;
+            cumulativeShares += n2; cumulativeCostUSD += batchCostUSD;
+            const batchAvgPrice = cumulativeCostUSD / cumulativeShares;
+            const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+            const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+            batchDiv.innerHTML = `
+              <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+              <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+                <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
+                <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(batchCostUSD)}</span></div>
+                <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
+                <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(cumulativeCostUSD)}</span></div>
+                <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
+                <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
+                <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(batchAvgPrice * exchangeRate)} (USD$${formatPrice(batchAvgPrice)})</span></div>
+                <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+              </div>`;
+            batchContainer.appendChild(batchDiv);
+          }
+        });
+
+        const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
+        finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
+        document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
+        document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
+        document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`; document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
+        document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`; document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
+        document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
+      }
 
       const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
-      finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
-      document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-      document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
-      document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`; document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
-      document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`; document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
-      document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
 
       // 🚀 美股補倉加碼後合併達標預期獲利試算
       const usPostPlanPnlEl = document.getElementById('us_targetPostPlanPnlDisplay');
