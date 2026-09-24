@@ -1364,7 +1364,7 @@
       <div id="twCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
         <div class="flex justify-between items-center border-b pb-2.5 flex-wrap gap-2">
           <div class="flex items-center gap-2">
-            <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
+            <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">2. 分批補倉規劃 (模式A)</h2>
           </div>
           <div class="flex items-center gap-1.5 ml-auto">
             <button type="button" onclick="addTwPlanRow()" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-800 px-3 rounded-xl font-bold text-[10px] sm:text-xs border border-rose-200 cursor-pointer shadow-sm">
@@ -1382,20 +1382,60 @@
 
         <div id="twCard2Body" class="space-y-4">
           <div id="twPlansContainer" class="space-y-3"></div>
+        </div>
+      </div>
 
-          <div class="pt-2 border-t border-slate-100">
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">或目標攤平均價 (目標均價 - 模式B)</label>
-            <input id="tw_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50">
-            <div id="tw_ptarget_hint" class="empty:hidden"></div>
+      <div id="twCardModeB" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2.5 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <h2 class="font-black text-rose-950 dark:text-rose-400 text-xs sm:text-sm">3. 目標攤平均價 (模式B)</h2>
+            <span class="text-[10px] bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded-full font-bold">反算股數與資金</span>
           </div>
+          <div class="flex items-center gap-1.5 ml-auto">
+            <div class="move-btn-group tw-move-group">
+              <button type="button" onclick="moveCalculationCard('cardModeB', -1)" data-card-move="cardModeB" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('cardModeB', 1)" data-card-move="cardModeB" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
+            <button type="button" onclick="toggleSectionCollapse('twCardModeB')" id="twCardModeBCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="twCardModeBBody" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">
+                預期成本價格 (目標均價)
+              </label>
+              <input id="tw_ptarget" type="number" step="0.01" placeholder="輸入預期成本均價 (例: 95.0)" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50 dark:bg-slate-800/80 dark:text-white dark:border-slate-700">
+              <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-1">希望攤平或調整後達成的平均價格</div>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">
+                  預估買入價格
+                </label>
+                <button type="button" onclick="copyCurrentPriceToModeB('tw')" class="text-[10px] text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 px-2 py-0.5 rounded font-bold border border-rose-200 dark:border-rose-800 cursor-pointer transition">
+                  帶入市價
+                </button>
+              </div>
+              <input id="tw_target_p2" type="number" step="0.01" placeholder="輸入預估買入單價 (例: 85.0)" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50 dark:bg-slate-800/80 dark:text-white dark:border-slate-700">
+              <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-1">預計單筆買入之成交價格</div>
+            </div>
+          </div>
+
+          <div id="twModeBResultBox"></div>
         </div>
       </div>
 
       <div id="twResultCard" class="card-box bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3">
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
-          <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400">
-            3. 台股試算結果
-          </h2>
+          <div class="flex items-center gap-2">
+            <h2 class="font-black text-xs sm:text-sm text-rose-950 dark:text-rose-400">
+              4. 台股試算結果
+            </h2>
+          </div>
           <div class="flex items-center gap-1.5 ml-auto">
             <div class="move-btn-group tw-move-group">
               <button type="button" onclick="moveCalculationCard('result', -1)" data-card-move="result" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
@@ -1408,6 +1448,14 @@
         </div>
         
         <div id="twResultCardBody" class="space-y-3">
+          <div id="twResultModeSwitcher" class="hidden flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl gap-1 text-[11px] font-bold">
+            <button type="button" onclick="switchTwResultMode('plan')" id="twResTabPlan" class="flex-1 py-1.5 rounded-lg text-center transition cursor-pointer">
+              模式A：分批補倉
+            </button>
+            <button type="button" onclick="switchTwResultMode('modeB')" id="twResTabModeB" class="flex-1 py-1.5 rounded-lg text-center transition cursor-pointer">
+              模式B：目標均價
+            </button>
+          </div>
           <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-200 dark:border-slate-800 pb-2.5">
             <span class="text-slate-800 dark:text-slate-300 font-semibold">原始股數 /分批補倉股數 / 總股數：</span>
             <span><strong id="tw_resN1" class="text-slate-900 dark:text-slate-300 font-bold">0.0</strong> / <strong id="tw_resN2" class="text-slate-950 dark:text-white font-extrabold">0.0</strong> / <strong id="tw_resTotalN" class="text-sky-950 dark:text-cyan-300 font-black">0.0 股</strong></span>
@@ -1669,7 +1717,7 @@
       <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
         <div class="flex justify-between items-center border-b pb-2.5 flex-wrap gap-2">
           <div class="flex items-center gap-2">
-            <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">2. 分批補倉規劃</h2>
+            <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">2. 分批補倉規劃 (模式A)</h2>
           </div>
           <div class="flex items-center gap-1.5 ml-auto">
             <button type="button" onclick="addUsPlanRow()" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-teal-50 hover:bg-teal-100 text-teal-800 px-3 rounded-xl font-bold text-[10px] sm:text-xs border border-teal-200 cursor-pointer shadow-sm">
@@ -1687,20 +1735,60 @@
 
         <div id="usCard2Body" class="space-y-4">
           <div id="usPlansContainer" class="space-y-3"></div>
+        </div>
+      </div>
 
-          <div class="pt-2 border-t border-slate-100">
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">或目標攤平均價 ($ Target - 模式B)</label>
-            <input id="us_ptarget" type="number" step="0.01" placeholder="輸入目標均價自動反算加碼" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50">
-            <div id="us_ptarget_hint" class="empty:hidden"></div>
+      <div id="usCardModeB" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
+        <div class="flex justify-between items-center border-b pb-2.5 flex-wrap gap-2">
+          <div class="flex items-center gap-2">
+            <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">3. 目標攤平均價 (模式B)</h2>
+            <span class="text-[10px] bg-teal-100 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 px-2 py-0.5 rounded-full font-bold">反算股數與資金</span>
           </div>
+          <div class="flex items-center gap-1.5 ml-auto">
+            <div class="move-btn-group us-move-group">
+              <button type="button" onclick="moveCalculationCard('cardModeB', -1)" data-card-move="cardModeB" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('cardModeB', 1)" data-card-move="cardModeB" data-dir="1" title="卡片版面下移" class="card-move-btn">▼</button>
+            </div>
+            <button type="button" onclick="toggleSectionCollapse('usCardModeB')" id="usCardModeBCollapseBtn" class="collapse-toggle-btn btn-expanded-state">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="usCardModeBBody" class="space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">
+                預期成本價格 ($ Target 均價)
+              </label>
+              <input id="us_ptarget" type="number" step="0.01" placeholder="輸入預期成本均價 (例: 175.0)" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50 dark:bg-slate-800/80 dark:text-white dark:border-slate-700">
+              <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-1">希望攤平或調整後達成的美元均價</div>
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">
+                  預估買入價格 ($ USD)
+                </label>
+                <button type="button" onclick="copyCurrentPriceToModeB('us')" class="text-[10px] text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 dark:hover:bg-teal-900/60 px-2 py-0.5 rounded font-bold border border-teal-200 dark:border-teal-800 cursor-pointer transition">
+                  帶入市價
+                </button>
+              </div>
+              <input id="us_target_p2" type="number" step="0.01" placeholder="輸入預估買入單價 (例: 160.0)" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none bg-slate-50 dark:bg-slate-800/80 dark:text-white dark:border-slate-700">
+              <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-1">預計單筆買入之美元成交價格</div>
+            </div>
+          </div>
+
+          <div id="usModeBResultBox"></div>
         </div>
       </div>
 
       <div id="usResultCard" class="card-box bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3">
         <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
-          <h2 class="font-black text-xs sm:text-sm text-teal-950 dark:text-teal-400">
-            3. 美股試算結果
-          </h2>
+          <div class="flex items-center gap-2">
+            <h2 class="font-black text-xs sm:text-sm text-teal-950 dark:text-teal-400">
+              4. 美股試算結果
+            </h2>
+          </div>
           <div class="flex items-center gap-1.5 ml-auto">
             <div class="move-btn-group us-move-group">
               <button type="button" onclick="moveCalculationCard('result', -1)" data-card-move="result" data-dir="-1" title="卡片版面上移" class="card-move-btn">▲</button>
@@ -1713,6 +1801,14 @@
         </div>
         
         <div id="usResultCardBody" class="space-y-3">
+          <div id="usResultModeSwitcher" class="hidden flex items-center p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl gap-1 text-[11px] font-bold">
+            <button type="button" onclick="switchUsResultMode('plan')" id="usResTabPlan" class="flex-1 py-1.5 rounded-lg text-center transition cursor-pointer">
+              模式A：分批補倉
+            </button>
+            <button type="button" onclick="switchUsResultMode('modeB')" id="usResTabModeB" class="flex-1 py-1.5 rounded-lg text-center transition cursor-pointer">
+              模式B：目標均價
+            </button>
+          </div>
           <div class="flex justify-between items-center text-xs sm:text-sm border-b border-slate-200 dark:border-slate-800 pb-2.5">
             <span class="text-slate-800 dark:text-slate-300 font-semibold">原始股數 /分批補倉股數 / 總股數：</span>
             <span><strong id="us_resN1" class="text-slate-900 dark:text-slate-300 font-bold">0.0</strong> / <strong id="us_resN2" class="text-slate-950 dark:text-white font-extrabold">0.0</strong> / <strong id="us_resTotalN" class="text-teal-950 dark:text-teal-300 font-black">0.0 股</strong></span>
@@ -1764,7 +1860,7 @@
     // 📐 自訂版面配置預設值與項目對應表
     const DEFAULT_LAYOUT_CONFIG = {
       mainOrder: ['adminPanel', 'globalPortfolioCard', 'stocksContainer'],
-      cardsOrder: ['summary', 'selector', 'card1', 'card2', 'result']
+      cardsOrder: ['summary', 'selector', 'card1', 'card2', 'cardModeB', 'result']
     };
 
     const CARD_MAP = {
@@ -1773,6 +1869,7 @@
         selector: 'twStockSelectorCard',
         card1: 'twCard1',
         card2: 'twCard2',
+        cardModeB: 'twCardModeB',
         result: 'twResultCard'
       },
       us: {
@@ -1780,6 +1877,7 @@
         selector: 'usStockSelectorCard',
         card1: 'usCard1',
         card2: 'usCard2',
+        cardModeB: 'usCardModeB',
         result: 'usResultCard'
       }
     };
@@ -1794,8 +1892,9 @@
       summary: { icon: '💼', name: '投資組合總覽面板', sub: '彙總名下所有持股損益與資金配置' },
       selector: { icon: '🗂️', name: '股票切換與操作列', sub: '股票選單、改名、新增、刪除' },
       card1: { icon: '1️⃣', name: '1. 現有持股試算與行情', sub: '股數、均價、即時市價、停利目標價' },
-      card2: { icon: '2️⃣', name: '2. 分批補倉規劃', sub: '多批次買入試算或目標均價反算' },
-      result: { icon: '3️⃣', name: '3. 試算結果與雲端儲存', sub: '攤平後均價、成本與即時儲存按鈕' }
+      card2: { icon: '2️⃣', name: '2. 分批補倉規劃 (模式A)', sub: '多批次買入股數與價格試算' },
+      cardModeB: { icon: '🎯', name: '3. 目標攤平均價 (模式B)', sub: '設定目標均價與預估買價反算股數與資金' },
+      result: { icon: '4️⃣', name: '4. 試算結果與雲端儲存', sub: '綜合調整後均價、成本與即時儲存按鈕' }
     };
 
     // 🎨 主題風格設定 (明暗模式)
@@ -1987,6 +2086,15 @@
           mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder],
           cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder]
         };
+      } else {
+        if (!cloudData.layoutConfig.cardsOrder.includes('cardModeB')) {
+          const c2Idx = cloudData.layoutConfig.cardsOrder.indexOf('card2');
+          if (c2Idx !== -1) {
+            cloudData.layoutConfig.cardsOrder.splice(c2Idx + 1, 0, 'cardModeB');
+          } else {
+            cloudData.layoutConfig.cardsOrder.push('cardModeB');
+          }
+        }
       }
 
       // 1. 排列全域主區塊 (在 mainContainer 內，排在免責聲明與主標題之後)
@@ -2000,7 +2108,7 @@
         });
       }
 
-      // 2. 排列台股與美股內部 5 張試算卡片
+      // 2. 排列台股與美股內部 6 張試算卡片
       if (Array.isArray(cloudData.layoutConfig.cardsOrder)) {
         const twView = document.getElementById('twView');
         if (twView) {
@@ -2065,10 +2173,12 @@
       'twPortfolioSummary',
       'twCard1',
       'twCard2',
+      'twCardModeB',
       'twResultCard',
       'usPortfolioSummary',
       'usCard1',
       'usCard2',
+      'usCardModeB',
       'usResultCard'
     ];
 
@@ -2666,7 +2776,7 @@
 
       // 📐 排序配置校驗與備份保留 (Layout Configuration Sanitization)
       const validMainKeys = ['adminPanel', 'globalPortfolioCard', 'stocksContainer'];
-      const validCardKeys = ['summary', 'selector', 'card1', 'card2', 'result'];
+      const validCardKeys = ['summary', 'selector', 'card1', 'card2', 'cardModeB', 'result'];
 
       if (data.layoutConfig && typeof data.layoutConfig === 'object') {
         let mOrder = Array.isArray(data.layoutConfig.mainOrder)
@@ -2677,6 +2787,14 @@
         let cOrder = Array.isArray(data.layoutConfig.cardsOrder)
           ? data.layoutConfig.cardsOrder.filter(k => validCardKeys.includes(k))
           : [];
+        if (!cOrder.includes('cardModeB')) {
+          const c2Idx = cOrder.indexOf('card2');
+          if (c2Idx !== -1) {
+            cOrder.splice(c2Idx + 1, 0, 'cardModeB');
+          } else {
+            cOrder.push('cardModeB');
+          }
+        }
         validCardKeys.forEach(k => { if (!cOrder.includes(k)) cOrder.push(k); });
 
         data.layoutConfig = {
@@ -3141,8 +3259,9 @@
         document.getElementById('tw_n1').value = ''; document.getElementById('tw_p1').value = '';
         document.getElementById('tw_manualPnlPct').value = ''; document.getElementById('tw_prevClose').value = '';
         document.getElementById('tw_currentPrice').value = ''; document.getElementById('tw_targetPrice').value = '';
-        document.getElementById('tw_ptarget').value = ''; document.getElementById('twPlansContainer').innerHTML = '';
-        const twHint = document.getElementById('tw_ptarget_hint'); if (twHint) twHint.innerHTML = '';
+        document.getElementById('tw_ptarget').value = ''; document.getElementById('tw_target_p2').value = '';
+        document.getElementById('twPlansContainer').innerHTML = '';
+        const twModeBBox = document.getElementById('twModeBResultBox'); if (twModeBBox) twModeBBox.innerHTML = '';
         updateTargetAlertBtnUI('tw', false);
         calculateTw();
       } else {
@@ -3150,8 +3269,9 @@
         document.getElementById('us_fee').value = '0'; document.getElementById('us_n1').value = '';
         document.getElementById('us_p1').value = ''; document.getElementById('us_prevClose').value = '';
         document.getElementById('us_currentPrice').value = ''; document.getElementById('us_targetPrice').value = '';
-        document.getElementById('us_ptarget').value = ''; document.getElementById('usPlansContainer').innerHTML = '';
-        const usHint = document.getElementById('us_ptarget_hint'); if (usHint) usHint.innerHTML = '';
+        document.getElementById('us_ptarget').value = ''; document.getElementById('us_target_p2').value = '';
+        document.getElementById('usPlansContainer').innerHTML = '';
+        const usModeBBox = document.getElementById('usModeBResultBox'); if (usModeBBox) usModeBBox.innerHTML = '';
         updateTargetAlertBtnUI('us', false);
         calculateUs();
       }
@@ -3274,7 +3394,8 @@
           manualPnlPct: document.getElementById('tw_manualPnlPct').value, prevClose: document.getElementById('tw_prevClose').value,
           currentPrice: document.getElementById('tw_currentPrice').value, targetPrice: document.getElementById('tw_targetPrice').value,
           targetAlert: targetAlertActive,
-          plans: plans, ptarget: document.getElementById('tw_ptarget').value
+          plans: plans, ptarget: document.getElementById('tw_ptarget').value,
+          target_p2: document.getElementById('tw_target_p2').value
         };
       } else {
         if (!currentUsKey) return;
@@ -3297,7 +3418,8 @@
           prevClose: document.getElementById('us_prevClose').value, currentPrice: document.getElementById('us_currentPrice').value,
           targetPrice: document.getElementById('us_targetPrice').value,
           targetAlert: targetAlertActive,
-          plans: plans, ptarget: document.getElementById('us_ptarget').value
+          plans: plans, ptarget: document.getElementById('us_ptarget').value,
+          target_p2: document.getElementById('us_target_p2').value
         };
       }
     }
@@ -3313,6 +3435,7 @@
         document.getElementById('tw_manualPnlPct').value = tw.manualPnlPct || ''; document.getElementById('tw_prevClose').value = tw.prevClose || '';
         document.getElementById('tw_currentPrice').value = tw.currentPrice || ''; document.getElementById('tw_targetPrice').value = tw.targetPrice || '';
         document.getElementById('tw_ptarget').value = tw.ptarget || '';
+        document.getElementById('tw_target_p2').value = tw.target_p2 || '';
         updateTargetAlertBtnUI('tw', !!tw.targetAlert);
         const container = document.getElementById('twPlansContainer'); container.innerHTML = '';
         const plans = (tw.plans && tw.plans.length > 0) ? tw.plans : [{ p2: "", n2: "", alert: false }];
@@ -3325,7 +3448,9 @@
         document.getElementById('us_fee').value = us.fee !== undefined ? us.fee : '0';
         document.getElementById('us_n1').value = us.n1 !== undefined ? us.n1 : ''; document.getElementById('us_p1').value = us.p1 || '';
         document.getElementById('us_prevClose').value = us.prevClose || ''; document.getElementById('us_currentPrice').value = us.currentPrice || '';
-        document.getElementById('us_targetPrice').value = us.targetPrice || ''; document.getElementById('us_ptarget').value = us.ptarget || '';
+        document.getElementById('us_targetPrice').value = us.targetPrice || '';
+        document.getElementById('us_ptarget').value = us.ptarget || '';
+        document.getElementById('us_target_p2').value = us.target_p2 || '';
         updateTargetAlertBtnUI('us', !!us.targetAlert);
         const container = document.getElementById('usPlansContainer'); container.innerHTML = '';
         const plans = (us.plans && us.plans.length > 0) ? us.plans : [{ p2: "", n2: "", alert: false }];
@@ -3386,19 +3511,6 @@
     }
     function bindTwPlanEvents(rowEl) {
       rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); }));
-      const n2El = rowEl.querySelector('.tw-plan-n2');
-      if (n2El) {
-        n2El.addEventListener('input', (e) => {
-          if (e.isTrusted) {
-            const pt = document.getElementById('tw_ptarget');
-            if (pt && pt.value) {
-              pt.value = '';
-              const hint = document.getElementById('tw_ptarget_hint');
-              if (hint) hint.innerHTML = '';
-            }
-          }
-        });
-      }
     }
 
     window.addUsPlanRow = function(p2 = "", n2 = "", alert = false) {
@@ -3453,19 +3565,6 @@
     }
     function bindUsPlanEvents(rowEl) {
       rowEl.querySelectorAll('.save-trigger').forEach(el => el.addEventListener('input', () => { calculateTw(); calculateUs(); saveData(); }));
-      const n2El = rowEl.querySelector('.us-plan-n2');
-      if (n2El) {
-        n2El.addEventListener('input', (e) => {
-          if (e.isTrusted) {
-            const pt = document.getElementById('us_ptarget');
-            if (pt && pt.value) {
-              pt.value = '';
-              const hint = document.getElementById('us_ptarget_hint');
-              if (hint) hint.innerHTML = '';
-            }
-          }
-        });
-      }
     }
 
     window.switchStock = async function(type, key) {
@@ -3519,6 +3618,79 @@
     function formatPrice(num) { return isNaN(num) || !isFinite(num) ? '0.00' : num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function calcTwBuyFee(price, shares, discount, minFee) { return Math.max(price * shares * 0.001425 * discount, minFee); }
 
+    let currentTwResultMode = 'auto'; // 'auto' | 'plan' | 'modeB'
+    let currentUsResultMode = 'auto'; // 'auto' | 'plan' | 'modeB'
+
+    window.switchTwResultMode = function(mode) {
+      currentTwResultMode = mode;
+      calculateTw();
+    };
+
+    window.switchUsResultMode = function(mode) {
+      currentUsResultMode = mode;
+      calculateUs();
+    };
+
+    window.copyCurrentPriceToModeB = function(type) {
+      if (type === 'tw') {
+        const cp = parseFloat(document.getElementById('tw_currentPrice')?.value) || 0;
+        const prev = parseFloat(document.getElementById('tw_prevClose')?.value) || 0;
+        const p = cp > 0 ? cp : (prev > 0 ? prev : 0);
+        if (p > 0) {
+          document.getElementById('tw_target_p2').value = p;
+          calculateTw();
+          saveData();
+        } else {
+          alert("目前尚無市價或昨收價可帶入，請先於第 1 區填寫現有市價。");
+        }
+      } else {
+        const cp = parseFloat(document.getElementById('us_currentPrice')?.value) || 0;
+        const prev = parseFloat(document.getElementById('us_prevClose')?.value) || 0;
+        const p = cp > 0 ? cp : (prev > 0 ? prev : 0);
+        if (p > 0) {
+          document.getElementById('us_target_p2').value = p;
+          calculateUs();
+          saveData();
+        } else {
+          alert("目前尚無市價或昨收價可帶入，請先於第 1 區填寫現有市價。");
+        }
+      }
+    };
+
+    window.applyModeBToPlans = function(type) {
+      if (type === 'tw') {
+        const p2 = parseFloat(document.getElementById('tw_target_p2')?.value) || 0;
+        const sharesEl = document.getElementById('tw_modeB_shares_val');
+        const n2 = sharesEl ? (parseFloat(sharesEl.innerText.replace(/,/g, '')) || 0) : 0;
+        if (p2 <= 0 || n2 <= 0) {
+          alert("請先完成模式B的試算（填妥預期成本均價與預估買入價格）。");
+          return;
+        }
+        const container = document.getElementById('twPlansContainer');
+        container.innerHTML = '';
+        addTwPlanRow(p2, n2, false);
+        currentTwResultMode = 'plan';
+        calculateTw();
+        saveData();
+        alert(`已成功將模式B反算結果（買入價 $${formatPrice(p2)}、補倉 ${n2.toFixed(1)} 股）填入分批補倉規劃第 1 批！`);
+      } else {
+        const p2 = parseFloat(document.getElementById('us_target_p2')?.value) || 0;
+        const sharesEl = document.getElementById('us_modeB_shares_val');
+        const n2 = sharesEl ? (parseFloat(sharesEl.innerText.replace(/,/g, '')) || 0) : 0;
+        if (p2 <= 0 || n2 <= 0) {
+          alert("請先完成模式B的試算（填妥預期成本均價與預估買入價格）。");
+          return;
+        }
+        const container = document.getElementById('usPlansContainer');
+        container.innerHTML = '';
+        addUsPlanRow(p2, n2, false);
+        currentUsResultMode = 'plan';
+        calculateUs();
+        saveData();
+        alert(`已成功將模式B反算結果（買入價 USD$${formatPrice(p2)}、補倉 ${n2.toFixed(1)} 股）填入分批補倉規劃第 1 批！`);
+      }
+    };
+
     function calculateTw() {
       const n1 = parseFloat(document.getElementById('tw_n1').value) || 0;
       const p1 = parseFloat(document.getElementById('tw_p1').value) || 0;
@@ -3527,7 +3699,8 @@
       const targetPrice = parseFloat(document.getElementById('tw_targetPrice').value) || 0;
       const prevClose = parseFloat(document.getElementById('tw_prevClose').value) || 0;
       const sameAsPrev = document.getElementById('tw_sameAsPrev').checked;
-      const ptargetIn = parseFloat(document.getElementById('tw_ptarget').value);
+      const ptargetIn = parseFloat(document.getElementById('tw_ptarget')?.value);
+      const targetP2In = parseFloat(document.getElementById('tw_target_p2')?.value);
       const discount = parseFloat(document.getElementById('twDiscount').value) || 0.6;
       const minFee = parseFloat(document.getElementById('twMinFee').value) || 20;
 
@@ -3557,190 +3730,271 @@
         targetPnlEl.innerText = `${targetPnlPct > 0 ? '+' : ''}${targetPnlPct.toFixed(2)}% (${targetPnlAmt >= 0 ? '+' : ''}NTD$${formatMoney(targetPnlAmt)})`;
       } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-700 dark:text-slate-400"; targetPnlEl.innerText = '-%'; }
 
-      const batchContainer = document.getElementById('twBatchResultsContainer'); batchContainer.innerHTML = '';
-      const twHintEl = document.getElementById('tw_ptarget_hint');
-      if (twHintEl) twHintEl.innerHTML = '';
+      const batchContainer = document.getElementById('twBatchResultsContainer');
+      if (batchContainer) batchContainer.innerHTML = '';
+      const twModeBBox = document.getElementById('twModeBResultBox');
+      if (twModeBBox) twModeBBox.innerHTML = '';
 
       if (n1 <= 0 || p1 <= 0) {
-        document.getElementById('tw_resN1').innerText = '0.0'; document.getElementById('tw_resN2').innerText = '0.0';
-        document.getElementById('tw_resTotalN').innerText = '0.0 股'; document.getElementById('tw_resAvgPrice').innerText = '$0.00';
-        document.getElementById('tw_resOriginalCost').innerText = 'NTD$0'; document.getElementById('tw_resAddCost').innerText = 'NTD$0';
-        if (twHintEl && !isNaN(ptargetIn) && ptargetIn > 0) {
-          twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
-          twHintEl.innerText = "⚠️ 請先填寫第 1 區「目前庫存股數(N1)」與「目前持有成本(P1)」";
+        document.getElementById('tw_resN1').innerText = '0.0';
+        document.getElementById('tw_resN2').innerText = '0.0';
+        document.getElementById('tw_resTotalN').innerText = '0.0 股';
+        document.getElementById('tw_resAvgPrice').innerText = '$0.00';
+        document.getElementById('tw_resOriginalCost').innerText = 'NTD$0';
+        document.getElementById('tw_resAddCost').innerText = 'NTD$0';
+        if (twModeBBox) {
+          if ((!isNaN(ptargetIn) && ptargetIn > 0) || (!isNaN(targetP2In) && targetP2In > 0)) {
+            twModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 請先填寫第 1 區「目前庫存股數(N1)」與「目前持有成本(P1)」</div>`;
+          } else {
+            twModeBBox.innerHTML = `<div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60 text-center">💡 設定預期成本價格與預估買入價格後，系統將自動反算所需補倉股數與資金。</div>`;
+          }
         }
         calculateTwPortfolioSummary();
         return;
       }
 
-      let totalAddShares = 0; let totalAddCost = 0; let finalAvgPrice = p1;
-      let isModeBActive = false;
+      // --- 模式B 反算試算 (台股) ---
+      let isModeBValid = false;
+      let modeBShares = 0;
+      let modeBFee = 0;
+      let modeBCost = 0;
+      let modeBTotalShares = n1;
+      let modeBTotalCost = totalOriginalCost;
+      let modeBAvgPrice = p1;
+      let modeBPnlPct = null;
 
-      if (!isNaN(ptargetIn) && ptargetIn > 0) {
-        const firstRow = document.querySelector('.tw-plan-row');
-        let p2Input = firstRow ? firstRow.querySelector('.tw-plan-p2') : null;
-        let p2 = p2Input ? (parseFloat(p2Input.value) || 0) : 0;
+      const hasPtarget = !isNaN(ptargetIn) && ptargetIn > 0;
+      const hasTargetP2 = !isNaN(targetP2In) && targetP2In > 0;
 
-        // 若未填寫 P2，自動從「目前市價」或「昨收價」帶入
-        if (p2 <= 0) {
-          if (currentPrice > 0) {
-            p2 = currentPrice;
-            if (p2Input && !p2Input.value) p2Input.value = currentPrice;
-          } else if (prevClose > 0) {
-            p2 = prevClose;
-            if (p2Input && !p2Input.value) p2Input.value = prevClose;
-          }
-        }
-
-        if (p2 <= 0) {
-          if (twHintEl) {
-            twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
-            twHintEl.innerText = "⚠️ 請在上方「預計買入 (P2)」填寫買入價，或於第 1 區填寫「目前市價」，才能反算加碼股數。";
-          }
-        } else if (p1 === p2) {
-          if (twHintEl) {
-            twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
-            twHintEl.innerText = `⚠️ 目前持股成本 ($${formatPrice(p1)}) 與預計買入價 ($${formatPrice(p2)}) 相同，無法反算均價。`;
+      if (hasPtarget && hasTargetP2) {
+        if (p1 === targetP2In) {
+          if (twModeBBox) {
+            twModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 目前持有成本 ($${formatPrice(p1)}) 與預估買入價 ($${formatPrice(targetP2In)}) 相同，無法反算改變均價。</div>`;
           }
         } else {
-          const isAveragingDown = (p1 > p2);
-          const inRange = isAveragingDown ? (ptargetIn > p2 && ptargetIn < p1) : (ptargetIn > p1 && ptargetIn < p2);
+          const isAveragingDown = (p1 > targetP2In);
+          const inRange = isAveragingDown
+            ? (ptargetIn > targetP2In && ptargetIn < p1)
+            : (ptargetIn > p1 && ptargetIn < targetP2In);
 
           if (!inRange) {
-            if (twHintEl) {
-              twHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+            if (twModeBBox) {
+              let msg = '';
               if (isAveragingDown) {
                 if (ptargetIn >= p1) {
-                  twHintEl.innerText = `⚠️ 攤平目標均價 ($${formatPrice(ptargetIn)}) 需低於持股成本 ($${formatPrice(p1)})`;
+                  msg = `⚠️ 向下攤平時，預期成本價格 ($${formatPrice(ptargetIn)}) 需低於目前持有成本 ($${formatPrice(p1)})`;
                 } else {
-                  twHintEl.innerText = `⚠️ 攤平目標均價 ($${formatPrice(ptargetIn)}) 需高於預計買入價 ($${formatPrice(p2)})`;
+                  msg = `⚠️ 向下攤平時，預期成本價格 ($${formatPrice(ptargetIn)}) 需高於預估買入價格 ($${formatPrice(targetP2In)})`;
                 }
               } else {
-                twHintEl.innerText = `⚠️ 加碼追價目標均價需介於持股成本 ($${formatPrice(p1)}) 與買入價 ($${formatPrice(p2)}) 之間`;
+                msg = `⚠️ 加碼追價時，預期成本價格需介於目前持有成本 ($${formatPrice(p1)}) 與預估買入價格 ($${formatPrice(targetP2In)}) 之間`;
               }
+              twModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">${msg}</div>`;
             }
           } else {
-            let roughN2 = Math.abs((n1 * (p1 - ptargetIn)) / (ptargetIn - p2));
+            const roughN2 = Math.abs((n1 * (p1 - ptargetIn)) / (ptargetIn - targetP2In));
             if (roughN2 > 0) {
-              totalAddShares = ((n1 * Math.abs(p1 - ptargetIn)) + calcTwBuyFee(p2, roughN2, discount, minFee)) / Math.abs(ptargetIn - p2);
-              const addFee = calcTwBuyFee(p2, totalAddShares, discount, minFee);
-              totalAddCost = (totalAddShares * p2) + addFee;
-              finalAvgPrice = ptargetIn;
-              const totalCost = totalOriginalCost + totalAddCost;
-              const totalShares = n1 + totalAddShares;
-              const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+              modeBShares = ((n1 * Math.abs(p1 - ptargetIn)) + calcTwBuyFee(targetP2In, roughN2, discount, minFee)) / Math.abs(ptargetIn - targetP2In);
+              modeBFee = calcTwBuyFee(targetP2In, modeBShares, discount, minFee);
+              modeBCost = (modeBShares * targetP2In) + modeBFee;
+              modeBTotalShares = n1 + modeBShares;
+              modeBTotalCost = totalOriginalCost + modeBCost;
+              modeBAvgPrice = modeBTotalCost / modeBTotalShares;
+              modeBPnlPct = currentPrice > 0 ? ((currentPrice - modeBAvgPrice) / modeBAvgPrice) * 100 : null;
+              isModeBValid = true;
 
-              isModeBActive = true;
+              if (twModeBBox) {
+                twModeBBox.innerHTML = `
+                  <div class="bg-gradient-to-br from-rose-50/70 via-white to-amber-50/50 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800/60 p-3.5 sm:p-4 rounded-xl border border-rose-200/80 dark:border-rose-900/50 space-y-3 shadow-xs">
+                    <div class="flex justify-between items-center flex-wrap gap-1 border-b border-rose-200/60 dark:border-slate-700 pb-2">
+                      <div class="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-rose-950 dark:text-rose-300">
+                        <span>🎯</span>
+                        <span>模式B 反算結果</span>
+                      </div>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">以預估買入價 $${formatPrice(targetP2In)}</span>
+                    </div>
 
-              if (firstRow) {
-                const n2Input = firstRow.querySelector('.tw-plan-n2');
-                if (n2Input) {
-                  n2Input.value = totalAddShares.toFixed(1);
-                  n2Input.dataset.modeBAuto = "true";
-                }
-              }
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div class="bg-white/80 dark:bg-slate-900/80 p-2.5 sm:p-3 rounded-xl border border-rose-100 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 font-semibold mb-0.5">📦 本次所需補倉股數</div>
+                        <div class="text-lg sm:text-2xl font-black text-rose-600 dark:text-rose-400">
+                          <span id="tw_modeB_shares_val">${modeBShares.toFixed(1)}</span> <span class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">股</span>
+                        </div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">補倉後總持股: <strong>${modeBTotalShares.toFixed(1)}</strong> 股</div>
+                      </div>
+                      <div class="bg-white/80 dark:bg-slate-900/80 p-2.5 sm:p-3 rounded-xl border border-rose-100 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 font-semibold mb-0.5">💰 本次所需補倉資金</div>
+                        <div class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
+                          NTD$${formatMoney(modeBCost)}
+                        </div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">含預估手續費 NTD$${formatMoney(modeBFee)}</div>
+                      </div>
+                    </div>
 
-              if (twHintEl) {
-                twHintEl.className = "text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-300 dark:border-emerald-800/60 mt-1.5 space-y-1 shadow-xs";
-                twHintEl.innerHTML = `
-                  <div class="flex justify-between items-center flex-wrap gap-1">
-                    <span>⚡ <strong>模式B反算成功</strong>：以買入價 $${formatPrice(p2)} 補倉</span>
-                    <span class="text-sky-900 dark:text-cyan-300 font-black text-xs sm:text-sm">需加碼 ${totalAddShares.toFixed(1)} 股</span>
-                  </div>
-                  <div class="text-[10px] text-slate-700 dark:text-slate-300 flex justify-between items-center">
-                    <span>預計需投入資金: <strong class="text-slate-900 dark:text-white">NTD$${formatMoney(totalAddCost)}</strong> (含手續費 NTD$${formatMoney(addFee)})</span>
-                    <span>調整後均價: <strong class="text-amber-800 dark:text-yellow-300">$${formatPrice(finalAvgPrice)}</strong></span>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] pt-1 border-t border-rose-100 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 font-medium">
+                      <div>調整後個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(modeBTotalCost)}</span></div>
+                      <div>目標平均成本: <span class="font-black text-rose-700 dark:text-yellow-300 text-xs sm:text-sm">$${formatPrice(modeBAvgPrice)}</span></div>
+                      <div>目前市價: <span class="font-bold text-slate-800 dark:text-slate-200">${currentPrice > 0 ? '$' + formatPrice(currentPrice) : '未填寫'}</span></div>
+                      <div>預估未實現損益: <span class="${batchPnlPropColor('tw', modeBPnlPct)} font-extrabold">${modeBPnlPct !== null ? (modeBPnlPct > 0 ? '+' : '') + modeBPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+                    </div>
+
+                    <div class="pt-1">
+                      <button type="button" onclick="applyModeBToPlans('tw')" class="w-full py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/50 text-rose-800 dark:text-rose-200 font-bold text-[11px] border border-rose-200 dark:border-rose-800/60 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
+                        <span>📥</span><span>將此反算結果填入「分批補倉規劃 (模式A)」</span>
+                      </button>
+                    </div>
                   </div>`;
               }
-
-              document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
-              document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-              document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
-              document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-              document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`;
-              document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
-
-              const batchDiv = document.createElement('div');
-              batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-              batchDiv.innerHTML = `
-                <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1 flex justify-between items-center">
-                  <span>📦 補倉批次 #1 (模式B反算)</span>
-                  <span class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">以買入價 $${formatPrice(p2)}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-                  <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalAddCost)}</span></div>
-                  <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(totalCost)}</span></div>
-                  <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
-                  <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
-                  <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(finalAvgPrice)}</span></div>
-                  <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-                </div>`;
-              batchContainer.appendChild(batchDiv);
             }
           }
         }
+      } else if (hasPtarget && !hasTargetP2) {
+        if (twModeBBox) {
+          twModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 請填寫右側「預估買入價格」（可點擊「帶入市價」按鈕）以開始反算。</div>`;
+        }
+      } else if (!hasPtarget && hasTargetP2) {
+        if (twModeBBox) {
+          twModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 請填寫左側「預期成本價格 (目標均價)」以開始反算。</div>`;
+        }
+      } else {
+        if (twModeBBox) {
+          twModeBBox.innerHTML = `<div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60 text-center">💡 設定預期成本價格與預估買入價格後，系統將自動反算所需補倉股數與資金。</div>`;
+        }
       }
 
-      if (!isModeBActive) {
-        const firstRow = document.querySelector('.tw-plan-row');
-        if (firstRow) {
-          const n2Input = firstRow.querySelector('.tw-plan-n2');
-          if (n2Input && n2Input.dataset.modeBAuto === "true" && (isNaN(ptargetIn) || ptargetIn <= 0)) {
-            n2Input.value = '';
-            delete n2Input.dataset.modeBAuto;
+      // --- 模式A 分批補倉試算 (台股) ---
+      let modeATotalAddShares = 0;
+      let modeATotalAddCost = 0;
+      let modeACumulativeShares = n1;
+      let modeACumulativeCost = totalOriginalCost;
+      let modeAValidBatches = 0;
+      const planDivs = [];
+
+      document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
+        const p2 = parseFloat(row.querySelector('.tw-plan-p2')?.value) || 0;
+        const n2 = parseFloat(row.querySelector('.tw-plan-n2')?.value) || 0;
+        if (p2 > 0 && n2 > 0) {
+          modeAValidBatches++;
+          modeATotalAddShares += n2;
+          const batchCost = (p2 * n2) + calcTwBuyFee(p2, n2, discount, minFee);
+          modeATotalAddCost += batchCost;
+          modeACumulativeShares += n2;
+          modeACumulativeCost += batchCost;
+          const batchAvgPrice = modeACumulativeCost / modeACumulativeShares;
+          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+          batchDiv.innerHTML = `
+            <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+              <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(batchCost)}</span></div>
+              <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(modeACumulativeCost)}</span></div>
+              <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
+              <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${modeACumulativeShares.toFixed(1)} 股</span></div>
+              <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(batchAvgPrice)}</span></div>
+              <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>`;
+          planDivs.push(batchDiv);
+        }
+      });
+
+      const modeATotalShares = n1 + modeATotalAddShares;
+      const modeATotalCost = totalOriginalCost + modeATotalAddCost;
+      const modeAAvgPrice = modeATotalShares > 0 ? modeATotalCost / modeATotalShares : p1;
+
+      // --- 決定第 4 區 (試算結果卡片) 的顯示模式 ---
+      const hasPlan = (modeAValidBatches > 0);
+      const hasModeB = isModeBValid;
+
+      const switcherEl = document.getElementById('twResultModeSwitcher');
+      const tabPlanBtn = document.getElementById('twResTabPlan');
+      const tabModeBBtn = document.getElementById('twResTabModeB');
+
+      let activeMode = 'plan';
+      if (hasPlan && hasModeB) {
+        if (switcherEl) switcherEl.classList.remove('hidden');
+        if (currentTwResultMode === 'modeB') activeMode = 'modeB';
+        else activeMode = 'plan';
+
+        if (tabPlanBtn && tabModeBBtn) {
+          if (activeMode === 'plan') {
+            tabPlanBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer bg-white dark:bg-slate-900 text-rose-950 dark:text-rose-300 shadow-sm border border-rose-200 dark:border-rose-900/60";
+            tabModeBBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200";
+          } else {
+            tabModeBBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer bg-white dark:bg-slate-900 text-rose-950 dark:text-rose-300 shadow-sm border border-rose-200 dark:border-rose-900/60";
+            tabPlanBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200";
           }
         }
-
-        let cumulativeShares = n1; let cumulativeCost = totalOriginalCost;
-        document.querySelectorAll('.tw-plan-row').forEach((row, idx) => {
-          const p2 = parseFloat(row.querySelector('.tw-plan-p2').value) || 0;
-          const n2 = parseFloat(row.querySelector('.tw-plan-n2').value) || 0;
-          if (p2 > 0 && n2 > 0) {
-            totalAddShares += n2;
-            const batchCost = (p2 * n2) + calcTwBuyFee(p2, n2, discount, minFee);
-            totalAddCost += batchCost; cumulativeShares += n2; cumulativeCost += batchCost;
-            const batchAvgPrice = cumulativeCost / cumulativeShares;
-            const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
-
-            const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-            batchDiv.innerHTML = `
-              <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
-              <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-                <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(batchCost)}</span></div>
-                <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(cumulativeCost)}</span></div>
-                <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
-                <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
-                <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(batchAvgPrice)}</span></div>
-                <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-              </div>`;
-            batchContainer.appendChild(batchDiv);
-          }
-        });
-
-        const totalShares = n1 + totalAddShares; const totalCost = totalOriginalCost + totalAddCost;
-        finalAvgPrice = totalShares > 0 ? totalCost / totalShares : p1;
-        document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('tw_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-        document.getElementById('tw_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(finalAvgPrice)}`;
-        document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`; document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(totalAddCost)}`;
+      } else {
+        if (switcherEl) switcherEl.classList.add('hidden');
+        if (hasModeB && !hasPlan) activeMode = 'modeB';
+        else activeMode = 'plan';
       }
 
-      const totalShares = n1 + totalAddShares; const totalCost = totalOriginalCost + totalAddCost;
+      let activeAddShares = 0;
+      let activeAddCost = 0;
+      let activeTotalShares = n1;
+      let activeTotalCost = totalOriginalCost;
+      let activeAvgPrice = p1;
+
+      if (activeMode === 'modeB') {
+        activeAddShares = modeBShares;
+        activeAddCost = modeBCost;
+        activeTotalShares = modeBTotalShares;
+        activeTotalCost = modeBTotalCost;
+        activeAvgPrice = modeBAvgPrice;
+
+        const batchDiv = document.createElement('div');
+        batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+        batchDiv.innerHTML = `
+          <div class="font-extrabold text-rose-900 dark:text-rose-300 border-b border-slate-200 dark:border-slate-700 pb-1 flex justify-between items-center">
+            <span>📦 補倉試算 (模式B 目標均價)</span>
+            <span class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">以買入價 $${formatPrice(targetP2In)}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+            <div>1. 本次所需補倉: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(modeBCost)}</span></div>
+            <div>2. 目前個股總資金: <span class="font-extrabold text-slate-950 dark:text-white">NTD$${formatMoney(modeBTotalCost)}</span></div>
+            <div>3. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${modeBShares.toFixed(1)} 股</span></div>
+            <div>4. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${modeBTotalShares.toFixed(1)} 股</span></div>
+            <div class="col-span-2">5. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">$${formatPrice(modeBAvgPrice)}</span></div>
+            <div class="col-span-2">6. 未實現損益: <span class="${batchPnlPropColor('tw', modeBPnlPct)} font-extrabold">${modeBPnlPct !== null ? (modeBPnlPct > 0 ? '+' : '') + modeBPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+          </div>`;
+        if (batchContainer) batchContainer.appendChild(batchDiv);
+      } else {
+        activeAddShares = modeATotalAddShares;
+        activeAddCost = modeATotalAddCost;
+        activeTotalShares = modeATotalShares;
+        activeTotalCost = modeATotalCost;
+        activeAvgPrice = modeAAvgPrice;
+
+        if (batchContainer) {
+          planDivs.forEach(div => batchContainer.appendChild(div));
+        }
+      }
+
+      document.getElementById('tw_resN1').innerText = `${n1.toFixed(1)}`;
+      document.getElementById('tw_resN2').innerText = `${activeAddShares.toFixed(1)}`;
+      document.getElementById('tw_resTotalN').innerText = `${activeTotalShares.toFixed(1)} 股`;
+      document.getElementById('tw_resAvgPrice').innerText = `$${formatPrice(activeAvgPrice)}`;
+      document.getElementById('tw_resOriginalCost').innerText = `NTD$${formatMoney(totalOriginalCost)}`;
+      document.getElementById('tw_resAddCost').innerText = `NTD$${formatMoney(activeAddCost)}`;
 
       // 🚀 補倉加碼後合併達標預期獲利試算
       const twPostPlanPnlEl = document.getElementById('tw_targetPostPlanPnlDisplay');
       const twPostPlanSubEl = document.getElementById('tw_targetPostPlanSub');
       if (twPostPlanPnlEl) {
-        if (targetPrice > 0 && totalShares > 0) {
-          if (totalAddShares > 0) {
-            const postPlanTargetAmt = (totalShares * targetPrice) - totalCost;
-            const postPlanTargetPct = totalCost > 0 ? (postPlanTargetAmt / totalCost) * 100 : 0;
+        if (targetPrice > 0 && activeTotalShares > 0) {
+          if (activeAddShares > 0) {
+            const postPlanTargetAmt = (activeTotalShares * targetPrice) - activeTotalCost;
+            const postPlanTargetPct = activeTotalCost > 0 ? (postPlanTargetAmt / activeTotalCost) * 100 : 0;
             twPostPlanPnlEl.className = `font-extrabold text-xs sm:text-sm ${getPnlColor('tw', postPlanTargetAmt)}`;
             twPostPlanPnlEl.innerText = `${postPlanTargetPct > 0 ? '+' : ''}${postPlanTargetPct.toFixed(2)}% (${postPlanTargetAmt >= 0 ? '+' : ''}NTD$${formatMoney(postPlanTargetAmt)})`;
-            if (twPostPlanSubEl) twPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 $${formatPrice(finalAvgPrice)})`;
+            if (twPostPlanSubEl) twPostPlanSubEl.innerText = `加碼後共 ${activeTotalShares.toFixed(1)} 股 (新均價 $${formatPrice(activeAvgPrice)})`;
           } else {
             twPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-400";
             twPostPlanPnlEl.innerText = "同現有持股";
-            if (twPostPlanSubEl) twPostPlanSubEl.innerText = "第 2 區尚未設定補倉股數";
+            if (twPostPlanSubEl) twPostPlanSubEl.innerText = "尚未設定補倉股數";
           }
         } else {
           twPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-400";
@@ -3760,7 +4014,8 @@
       const currentPrice = parseFloat(document.getElementById('us_currentPrice').value) || 0;
       const targetPrice = parseFloat(document.getElementById('us_targetPrice').value) || 0;
       const prevClose = parseFloat(document.getElementById('us_prevClose').value) || 0;
-      const ptargetIn = parseFloat(document.getElementById('us_ptarget').value);
+      const ptargetIn = parseFloat(document.getElementById('us_ptarget')?.value);
+      const targetP2In = parseFloat(document.getElementById('us_target_p2')?.value);
 
       const pnlPct = (p1 > 0 && currentPrice > 0) ? ((currentPrice - p1) / p1) * 100 : null;
       const pnlAmtUSD = (n1 > 0 && p1 > 0 && currentPrice > 0) ? (currentPrice - p1) * n1 : null;
@@ -3790,198 +4045,281 @@
         } else { targetPnlEl.className = "font-bold text-xs sm:text-base text-slate-700 dark:text-slate-400"; targetPnlEl.innerText = '-%'; }
       }
 
-      const batchContainer = document.getElementById('usBatchResultsContainer'); batchContainer.innerHTML = '';
-      const usHintEl = document.getElementById('us_ptarget_hint');
-      if (usHintEl) usHintEl.innerHTML = '';
+      const batchContainer = document.getElementById('usBatchResultsContainer');
+      if (batchContainer) batchContainer.innerHTML = '';
+      const usModeBBox = document.getElementById('usModeBResultBox');
+      if (usModeBBox) usModeBBox.innerHTML = '';
 
       if (n1 <= 0 || p1 <= 0) {
-        document.getElementById('us_resN1').innerText = '0.0'; document.getElementById('us_resN2').innerText = '0.0';
-        document.getElementById('us_resTotalN').innerText = '0.0 股'; document.getElementById('us_resAvgPriceTWD').innerText = 'NTD$0.00';
-        document.getElementById('us_resAvgPrice').innerText = 'USD$0.00'; document.getElementById('us_resOriginalCostTWD').innerText = 'NTD$0';
-        document.getElementById('us_resOriginalCostUSD').innerText = 'USD$0'; document.getElementById('us_resAddCostTWD').innerText = 'NTD$0';
+        document.getElementById('us_resN1').innerText = '0.0';
+        document.getElementById('us_resN2').innerText = '0.0';
+        document.getElementById('us_resTotalN').innerText = '0.0 股';
+        document.getElementById('us_resAvgPriceTWD').innerText = 'NTD$0.00';
+        document.getElementById('us_resAvgPrice').innerText = 'USD$0.00';
+        document.getElementById('us_resOriginalCostTWD').innerText = 'NTD$0';
+        document.getElementById('us_resOriginalCostUSD').innerText = 'USD$0';
+        document.getElementById('us_resAddCostTWD').innerText = 'NTD$0';
         document.getElementById('us_resAddCostUSD').innerText = 'USD$0';
-        if (usHintEl && !isNaN(ptargetIn) && ptargetIn > 0) {
-          usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
-          usHintEl.innerText = "⚠️ 請先填寫第 1 區「目前庫存股數(N1)」與「目前持有成本(P1)」";
+        if (usModeBBox) {
+          if ((!isNaN(ptargetIn) && ptargetIn > 0) || (!isNaN(targetP2In) && targetP2In > 0)) {
+            usModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 請先填寫第 1 區「目前庫存股數(N1)」與「目前持有成本(P1)」</div>`;
+          } else {
+            usModeBBox.innerHTML = `<div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60 text-center">💡 設定預期成本價格與預估買入價格後，系統將自動反算所需補倉股數與資金。</div>`;
+          }
         }
         calculateUsPortfolioSummary();
         return;
       }
 
-      const origUSD = n1 * p1; let totalAddShares = 0; let totalAddCostUSD = 0; let finalAvgPrice = p1;
-      let isModeBActive = false;
+      const origUSD = n1 * p1;
 
-      if (!isNaN(ptargetIn) && ptargetIn > 0) {
-        const firstRow = document.querySelector('.us-plan-row');
-        let p2Input = firstRow ? firstRow.querySelector('.us-plan-p2') : null;
-        let p2 = p2Input ? (parseFloat(p2Input.value) || 0) : 0;
+      // --- 模式B 反算試算 (美股) ---
+      let isModeBValid = false;
+      let modeBShares = 0;
+      let modeBCostUSD = 0;
+      let modeBTotalShares = n1;
+      let modeBTotalCostUSD = origUSD;
+      let modeBAvgPrice = p1;
+      let modeBPnlPct = null;
 
-        if (p2 <= 0) {
-          if (currentPrice > 0) {
-            p2 = currentPrice;
-            if (p2Input && !p2Input.value) p2Input.value = currentPrice;
-          } else if (prevClose > 0) {
-            p2 = prevClose;
-            if (p2Input && !p2Input.value) p2Input.value = prevClose;
-          }
-        }
+      const hasPtarget = !isNaN(ptargetIn) && ptargetIn > 0;
+      const hasTargetP2 = !isNaN(targetP2In) && targetP2In > 0;
 
-        if (p2 <= 0) {
-          if (usHintEl) {
-            usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
-            usHintEl.innerText = "⚠️ 請在上方「預計買入 ($ P2)」填寫買入價，或於第 1 區填寫「目前市價」，才能反算加碼股數。";
-          }
-        } else if (p1 === p2) {
-          if (usHintEl) {
-            usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
-            usHintEl.innerText = `⚠️ 目前持股成本 (USD$${formatPrice(p1)}) 與預計買入價 (USD$${formatPrice(p2)}) 相同，無法反算均價。`;
+      if (hasPtarget && hasTargetP2) {
+        if (p1 === targetP2In) {
+          if (usModeBBox) {
+            usModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 目前持有成本 (USD$${formatPrice(p1)}) 與預估買入價 (USD$${formatPrice(targetP2In)}) 相同，無法反算改變均價。</div>`;
           }
         } else {
-          const isAveragingDown = (p1 > p2);
-          const inRange = isAveragingDown ? (ptargetIn > p2 && ptargetIn < p1) : (ptargetIn > p1 && ptargetIn < p2);
+          const isAveragingDown = (p1 > targetP2In);
+          const inRange = isAveragingDown
+            ? (ptargetIn > targetP2In && ptargetIn < p1)
+            : (ptargetIn > p1 && ptargetIn < targetP2In);
 
           if (!inRange) {
-            if (usHintEl) {
-              usHintEl.className = "text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2 rounded-lg border border-amber-200 dark:border-amber-800/50 mt-1.5";
+            if (usModeBBox) {
+              let msg = '';
               if (isAveragingDown) {
                 if (ptargetIn >= p1) {
-                  usHintEl.innerText = `⚠️ 攤平目標均價 (USD$${formatPrice(ptargetIn)}) 需低於持股成本 (USD$${formatPrice(p1)})`;
+                  msg = `⚠️ 向下攤平時，預期成本價格 (USD$${formatPrice(ptargetIn)}) 需低於目前持有成本 (USD$${formatPrice(p1)})`;
                 } else {
-                  usHintEl.innerText = `⚠️ 攤平目標均價 (USD$${formatPrice(ptargetIn)}) 需高於預計買入價 (USD$${formatPrice(p2)})`;
+                  msg = `⚠️ 向下攤平時，預期成本價格 (USD$${formatPrice(ptargetIn)}) 需高於預估買入價格 (USD$${formatPrice(targetP2In)})`;
                 }
               } else {
-                usHintEl.innerText = `⚠️ 加碼追價目標均價需介於持股成本 (USD$${formatPrice(p1)}) 與買入價 (USD$${formatPrice(p2)}) 之間`;
+                msg = `⚠️ 加碼追價時，預期成本價格需介於目前持有成本 (USD$${formatPrice(p1)}) 與預估買入價格 (USD$${formatPrice(targetP2In)}) 之間`;
               }
+              usModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">${msg}</div>`;
             }
           } else {
-            totalAddShares = ((n1 * Math.abs(p1 - ptargetIn)) + fee) / Math.abs(ptargetIn - p2);
-            if (totalAddShares > 0) {
-              totalAddCostUSD = totalAddShares * p2;
-              finalAvgPrice = ptargetIn;
-              const totalCostUSD = origUSD + totalAddCostUSD + fee;
-              const totalShares = n1 + totalAddShares;
-              const batchPnlPct = currentPrice > 0 ? ((currentPrice - finalAvgPrice) / finalAvgPrice) * 100 : null;
+            modeBShares = ((n1 * Math.abs(p1 - ptargetIn)) + fee) / Math.abs(ptargetIn - targetP2In);
+            if (modeBShares > 0) {
+              modeBCostUSD = (modeBShares * targetP2In) + fee;
+              modeBTotalShares = n1 + modeBShares;
+              modeBTotalCostUSD = origUSD + modeBCostUSD;
+              modeBAvgPrice = modeBTotalCostUSD / modeBTotalShares;
+              modeBPnlPct = currentPrice > 0 ? ((currentPrice - modeBAvgPrice) / modeBAvgPrice) * 100 : null;
+              isModeBValid = true;
 
-              isModeBActive = true;
+              if (usModeBBox) {
+                usModeBBox.innerHTML = `
+                  <div class="bg-gradient-to-br from-teal-50/70 via-white to-amber-50/50 dark:from-slate-800 dark:via-slate-800/90 dark:to-slate-800/60 p-3.5 sm:p-4 rounded-xl border border-teal-200/80 dark:border-teal-900/50 space-y-3 shadow-xs">
+                    <div class="flex justify-between items-center flex-wrap gap-1 border-b border-teal-200/60 dark:border-slate-700 pb-2">
+                      <div class="flex items-center gap-1.5 font-bold text-xs sm:text-sm text-teal-950 dark:text-teal-300">
+                        <span>🎯</span>
+                        <span>模式B 反算結果</span>
+                      </div>
+                      <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">以預估買入價 USD$${formatPrice(targetP2In)}</span>
+                    </div>
 
-              if (firstRow) {
-                const n2Input = firstRow.querySelector('.us-plan-n2');
-                if (n2Input) {
-                  n2Input.value = totalAddShares.toFixed(1);
-                  n2Input.dataset.modeBAuto = "true";
-                }
-              }
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div class="bg-white/80 dark:bg-slate-900/80 p-2.5 sm:p-3 rounded-xl border border-teal-100 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 font-semibold mb-0.5">📦 本次所需補倉股數</div>
+                        <div class="text-lg sm:text-2xl font-black text-teal-600 dark:text-teal-400">
+                          <span id="us_modeB_shares_val">${modeBShares.toFixed(1)}</span> <span class="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">股</span>
+                        </div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">補倉後總持股: <strong>${modeBTotalShares.toFixed(1)}</strong> 股</div>
+                      </div>
+                      <div class="bg-white/80 dark:bg-slate-900/80 p-2.5 sm:p-3 rounded-xl border border-teal-100 dark:border-slate-700/60 shadow-xs">
+                        <div class="text-[10px] sm:text-xs text-slate-600 dark:text-slate-400 font-semibold mb-0.5">💰 本次所需補倉資金</div>
+                        <div class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white">
+                          USD$${formatMoney(modeBCostUSD)}
+                        </div>
+                        <div class="text-[9px] sm:text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">折合 <strong>NTD$${formatMoney(modeBCostUSD * exchangeRate)}</strong></div>
+                      </div>
+                    </div>
 
-              if (usHintEl) {
-                usHintEl.className = "text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-300 dark:border-emerald-800/60 mt-1.5 space-y-1 shadow-xs";
-                usHintEl.innerHTML = `
-                  <div class="flex justify-between items-center flex-wrap gap-1">
-                    <span>⚡ <strong>模式B反算成功</strong>：以買入價 USD$${formatPrice(p2)} 補倉</span>
-                    <span class="text-teal-900 dark:text-cyan-300 font-black text-xs sm:text-sm">需加碼 ${totalAddShares.toFixed(1)} 股</span>
-                  </div>
-                  <div class="text-[10px] text-slate-700 dark:text-slate-300 flex justify-between items-center">
-                    <span>預計需投入資金: <strong class="text-slate-900 dark:text-white">USD$${formatMoney(totalAddCostUSD + fee)}</strong> (折合 NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)})</span>
-                    <span>調整後均價: <strong class="text-amber-800 dark:text-yellow-300">USD$${formatPrice(finalAvgPrice)}</strong></span>
+                    <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px] pt-1 border-t border-teal-100 dark:border-slate-700/60 text-slate-700 dark:text-slate-300 font-medium">
+                      <div>調整後總資金: <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(modeBTotalCostUSD)}</span></div>
+                      <div>目標平均成本: <span class="font-black text-teal-700 dark:text-yellow-300 text-xs sm:text-sm">USD$${formatPrice(modeBAvgPrice)}</span></div>
+                      <div>目前市價: <span class="font-bold text-slate-800 dark:text-slate-200">${currentPrice > 0 ? 'USD$' + formatPrice(currentPrice) : '未填寫'}</span></div>
+                      <div>預估未實現損益: <span class="${batchPnlPropColor('us', modeBPnlPct)} font-extrabold">${modeBPnlPct !== null ? (modeBPnlPct > 0 ? '+' : '') + modeBPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+                    </div>
+
+                    <div class="pt-1">
+                      <button type="button" onclick="applyModeBToPlans('us')" class="w-full py-2 px-3 rounded-xl bg-teal-50 hover:bg-teal-100 dark:bg-teal-950/50 dark:hover:bg-teal-900/50 text-teal-800 dark:text-teal-200 font-bold text-[11px] border border-teal-200 dark:border-teal-800/60 transition cursor-pointer flex items-center justify-center gap-1.5 shadow-xs">
+                        <span>📥</span><span>將此反算結果填入「分批補倉規劃 (模式A)」</span>
+                      </button>
+                    </div>
                   </div>`;
               }
-
-              document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
-              document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-              document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`;
-              document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
-              document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`;
-              document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
-              document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`;
-              document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
-              document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
-
-              const batchDiv = document.createElement('div');
-              batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-              batchDiv.innerHTML = `
-                <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1 flex justify-between items-center">
-                  <span>📦 補倉批次 #1 (模式B反算)</span>
-                  <span class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">以買入價 USD$${formatPrice(p2)}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-                  <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}</span></div>
-                  <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalAddCostUSD + fee)}</span></div>
-                  <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(totalCostUSD * exchangeRate)}</span></div>
-                  <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(totalCostUSD)}</span></div>
-                  <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalAddShares.toFixed(1)} 股</span></div>
-                  <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${totalShares.toFixed(1)} 股</span></div>
-                  <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(finalAvgPrice * exchangeRate)} (USD$${formatPrice(finalAvgPrice)})</span></div>
-                  <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-                </div>`;
-              batchContainer.appendChild(batchDiv);
             }
           }
         }
+      } else if (hasPtarget && !hasTargetP2) {
+        if (usModeBBox) {
+          usModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 請填寫右側「預估買入價格 ($ USD)」以開始反算。</div>`;
+        }
+      } else if (!hasPtarget && hasTargetP2) {
+        if (usModeBBox) {
+          usModeBBox.innerHTML = `<div class="text-[11px] font-bold text-amber-800 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 p-2.5 rounded-xl border border-amber-200 dark:border-amber-800/50">⚠️ 請填寫左側「預期成本價格 ($ Target 均價)」以開始反算。</div>`;
+        }
+      } else {
+        if (usModeBBox) {
+          usModeBBox.innerHTML = `<div class="text-[11px] font-medium text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-200 dark:border-slate-700/60 text-center">💡 設定預期成本價格與預估買入價格後，系統將自動反算所需補倉股數與資金。</div>`;
+        }
       }
 
-      if (!isModeBActive) {
-        const firstRow = document.querySelector('.us-plan-row');
-        if (firstRow) {
-          const n2Input = firstRow.querySelector('.us-plan-n2');
-          if (n2Input && n2Input.dataset.modeBAuto === "true" && (isNaN(ptargetIn) || ptargetIn <= 0)) {
-            n2Input.value = '';
-            delete n2Input.dataset.modeBAuto;
+      // --- 模式A 分批補倉試算 (美股) ---
+      let modeATotalAddShares = 0;
+      let modeATotalAddCostUSD = 0;
+      let modeACumulativeShares = n1;
+      let modeACumulativeCostUSD = origUSD;
+      let modeAValidBatches = 0;
+      const planDivs = [];
+
+      document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
+        const p2 = parseFloat(row.querySelector('.us-plan-p2')?.value) || 0;
+        const n2 = parseFloat(row.querySelector('.us-plan-n2')?.value) || 0;
+        if (p2 > 0 && n2 > 0) {
+          modeAValidBatches++;
+          modeATotalAddShares += n2;
+          const batchCostUSD = p2 * n2;
+          modeATotalAddCostUSD += batchCostUSD;
+          modeACumulativeShares += n2;
+          modeACumulativeCostUSD += batchCostUSD;
+          const batchAvgPrice = modeACumulativeCostUSD / modeACumulativeShares;
+          const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
+
+          const batchDiv = document.createElement('div');
+          batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+          batchDiv.innerHTML = `
+            <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
+            <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+              <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
+              <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(batchCostUSD)}</span></div>
+              <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(modeACumulativeCostUSD * exchangeRate)}</span></div>
+              <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(modeACumulativeCostUSD)}</span></div>
+              <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
+              <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${modeACumulativeShares.toFixed(1)} 股</span></div>
+              <div class="col-span-2">7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(batchAvgPrice * exchangeRate)} (USD$${formatPrice(batchAvgPrice)})</span></div>
+              <div class="col-span-2">8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+            </div>`;
+          planDivs.push(batchDiv);
+        }
+      });
+
+      const modeATotalCostUSD = origUSD + modeATotalAddCostUSD + fee;
+      const modeATotalShares = n1 + modeATotalAddShares;
+      const modeAAvgPrice = modeATotalShares > 0 ? modeATotalCostUSD / modeATotalShares : p1;
+
+      // --- 決定第 4 區 (試算結果卡片) 的顯示模式 (美股) ---
+      const hasPlan = (modeAValidBatches > 0);
+      const hasModeB = isModeBValid;
+
+      const switcherEl = document.getElementById('usResultModeSwitcher');
+      const tabPlanBtn = document.getElementById('usResTabPlan');
+      const tabModeBBtn = document.getElementById('usResTabModeB');
+
+      let activeMode = 'plan';
+      if (hasPlan && hasModeB) {
+        if (switcherEl) switcherEl.classList.remove('hidden');
+        if (currentUsResultMode === 'modeB') activeMode = 'modeB';
+        else activeMode = 'plan';
+
+        if (tabPlanBtn && tabModeBBtn) {
+          if (activeMode === 'plan') {
+            tabPlanBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer bg-white dark:bg-slate-900 text-teal-950 dark:text-teal-300 shadow-sm border border-teal-200 dark:border-teal-900/60";
+            tabModeBBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200";
+          } else {
+            tabModeBBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer bg-white dark:bg-slate-900 text-teal-950 dark:text-teal-300 shadow-sm border border-teal-200 dark:border-teal-900/60";
+            tabPlanBtn.className = "flex-1 py-1.5 rounded-lg text-center transition cursor-pointer text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200";
           }
         }
-
-        let cumulativeShares = n1; let cumulativeCostUSD = origUSD;
-        document.querySelectorAll('.us-plan-row').forEach((row, idx) => {
-          const p2 = parseFloat(row.querySelector('.us-plan-p2').value) || 0;
-          const n2 = parseFloat(row.querySelector('.us-plan-n2').value) || 0;
-          if (p2 > 0 && n2 > 0) {
-            totalAddShares += n2; const batchCostUSD = p2 * n2; totalAddCostUSD += batchCostUSD;
-            cumulativeShares += n2; cumulativeCostUSD += batchCostUSD;
-            const batchAvgPrice = cumulativeCostUSD / cumulativeShares;
-            const batchPnlPct = currentPrice > 0 ? ((currentPrice - batchAvgPrice) / batchAvgPrice) * 100 : null;
-
-            const batchDiv = document.createElement('div'); batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
-            batchDiv.innerHTML = `
-              <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1">📦 補倉批次 #${idx + 1}</div>
-              <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
-                <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(batchCostUSD * exchangeRate)}</span></div>
-                <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(batchCostUSD)}</span></div>
-                <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(cumulativeCostUSD * exchangeRate)}</span></div>
-                <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(cumulativeCostUSD)}</span></div>
-                <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${n2.toFixed(1)} 股</span></div>
-                <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${cumulativeShares.toFixed(1)} 股</span></div>
-                <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(batchAvgPrice * exchangeRate)} (USD$${formatPrice(batchAvgPrice)})</span></div>
-                <div>8. 未實現損益: <span class="${batchPnlPropColor('us', batchPnlPct)} font-extrabold">${batchPnlPct !== null ? (batchPnlPct > 0 ? '+' : '') + batchPnlPct.toFixed(2) + '%' : '-%'}</span></div>
-              </div>`;
-            batchContainer.appendChild(batchDiv);
-          }
-        });
-
-        const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
-        finalAvgPrice = totalShares > 0 ? totalCostUSD / totalShares : p1;
-        document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`; document.getElementById('us_resN2').innerText = `${totalAddShares.toFixed(1)}`;
-        document.getElementById('us_resTotalN').innerText = `${totalShares.toFixed(1)} 股`; document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(finalAvgPrice * exchangeRate)}`;
-        document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(finalAvgPrice)}`; document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
-        document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`; document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney((totalAddCostUSD + fee) * exchangeRate)}`;
-        document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(totalAddCostUSD + fee)}`;
+      } else {
+        if (switcherEl) switcherEl.classList.add('hidden');
+        if (hasModeB && !hasPlan) activeMode = 'modeB';
+        else activeMode = 'plan';
       }
 
-      const totalCostUSD = origUSD + totalAddCostUSD + fee; const totalShares = n1 + totalAddShares;
+      let activeAddShares = 0;
+      let activeAddCostUSD = 0;
+      let activeTotalShares = n1;
+      let activeTotalCostUSD = origUSD;
+      let activeAvgPrice = p1;
+
+      if (activeMode === 'modeB') {
+        activeAddShares = modeBShares;
+        activeAddCostUSD = modeBCostUSD;
+        activeTotalShares = modeBTotalShares;
+        activeTotalCostUSD = modeBTotalCostUSD;
+        activeAvgPrice = modeBAvgPrice;
+
+        const batchDiv = document.createElement('div');
+        batchDiv.className = "bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl space-y-1 text-[11px] border border-slate-300 dark:border-slate-700/50 text-slate-800 dark:text-slate-200";
+        batchDiv.innerHTML = `
+          <div class="font-extrabold text-teal-900 dark:text-teal-300 border-b border-slate-200 dark:border-slate-700 pb-1 flex justify-between items-center">
+            <span>📦 補倉試算 (模式B 目標均價)</span>
+            <span class="text-[10px] text-slate-600 dark:text-slate-400 font-semibold">以買入價 USD$${formatPrice(targetP2In)}</span>
+          </div>
+          <div class="grid grid-cols-2 gap-1 text-slate-700 dark:text-slate-300 font-medium">
+            <div>1. 本次所需補倉(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(modeBCostUSD * exchangeRate)}</span></div>
+            <div>2. 本次所需補倉(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(modeBCostUSD)}</span></div>
+            <div>3. 目前個股總資金(台幣): <span class="font-extrabold text-amber-900 dark:text-amber-300">NTD$${formatMoney(modeBTotalCostUSD * exchangeRate)}</span></div>
+            <div>4. 目前個股總資金(美元): <span class="font-extrabold text-slate-950 dark:text-white">USD$${formatMoney(modeBTotalCostUSD)}</span></div>
+            <div>5. 本次所需補倉股數: <span class="font-black text-sky-950 dark:text-cyan-300">${modeBShares.toFixed(1)} 股</span></div>
+            <div>6. 目前個股總股數: <span class="font-black text-sky-950 dark:text-cyan-300">${modeBTotalShares.toFixed(1)} 股</span></div>
+            <div>7. 調整後平均成本: <span class="text-slate-950 dark:text-yellow-300 font-black">NTD$${formatPrice(modeBAvgPrice * exchangeRate)} (USD$${formatPrice(modeBAvgPrice)})</span></div>
+            <div>8. 未實現損益: <span class="${batchPnlPropColor('us', modeBPnlPct)} font-extrabold">${modeBPnlPct !== null ? (modeBPnlPct > 0 ? '+' : '') + modeBPnlPct.toFixed(2) + '%' : '-%'}</span></div>
+          </div>`;
+        if (batchContainer) batchContainer.appendChild(batchDiv);
+      } else {
+        activeAddShares = modeATotalAddShares;
+        activeAddCostUSD = modeATotalAddCostUSD + fee;
+        activeTotalShares = modeATotalShares;
+        activeTotalCostUSD = modeATotalCostUSD;
+        activeAvgPrice = modeAAvgPrice;
+
+        if (batchContainer) {
+          planDivs.forEach(div => batchContainer.appendChild(div));
+        }
+      }
+
+      document.getElementById('us_resN1').innerText = `${n1.toFixed(1)}`;
+      document.getElementById('us_resN2').innerText = `${activeAddShares.toFixed(1)}`;
+      document.getElementById('us_resTotalN').innerText = `${activeTotalShares.toFixed(1)} 股`;
+      document.getElementById('us_resAvgPriceTWD').innerText = `NTD$${formatPrice(activeAvgPrice * exchangeRate)}`;
+      document.getElementById('us_resAvgPrice').innerText = `USD$${formatPrice(activeAvgPrice)}`;
+      document.getElementById('us_resOriginalCostTWD').innerText = `NTD$${formatMoney(origUSD * exchangeRate)}`;
+      document.getElementById('us_resOriginalCostUSD').innerText = `USD$${formatMoney(origUSD)}`;
+      document.getElementById('us_resAddCostTWD').innerText = `NTD$${formatMoney(activeAddCostUSD * exchangeRate)}`;
+      document.getElementById('us_resAddCostUSD').innerText = `USD$${formatMoney(activeAddCostUSD)}`;
 
       // 🚀 美股補倉加碼後合併達標預期獲利試算
       const usPostPlanPnlEl = document.getElementById('us_targetPostPlanPnlDisplay');
       const usPostPlanSubEl = document.getElementById('us_targetPostPlanSub');
       if (usPostPlanPnlEl) {
-        if (targetPrice > 0 && totalShares > 0) {
-          if (totalAddShares > 0) {
-            const postPlanTargetAmtUSD = (totalShares * targetPrice) - totalCostUSD;
-            const postPlanTargetPctUSD = totalCostUSD > 0 ? (postPlanTargetAmtUSD / totalCostUSD) * 100 : 0;
+        if (targetPrice > 0 && activeTotalShares > 0) {
+          if (activeAddShares > 0) {
+            const postPlanTargetAmtUSD = (activeTotalShares * targetPrice) - activeTotalCostUSD;
+            const postPlanTargetPctUSD = activeTotalCostUSD > 0 ? (postPlanTargetAmtUSD / activeTotalCostUSD) * 100 : 0;
             const postPlanTargetAmtTWD = postPlanTargetAmtUSD * exchangeRate;
             usPostPlanPnlEl.className = `font-extrabold text-xs sm:text-sm ${getPnlColor('us', postPlanTargetAmtUSD)}`;
             usPostPlanPnlEl.innerText = `${postPlanTargetPctUSD > 0 ? '+' : ''}${postPlanTargetPctUSD.toFixed(2)}% (${postPlanTargetAmtUSD >= 0 ? '+' : ''}NTD$${formatMoney(postPlanTargetAmtTWD)} / USD$${formatMoney(postPlanTargetAmtUSD)})`;
-            if (usPostPlanSubEl) usPostPlanSubEl.innerText = `加碼後共 ${totalShares.toFixed(1)} 股 (新均價 NTD$${formatPrice(finalAvgPrice * exchangeRate)} / USD$${formatPrice(finalAvgPrice)})`;
+            if (usPostPlanSubEl) usPostPlanSubEl.innerText = `加碼後共 ${activeTotalShares.toFixed(1)} 股 (新均價 NTD$${formatPrice(activeAvgPrice * exchangeRate)} / USD$${formatPrice(activeAvgPrice)})`;
           } else {
             usPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-400";
             usPostPlanPnlEl.innerText = "同現有持股";
-            if (usPostPlanSubEl) usPostPlanSubEl.innerText = "第 2 區尚未設定補倉股數";
+            if (usPostPlanSubEl) usPostPlanSubEl.innerText = "尚未設定補倉股數";
           }
         } else {
           usPostPlanPnlEl.className = "font-bold text-xs sm:text-sm text-slate-700 dark:text-slate-400";
