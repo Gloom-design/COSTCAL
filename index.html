@@ -5333,6 +5333,41 @@
       }
     });
 
+    async function fetchLiveIndices() {
+      if (!navigator.onLine) return;
+      try {
+        const fetchIndex = async (symbol) => {
+          try {
+            const res = await fetch(`${API_BACKEND_URL}?symbol=${encodeURIComponent(symbol)}`);
+            if (res.ok) return await res.json();
+          } catch(e) {}
+          return null;
+        };
+        const [twii, otc, dji] = await Promise.all([
+          fetchIndex('^TWII'),
+          fetchIndex('^TWO'),
+          fetchIndex('^DJI')
+        ]);
+        const formatIndex = (data, elId) => {
+          if (!data || data.currentPrice === undefined) return;
+          const current = data.currentPrice;
+          const prev = data.prevClose || current;
+          const diff = current - prev;
+          const pct = prev > 0 ? (diff / prev) * 100 : 0;
+          const el = document.getElementById(elId);
+          if (!el) return;
+          const sign = diff > 0 ? '+' : '';
+          const colorClass = diff > 0 ? 'text-emerald-600 dark:text-emerald-400' : (diff < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-600 dark:text-slate-400');
+          el.className = `font-bold ${colorClass}`;
+          el.innerText = `${current.toLocaleString(undefined, {minimumFractionDigits: 1, maximumFractionDigits: 2})} ${sign}${diff.toFixed(2)} (${sign}${pct.toFixed(2)}%)`;
+        };
+        formatIndex(twii, 'tickerTw');
+        formatIndex(twii, 'tickerTxf');
+        formatIndex(otc, 'tickerOtc');
+        formatIndex(dji, 'tickerDow');
+      } catch (err) { console.warn('Live indices update failed:', err); }
+    }
+
     async function init() {
       const twRule = localStorage.getItem('calc_color_rule_tw') || 'red_up';
       const usRule = localStorage.getItem('calc_color_rule_us') || 'green_up';
@@ -5393,6 +5428,8 @@
       } catch (err) { isInitializing = false; }
       fetchExchangeRate();
       pingBackendVersion();
+      fetchLiveIndices();
+      setInterval(fetchLiveIndices, 60000);
     }
     window.resolveDataChoice = async function(choice) {
       document.getElementById('dataChoiceModal').classList.add('hidden'); isInitializing = false;
