@@ -142,40 +142,52 @@
       font-weight: 900 !important;
     }
     /* Dark mode overrides */
+    /* ══════════════════════════════════════════════════════════════
+       💎 黑曜石奢華金融深色風格 (Obsidian Luxury Fintech Theme)
+       ══════════════════════════════════════════════════════════════ */
     html.dark body {
-      background-color: #020617 !important;
+      background-color: #090a0f !important;
       color: #f1f5f9 !important;
     }
     html.dark .card-box,
-    html.dark .summary-card {
-      background-color: #0f172a !important;
+    html.dark .summary-card,
+    html.dark #aiMarketInsightCard,
+    html.dark #portfolioHeroCard {
+      background-color: #111622 !important;
       color: #f8fafc !important;
-      border-color: #334155 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
     }
     html.dark input[type="text"],
     html.dark input[type="number"],
     html.dark select {
-      background-color: #1e293b !important;
+      background-color: #0b0e17 !important;
       color: #f8fafc !important;
-      border-color: #475569 !important;
+      border-color: rgba(255, 255, 255, 0.12) !important;
+    }
+    html.dark input[type="text"]:focus,
+    html.dark input[type="number"]:focus,
+    html.dark select:focus {
+      border-color: #d4af37 !important;
+      box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.3) !important;
     }
     html.dark header {
-      background-color: #0f172a !important;
+      background-color: #111622 !important;
       color: #f8fafc !important;
-      border-color: #334155 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
     }
     html.dark header h1 {
       color: #f8fafc !important;
     }
     html.dark .bg-white {
-      background-color: #0f172a !important;
+      background-color: #111622 !important;
       color: #f8fafc !important;
     }
     html.dark .bg-slate-50 {
-      background-color: #1e293b !important;
+      background-color: #0b0e17 !important;
     }
     html.dark .bg-slate-100 {
-      background-color: #1e293b !important;
+      background-color: #141a27 !important;
       color: #f1f5f9 !important;
     }
     html.dark .text-slate-800,
@@ -188,11 +200,12 @@
     }
     html.dark .border-slate-200,
     html.dark .border-slate-100 {
-      border-color: #334155 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
     }
     html.dark #tabSwitcherCard,
     html.dark #mainContainer > div.grid.grid-cols-2.bg-slate-200 {
-      background-color: #1e293b !important;
+      background-color: #0b0e17 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
     }
     html.dark #tabTwBtn.bg-white {
       background-color: #1e1b2e !important;
@@ -206,6 +219,38 @@
       border-color: #14b8a6 !important;
       box-shadow: 0 0 12px rgba(20, 184, 166, 0.3) !important;
     }
+    /* 金色重點 CTA 按鈕與懸浮膠囊導覽 */
+    .btn-gold {
+      background: linear-gradient(135deg, #e5c07b 0%, #d4af37 100%) !important;
+      color: #0a0d14 !important;
+      font-weight: 900 !important;
+      box-shadow: 0 4px 15px -1px rgba(212, 175, 55, 0.25) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      cursor: pointer;
+    }
+    .btn-gold:hover {
+      background: linear-gradient(135deg, #f5d38a 0%, #e0b847 100%) !important;
+      transform: translateY(-1px);
+    }
+    .btn-gold:active {
+      transform: scale(0.97);
+    }
+    .floating-bottom-nav {
+      background: rgba(17, 22, 34, 0.92) !important;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.1) !important;
+      box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.65) !important;
+    }
+    
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .card-box, .summary-card {
+      animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    
     html:not(.dark) #tabTwBtn.bg-white {
       color: #e11d48 !important;
       border-color: #fda4af !important;
@@ -880,8 +925,183 @@
     </div>
   </div>
 
-  <div id="mainContainer" class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10 transition-all duration-150">
-    
+  <!-- 💎 頂部金融 App 導航列 (Fintech App Bar) -->
+  <header id="topFintechAppBar" class="sticky top-0 z-30 w-full bg-[#090a0f]/92 backdrop-blur-md border-b border-white/5 py-2.5 px-3 sm:px-6">
+    <div class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-sky-400 to-teal-300 p-0.5 shadow-md flex items-center justify-center">
+          <div class="w-full h-full bg-[#090a0f] rounded-[10px] flex items-center justify-center text-sky-400 font-black text-sm">
+            ❖
+          </div>
+        </div>
+        <h1 id="topAppTitle" class="font-black text-base sm:text-lg text-white tracking-tight">概覽</h1>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <!-- 使用者頭像 (點擊開啟設定與帳號) -->
+        <div id="topUserAvatar" onclick="openSettingsModal()" title="帳號與同步管理" class="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white font-black text-xs flex items-center justify-center cursor-pointer shadow-md hover:scale-105 active:scale-95 transition">
+          U
+        </div>
+        <!-- 鈴鐺通知 (30秒即時監控狀態) -->
+        <button type="button" onclick="toggleRealtimeMonitor()" id="topBellBtn" title="30秒盤中監控與到價警示" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center text-xs relative cursor-pointer active:scale-95 transition">
+          <span>🔔</span>
+          <span id="topBellDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-1.5 right-1.5 hidden animate-ping"></span>
+        </button>
+        <!-- ≡ 選單按鈕 -->
+        <button type="button" onclick="openLayoutModal()" id="topMenuBtn" title="自訂版面排版" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold cursor-pointer active:scale-95 transition">
+          <span>≡</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 📈 即時指數跑馬燈 (Live Market Index Ticker) -->
+  <div id="liveTickerBar" class="w-full bg-[#07080d] border-b border-white/5 py-1.5 overflow-hidden text-[11px] font-mono select-none">
+    <div class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto px-3 sm:px-6 overflow-x-auto no-scrollbar flex items-center gap-5 whitespace-nowrap">
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-slate-400 font-sans font-bold text-[10px]">即時指數</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="text-slate-400 font-sans">台指期貨</span>
+        <span id="tickerTxf" class="font-bold text-emerald-400">22,890 +135 (+0.59%)</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="text-slate-400 font-sans">加權指數</span>
+        <span id="tickerTw" class="font-bold text-emerald-400">22,858 +112 (+0.49%)</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="text-slate-400 font-sans">櫃買指數</span>
+        <span id="tickerOtc" class="font-bold text-rose-400">268.5 -1.2 (-0.44%)</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="text-slate-400 font-sans">美股道瓊</span>
+        <span id="tickerDow" class="font-bold text-emerald-400">42,156 +85 (+0.20%)</span>
+      </div>
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="text-slate-400 font-sans">USD/TWD</span>
+        <span id="tickerUsd" class="font-bold text-cyan-300">32.08</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainContainer" class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10 transition-all duration-150 p-3 sm:p-5 md:p-6 pb-28">
+
+    <!-- 🤖 1. AI 市場摘要與盤前策略卡片 (Fintech AI Insight Card) -->
+    <div id="aiMarketInsightCard" class="card-box bg-[#111622] text-white p-4 sm:p-5 rounded-2xl border border-white/10 shadow-lg space-y-3">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="w-7 h-7 rounded-xl bg-amber-400/10 border border-amber-400/30 text-amber-400 flex items-center justify-center text-xs shadow-xs">
+            ⚡
+          </div>
+          <span class="bg-amber-400/20 text-amber-300 border border-amber-400/40 text-[10px] font-black px-2 py-0.5 rounded-full">AI 市場摘要</span>
+          <span class="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">盤前策略</span>
+          <span id="aiSentimentBadge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">偏多續抱</span>
+        </div>
+        <button type="button" onclick="refreshAiSummary()" title="重新計算市場動態" class="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded cursor-pointer transition">
+          ↗
+        </button>
+      </div>
+      
+      <div>
+        <h3 id="aiSummaryTitle" class="font-black text-xs sm:text-sm text-slate-100 leading-snug">
+          台美股跨市場走勢追蹤與多組合補倉規劃
+        </h3>
+        <p id="aiSummaryBody" class="text-[11px] sm:text-xs text-slate-400 leading-relaxed mt-1.5 line-clamp-3">
+          三大法人與台指期近期動態分佈，外資與主力資金聚焦權值股與半導體供應鏈。建議依現有均價與未實現損益分批建倉，利用「模式A多筆買入」與「模式B目標均價反算」精準控制投入資金與綜合損益平衡點。
+        </p>
+      </div>
+
+      <div class="flex items-center gap-1.5 flex-wrap pt-0.5">
+        <span class="bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[9.5px] px-2 py-0.5 rounded-lg font-semibold">加權指數</span>
+        <span class="bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[9.5px] px-2 py-0.5 rounded-lg font-semibold">台美雙軌</span>
+        <span class="bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[9.5px] px-2 py-0.5 rounded-lg font-semibold">攤平試算</span>
+        <span class="bg-slate-800/80 text-slate-400 border border-slate-700/60 text-[9.5px] px-2 py-0.5 rounded-lg font-semibold">即時行情</span>
+      </div>
+
+      <div class="flex items-center justify-between text-[10px] text-slate-500 border-t border-white/5 pt-2 flex-wrap gap-2">
+        <div>更新時間 (台北) <span id="aiUpdateTime" class="font-mono text-slate-400">即時更新</span></div>
+        <div id="aiFocusStockTag" class="text-amber-400 font-bold">焦點持股: 台美雙軌配置</div>
+      </div>
+    </div>
+
+    <!-- ⚡ 2. 快捷功能卡片群 (4 大入口卡片) -->
+    <div id="quickActionGrid" class="grid grid-cols-4 gap-2 sm:gap-3">
+      <div onclick="switchNavTab('overview'); document.getElementById('globalPortfolioCard')?.scrollIntoView({behavior:'smooth'})" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
+        <div class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-base">
+          🏢
+        </div>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-200">全球總覽</span>
+      </div>
+
+      <div onclick="toggleRealtimeMonitor()" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center text-base">
+          ⚡
+        </div>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-200">盤中監控</span>
+      </div>
+
+      <div onclick="switchNavTab('calc')" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-base">
+          📈
+        </div>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-200">均價反算</span>
+      </div>
+
+      <div onclick="openAddStockModal()" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-base">
+          ➕
+        </div>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-200">新增持股</span>
+      </div>
+    </div>
+
+    <!-- 👛 3. 核心持倉卡片 (Portfolio Hero / Empty State Card) -->
+    <div id="portfolioHeroCard" class="card-box bg-[#111622] text-white p-5 sm:p-6 rounded-2xl border border-white/10 shadow-lg text-center space-y-3">
+      <!-- 空狀態 (無持倉資料時展示，符合富果/頂級金融 App 設計) -->
+      <div id="heroEmptyView" class="py-3 space-y-3">
+        <div class="w-13 h-13 rounded-2xl bg-amber-400/10 border border-amber-400/25 text-amber-300 flex items-center justify-center text-2xl mx-auto shadow-inner">
+          👛
+        </div>
+        <div class="space-y-1">
+          <h3 class="font-extrabold text-sm sm:text-base text-white">尚無持倉資料</h3>
+          <p class="text-xs text-slate-400 max-w-xs mx-auto">快去新增第一筆交易，開始追蹤你的投資績效。</p>
+        </div>
+        <div class="pt-1">
+          <button type="button" onclick="openAddStockModal()" class="btn-gold px-6 py-2.5 rounded-full text-xs font-black shadow-md cursor-pointer transition">
+            建立投資組合
+          </button>
+        </div>
+      </div>
+
+      <!-- 有持倉資料時展示 -->
+      <div id="heroActiveView" class="hidden text-left space-y-3">
+        <div class="flex items-center justify-between border-b border-white/5 pb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-base sm:text-lg">💼</span>
+            <h3 class="font-black text-xs sm:text-sm text-white">持倉資產速覽</h3>
+          </div>
+          <button type="button" onclick="openAddStockModal()" class="btn-gold text-[10px] px-3 py-1 rounded-lg">
+            ➕ 新增持股
+          </button>
+        </div>
+        <div class="grid grid-cols-3 gap-2 text-center pt-1">
+          <div class="bg-[#0b0e17] p-2.5 rounded-xl border border-white/5">
+            <div class="text-[9.5px] text-slate-400 font-semibold">總持股成本</div>
+            <div id="heroTotalCost" class="font-black text-xs sm:text-sm text-white mt-0.5">NTD$0</div>
+          </div>
+          <div class="bg-[#0b0e17] p-2.5 rounded-xl border border-white/5">
+            <div class="text-[9.5px] text-slate-400 font-semibold">總持股市值</div>
+            <div id="heroTotalValue" class="font-black text-xs sm:text-sm text-cyan-300 mt-0.5">NTD$0</div>
+          </div>
+          <div class="bg-[#0b0e17] p-2.5 rounded-xl border border-white/5">
+            <div class="text-[9.5px] text-slate-400 font-semibold">未實現損益</div>
+            <div id="heroTotalPnl" class="font-black text-xs sm:text-sm text-slate-300 mt-0.5">NTD$0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ⚠️ 免責聲明 -->
     <div id="disclaimerCard" class="bg-amber-50 border border-amber-200 text-amber-800 px-4 sm:px-6 py-3 rounded-2xl text-[10px] sm:text-xs shadow-sm">
       <div class="flex items-center gap-1.5 font-bold mb-1">
@@ -1897,8 +2117,8 @@
       result: { icon: '4️⃣', name: '4. 試算結果與雲端儲存', sub: '綜合調整後均價、成本與即時儲存按鈕' }
     };
 
-    // 🎨 主題風格設定 (明暗模式)
-    let currentThemeMode = localStorage.getItem('calc_theme_mode') || 'light';
+    // 🎨 主題風格設定 (明暗模式，預設黑曜石金融深色風格)
+    let currentThemeMode = localStorage.getItem('calc_theme_mode') || 'dark';
     let isGlobalCollapsed = localStorage.getItem('calc_global_collapsed') === 'true';
 
     function applyTheme() {
@@ -4971,6 +5191,21 @@
 
       const rateBadge = document.getElementById('global_exchangeRateBadge');
       if (rateBadge) rateBadge.innerText = `USD 匯率: ${exchangeRate.toFixed(2)}`;
+
+      const tickerUsd = document.getElementById('tickerUsd');
+      if (tickerUsd) tickerUsd.innerText = exchangeRate.toFixed(2);
+
+      // 同步更新 Hero 持倉卡片數值與 AI 摘要
+      const heroCost = document.getElementById('heroTotalCost');
+      if (heroCost) heroCost.innerText = `NTD$${formatMoney(globalCostTWD)}`;
+      const heroVal = document.getElementById('heroTotalValue');
+      if (heroVal) heroVal.innerText = `NTD$${formatMoney(globalValTWD)}`;
+      const heroPnl = document.getElementById('heroTotalPnl');
+      if (heroPnl) {
+        heroPnl.className = `font-black text-xs sm:text-sm mt-0.5 ${getPnlColor('tw', globalPnlTWD)}`;
+        heroPnl.innerText = `${globalPnlTWD >= 0 ? '+' : ''}NTD$${formatMoney(globalPnlTWD)}`;
+      }
+      updatePortfolioHeroCardUI();
     }
 
     window.refreshAllMarketPrices = async function(type) {
@@ -5158,18 +5393,174 @@
       calculateTwPortfolioSummary(); calculateUsPortfolioSummary();
       applyLayoutOrder();
     }
+
+    // ----------------------------------------------------
+    // 💎 金融 App 導航、AI 摘要與設定管理引擎
+    // ----------------------------------------------------
+    window.switchNavTab = function(tab) {
+      const navTabs = ['overview', 'tw', 'us', 'calc', 'settings'];
+      navTabs.forEach(t => {
+        const btn = document.getElementById(`navBtn-${t}`);
+        if (btn) {
+          if (t === tab) {
+            btn.className = "bottom-nav-btn bg-white/15 text-white shadow-sm ring-1 ring-white/20 flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer";
+          } else {
+            btn.className = "bottom-nav-btn text-slate-400 hover:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer";
+          }
+        }
+      });
+
+      const topTitle = document.getElementById('topAppTitle');
+      if (tab === 'overview') {
+        if (topTitle) topTitle.innerText = "概覽";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else if (tab === 'tw') {
+        if (topTitle) topTitle.innerText = "台股持倉";
+        switchTab('tw');
+        const el = document.getElementById('stocksContainer');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'us') {
+        if (topTitle) topTitle.innerText = "美股持倉";
+        switchTab('us');
+        const el = document.getElementById('stocksContainer');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'calc') {
+        if (topTitle) topTitle.innerText = "均價反算";
+        const currentTab = localStorage.getItem('calc_current_tab') || 'tw';
+        const cardBId = currentTab === 'tw' ? 'twCardModeB' : 'usCardModeB';
+        const el = document.getElementById(cardBId) || document.getElementById('stocksContainer');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      } else if (tab === 'settings') {
+        openSettingsModal();
+      }
+    };
+
+    window.openSettingsModal = function() {
+      const m = document.getElementById('settingsModal');
+      if (m) m.classList.remove('hidden');
+      const txt = document.getElementById('settingsUIModeText');
+      if (txt) {
+        if (uiModeSetting === 'auto') {
+          txt.innerText = `畫面大小: ⚡ 自動感應 (${window.innerWidth < 640 ? '手機' : '電腦'})`;
+        } else if (uiModeSetting === 'mobile') {
+          txt.innerText = '畫面大小: 📱 鎖定手機介面';
+        } else {
+          txt.innerText = '畫面大小: 💻 鎖定電腦介面';
+        }
+      }
+    };
+
+    window.closeSettingsModal = function() {
+      const m = document.getElementById('settingsModal');
+      if (m) m.classList.add('hidden');
+    };
+
+    window.refreshAiSummary = function() {
+      const titleEl = document.getElementById('aiSummaryTitle');
+      const bodyEl = document.getElementById('aiSummaryBody');
+      const timeEl = document.getElementById('aiUpdateTime');
+      const tagEl = document.getElementById('aiFocusStockTag');
+      const badgeEl = document.getElementById('aiSentimentBadge');
+
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      if (timeEl) timeEl.innerText = timeStr;
+
+      const currentTab = localStorage.getItem('calc_current_tab') || 'tw';
+      const currentKey = currentTab === 'tw' ? currentTwKey : currentUsKey;
+      const store = currentTab === 'tw' ? cloudData.twStocks : cloudData.usStocks;
+      const stockName = (store && currentKey && store[currentKey]?.name) ? store[currentKey].name : currentKey;
+
+      if (tagEl) {
+        tagEl.innerText = currentKey ? `焦點持股: ${stockName || currentKey} (${currentKey})` : `焦點: 台美雙軌配置`;
+      }
+
+      const globalPnlEl = document.getElementById('global_totalPnlTWD');
+      const isGain = globalPnlEl && !globalPnlEl.innerText.includes('-');
+      if (badgeEl) {
+        if (isGain) {
+          badgeEl.className = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full";
+          badgeEl.innerText = "偏多續抱";
+        } else {
+          badgeEl.className = "bg-rose-500/20 text-rose-300 border border-rose-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full";
+          badgeEl.innerText = "偏空攤平";
+        }
+      }
+
+      const twCount = (cloudData.twOrder || []).filter(k => cloudData.twStocks && cloudData.twStocks[k]).length;
+      const usCount = (cloudData.usOrder || []).filter(k => cloudData.usStocks && cloudData.usStocks[k]).length;
+
+      if (titleEl) {
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        titleEl.innerText = `${dateStr} 跨市場走勢、外資法人動態與組合均價策略`;
+      }
+
+      if (bodyEl) {
+        if (twCount + usCount === 0) {
+          bodyEl.innerText = "目前尚無持倉組合。點擊下方「建立投資組合」或「➕」即可新增台股或美股持股，系統將自動套用分批補倉（模式A）與目標均價反算（模式B），即時掌握整體資產未實現損益與損益平衡點。";
+        } else {
+          bodyEl.innerText = `目前名下追蹤 ${twCount} 檔台股、${usCount} 檔美股。依即時市價換算，建議善用分批攤平規劃，分攤進場成本風險；如需設定停利賣出價格，可透過目標賣價試算預期淨報酬率，隨時掌握每筆資金效率。`;
+        }
+      }
+    };
+
+    window.updatePortfolioHeroCardUI = function() {
+      const twCount = (cloudData.twOrder || []).filter(k => cloudData.twStocks && cloudData.twStocks[k]).length;
+      const usCount = (cloudData.usOrder || []).filter(k => cloudData.usStocks && cloudData.usStocks[k]).length;
+      const totalCount = twCount + usCount;
+
+      const emptyView = document.getElementById('heroEmptyView');
+      const activeView = document.getElementById('heroActiveView');
+
+      if (totalCount === 0) {
+        if (emptyView) emptyView.classList.remove('hidden');
+        if (activeView) activeView.classList.add('hidden');
+      } else {
+        if (emptyView) emptyView.classList.add('hidden');
+        if (activeView) activeView.classList.remove('hidden');
+      }
+
+      refreshAiSummary();
+    };
+
     function updateAuthUI() {
       const userInfoEl = document.getElementById('userInfo'); 
       const loginBtn = document.getElementById('loginBtn'); 
       const loggedOptions = document.getElementById('loggedOptions');
+      const topUserAvatar = document.getElementById('topUserAvatar');
+      const settingsUserEmail = document.getElementById('settingsUserEmail');
+      const settingsLoginBtn = document.getElementById('settingsLoginBtn');
+      const settingsLogoutBtn = document.getElementById('settingsLogoutBtn');
+      const settingsSwitchBtn = document.getElementById('settingsSwitchBtn');
+
       if (currentUser) { 
-        userInfoEl.innerText = currentUser.email.split('@')[0]; 
+        const emailPrefix = currentUser.email.split('@')[0];
+        const initial = emailPrefix.charAt(0).toUpperCase() || 'U';
+        if (topUserAvatar) {
+          topUserAvatar.innerText = initial;
+          topUserAvatar.title = `已登入：${currentUser.email}`;
+        }
+        if (settingsUserEmail) settingsUserEmail.innerText = currentUser.email;
+        if (settingsLoginBtn) settingsLoginBtn.classList.add('hidden');
+        if (settingsLogoutBtn) settingsLogoutBtn.classList.remove('hidden');
+        if (settingsSwitchBtn) settingsSwitchBtn.classList.remove('hidden');
+
+        userInfoEl.innerText = emailPrefix; 
         userInfoEl.title = `目前登入帳號：${currentUser.email}`;
         userInfoEl.classList.remove('hidden'); 
         loginBtn.classList.add('hidden'); 
         loggedOptions.classList.remove('hidden'); 
         loadAdminStats(); 
       } else { 
+        if (topUserAvatar) {
+          topUserAvatar.innerText = 'U';
+          topUserAvatar.title = '未登入 (點擊開啟設定)';
+        }
+        if (settingsUserEmail) settingsUserEmail.innerText = '訪客模式 (未登入)';
+        if (settingsLoginBtn) settingsLoginBtn.classList.remove('hidden');
+        if (settingsLogoutBtn) settingsLogoutBtn.classList.add('hidden');
+        if (settingsSwitchBtn) settingsSwitchBtn.classList.add('hidden');
+
         userInfoEl.innerText = '未登入'; 
         userInfoEl.classList.add('hidden'); 
         loginBtn.classList.remove('hidden'); 
@@ -5179,5 +5570,87 @@
     }
     init();
   </script>
+
+  <!-- ⚙️ 現代金融風格設定 Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target===this)closeSettingsModal()">
+    <div class="bg-[#111622] text-white rounded-2xl max-w-sm sm:max-w-md w-full p-5 sm:p-6 shadow-2xl border border-white/10 space-y-4">
+      <div class="flex items-center justify-between border-b border-white/10 pb-3">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">⚙️</span>
+          <h3 class="font-extrabold text-base text-white">設定與帳號管理</h3>
+        </div>
+        <button type="button" onclick="closeSettingsModal()" class="text-slate-400 hover:text-white font-bold text-sm cursor-pointer p-1">✕</button>
+      </div>
+
+      <!-- 帳號資訊 -->
+      <div class="p-3.5 rounded-xl bg-[#0b0e17] border border-white/5 space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-slate-400 font-bold">登入身分</span>
+          <span id="settingsUserEmail" class="text-xs font-bold text-indigo-300">訪客模式 (未登入)</span>
+        </div>
+        <div id="settingsAuthBtns" class="flex gap-2 pt-1">
+          <button type="button" id="settingsLoginBtn" onclick="closeSettingsModal(); loginWithGoogle();" class="flex-1 btn-gold py-2 rounded-xl text-xs font-bold transition">🔑 登入 Google 帳號</button>
+          <button type="button" id="settingsSwitchBtn" onclick="closeSettingsModal(); switchAccount();" class="hidden flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-xl text-xs font-bold transition">切換帳號</button>
+          <button type="button" id="settingsLogoutBtn" onclick="closeSettingsModal(); logout();" class="hidden flex-1 bg-slate-800 hover:bg-slate-700 text-white py-2 rounded-xl text-xs font-bold border border-white/10 transition">登出</button>
+        </div>
+      </div>
+
+      <!-- 介面與排版快捷設定 -->
+      <div class="space-y-2">
+        <label class="text-xs text-slate-400 font-bold block">偏好設定</label>
+        <div class="grid grid-cols-2 gap-2">
+          <button type="button" onclick="closeSettingsModal(); openLayoutModal();" class="p-3 bg-slate-800/80 hover:bg-slate-800 text-white rounded-xl border border-white/10 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer">
+            <span>📐</span><span>自訂排版</span>
+          </button>
+          <button type="button" onclick="closeSettingsModal(); openThemeModal();" class="p-3 bg-slate-800/80 hover:bg-slate-800 text-white rounded-xl border border-white/10 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer">
+            <span>🎨</span><span>主題配色</span>
+          </button>
+          <button type="button" onclick="toggleUIMode()" class="p-3 bg-slate-800/80 hover:bg-slate-800 text-white rounded-xl border border-white/10 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer col-span-2">
+            <span>⚡</span><span id="settingsUIModeText">畫面大小調整 (自動感應)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="border-t border-white/10 pt-3 flex items-center justify-between text-[11px] text-slate-400">
+        <div>版本: <span class="font-mono text-white">V0.0 Fintech Pro</span></div>
+        <button type="button" onclick="closeSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition">
+          完成
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ➕ 右下角金色快速新增懸浮按鈕 (Floating Action Bubble) -->
+  <button type="button" onclick="openAddStockModal()" id="floatingActionBubble" title="快速新增投資組合項目" class="fixed bottom-20 right-4 sm:right-6 z-40 w-11 h-11 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-slate-950 font-black shadow-2xl flex items-center justify-center text-lg cursor-pointer hover:scale-110 active:scale-95 transition border border-white/20">
+    ➕
+  </button>
+
+  <!-- 📱 懸浮式膠囊底部導覽列 (Floating Bottom Nav Bar) -->
+  <nav id="floatingBottomNav" class="floating-bottom-nav fixed bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-40 w-[94%] max-w-md rounded-full px-2 py-1.5 flex items-center justify-around text-slate-400 select-none">
+    <button type="button" onclick="switchNavTab('overview')" id="navBtn-overview" class="bottom-nav-btn bg-white/15 text-white shadow-sm ring-1 ring-white/20 flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer">
+      <span class="text-base leading-none">🏠</span>
+      <span class="text-[9px] font-bold mt-0.5">概覽</span>
+    </button>
+    
+    <button type="button" onclick="switchNavTab('tw')" id="navBtn-tw" class="bottom-nav-btn hover:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer">
+      <span class="text-base leading-none">🇹🇼</span>
+      <span class="text-[9px] font-bold mt-0.5">台股</span>
+    </button>
+
+    <button type="button" onclick="switchNavTab('us')" id="navBtn-us" class="bottom-nav-btn hover:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer">
+      <span class="text-base leading-none">🇺🇸</span>
+      <span class="text-[9px] font-bold mt-0.5">美股</span>
+    </button>
+
+    <button type="button" onclick="switchNavTab('calc')" id="navBtn-calc" class="bottom-nav-btn hover:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer">
+      <span class="text-base leading-none">🧮</span>
+      <span class="text-[9px] font-bold mt-0.5">試算</span>
+    </button>
+
+    <button type="button" onclick="switchNavTab('settings')" id="navBtn-settings" class="bottom-nav-btn hover:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer">
+      <span class="text-base leading-none">⚙️</span>
+      <span class="text-[9px] font-bold mt-0.5">設定</span>
+    </button>
+  </nav>
 </body>
 </html>
