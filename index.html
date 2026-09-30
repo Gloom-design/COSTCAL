@@ -136,6 +136,13 @@
     html:not(.dark) .bg-\[\#111622\], html:not(.dark) .bg-\[\#0b0e17\] { background-color: #ffffff !important; }
     html:not(.dark) .border-white\\/5, html:not(.dark) .border-white\\/10 { border-color: #eeeae1 !important; }
     
+    /* AI 卡片硬編碼深色標籤覆蓋 */
+    html:not(.dark) #aiMarketInsightCard span[class*="bg-slate-800"] {
+      background-color: #eeeae1 !important;
+      color: #6b6964 !important;
+      border-color: transparent !important;
+    }
+    
     /* 懸浮導航列覆蓋 */
     html:not(.dark) .floating-bottom-nav {
       background: rgba(250, 249, 246, 0.92) !important;
