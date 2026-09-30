@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#4f46e5">
   <title>台美股多組合攤平與損益計算器</title>
   <link rel="manifest" href="manifest.json">
@@ -880,7 +880,7 @@
     </div>
   </div>
 
-  <div id="mainContainer" class="max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10">
+  <div id="mainContainer" class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10 transition-all duration-150">
     
     <!-- ⚠️ 免責聲明 -->
     <div id="disclaimerCard" class="bg-amber-50 border border-amber-200 text-amber-800 px-4 sm:px-6 py-3 rounded-2xl text-[10px] sm:text-xs shadow-sm">
@@ -937,8 +937,8 @@
             <span>🎨</span><span class="truncate">配色</span>
           </button>
 
-          <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-950/70 text-sky-900 dark:text-sky-300 text-[10px] sm:text-xs rounded-xl font-bold border border-sky-300 dark:border-sky-700/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95">
-            <span class="truncate">📱 手機介面</span>
+          <button onclick="toggleUIMode()" id="modeToggleBtn" type="button" class="flex-1 min-w-0 h-8 sm:h-8.5 px-2 bg-sky-50 dark:bg-sky-950/40 hover:bg-sky-100 dark:hover:bg-sky-950/70 text-sky-900 dark:text-sky-300 text-[10px] sm:text-xs rounded-xl font-bold border border-sky-300 dark:border-sky-700/60 transition shadow-2xs cursor-pointer flex items-center justify-center gap-1 whitespace-nowrap active:scale-95" title="切換自動感應/手機/電腦畫面大小模式">
+            <span class="truncate">⚡ 自動</span><span class="hidden sm:inline">感應</span>
           </button>
         </div>
 
@@ -2252,7 +2252,27 @@
     let currentUser = null;
     let saveTimeout = null;
     let fetchController = null;
-    let isCompactMode = localStorage.getItem('calc_compact_mode') === 'true';
+
+    // 畫面尺寸自適應模式：'auto' (預設智慧自動感應), 'mobile' (強制手機緊湊), 'desktop' (強制電腦舒適)
+    let uiModeSetting = localStorage.getItem('calc_ui_mode');
+    if (!uiModeSetting) {
+      const legacyCompact = localStorage.getItem('calc_compact_mode');
+      if (legacyCompact !== null) {
+        uiModeSetting = legacyCompact === 'true' ? 'mobile' : 'desktop';
+      } else {
+        uiModeSetting = 'auto'; // 預設啟用智慧自動感應
+      }
+      localStorage.setItem('calc_ui_mode', uiModeSetting);
+    }
+
+    function getEffectiveCompactMode() {
+      if (uiModeSetting === 'mobile') return true;
+      if (uiModeSetting === 'desktop') return false;
+      // 'auto' 模式：當視窗寬度 < 640px 時自動切換為手機緊湊模式，>= 640px 自動為電腦舒適模式
+      return window.innerWidth < 640;
+    }
+
+    let isCompactMode = getEffectiveCompactMode();
     let isInitializing = true;
     let isSyncing = false;
     let latestApiVer = '';
@@ -3010,9 +3030,34 @@
     };
 
     window.toggleUIMode = function() {
-      isCompactMode = !isCompactMode;
-      localStorage.setItem('calc_compact_mode', isCompactMode);
+      // 循環切換：'auto' (智慧自動) -> 'mobile' (強制手機) -> 'desktop' (強制電腦) -> 'auto'
+      if (uiModeSetting === 'auto') {
+        uiModeSetting = 'mobile';
+      } else if (uiModeSetting === 'mobile') {
+        uiModeSetting = 'desktop';
+      } else {
+        uiModeSetting = 'auto';
+      }
+      localStorage.setItem('calc_ui_mode', uiModeSetting);
+      localStorage.setItem('calc_compact_mode', getEffectiveCompactMode());
       applyUIMode();
+
+      const syncStatus = document.getElementById('syncStatus');
+      if (syncStatus) {
+        const prevText = syncStatus.innerText;
+        let modeNotice = '';
+        if (uiModeSetting === 'auto') {
+          modeNotice = `⚡ 已切換為自動感應 (${window.innerWidth < 640 ? '手機畫面' : '電腦畫面'})`;
+        } else if (uiModeSetting === 'mobile') {
+          modeNotice = '📱 已鎖定為手機緊湊介面';
+        } else {
+          modeNotice = '💻 已鎖定為電腦寬版介面';
+        }
+        syncStatus.innerText = modeNotice;
+        setTimeout(() => {
+          if (syncStatus.innerText === modeNotice) syncStatus.innerText = prevText;
+        }, 2200);
+      }
     };
 
     window.switchTab = function(type) {
@@ -3306,15 +3351,31 @@
       const bodyBg = isDark ? 'bg-slate-950 text-slate-100' : 'bg-slate-100 text-slate-800';
       const summaryBg = isDark ? 'bg-slate-900 text-white' : 'bg-white text-slate-800 shadow-sm';
 
+      isCompactMode = getEffectiveCompactMode();
+
+      // 更新按鈕文字與提示資訊
+      if (btn) {
+        if (uiModeSetting === 'auto') {
+          const autoLabel = isCompactMode ? '手機' : '電腦';
+          btn.innerHTML = `<span class="truncate">⚡ 自動</span><span class="hidden sm:inline"> (${autoLabel})</span>`;
+          btn.title = `目前為「智慧自動感應」（偵測畫面寬度：${window.innerWidth}px ➔ ${autoLabel}介面），點擊切換為手動鎖定`;
+        } else if (uiModeSetting === 'mobile') {
+          btn.innerHTML = `<span class="truncate">📱 手機</span><span class="hidden sm:inline">介面</span>`;
+          btn.title = '目前鎖定為「手機介面」，點擊切換為「電腦介面」';
+        } else {
+          btn.innerHTML = `<span class="truncate">💻 電腦</span><span class="hidden sm:inline">介面</span>`;
+          btn.title = '目前鎖定為「電腦介面」，點擊切換為「智慧自動感應」';
+        }
+      }
+
       if (isCompactMode) {
-        btn.innerText = "📱 手機介面";
-        body.className = bodyBg + " compact-mode p-1.5 min-h-screen transition-all";
-        container.className = "max-w-md sm:max-w-xl mx-auto space-y-2 text-[11px] sm:text-xs";
+        body.className = bodyBg + " compact-mode p-1.5 sm:p-2.5 min-h-screen transition-all";
+        container.className = "w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto space-y-2 sm:space-y-3 text-[11px] sm:text-xs transition-all duration-150";
         cards.forEach(card => {
           if (card.id === 'twStockSelectorCard' || card.id === 'usStockSelectorCard') {
             card.className = `card-box ${cardBg} p-2 sm:p-2.5 rounded-2xl shadow-sm border flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar`;
           } else {
-            card.className = `card-box ${cardBg} p-3 rounded-xl shadow-sm space-y-2 border`;
+            card.className = `card-box ${cardBg} p-3 sm:p-3.5 rounded-xl shadow-sm space-y-2 sm:space-y-2.5 border`;
           }
         });
         summaryCards.forEach(sc => {
@@ -3323,17 +3384,16 @@
           const borderClass = isDark
             ? (isTw ? 'border-rose-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40'))
             : (isTw ? 'border-rose-200' : (isUs ? 'border-teal-200' : 'border-cyan-200'));
-          sc.className = `summary-card ${summaryBg} p-3 rounded-xl border ${borderClass} space-y-2.5`;
+          sc.className = `summary-card ${summaryBg} p-3 sm:p-3.5 rounded-xl border ${borderClass} space-y-2.5`;
         });
       } else {
-        btn.innerText = "💻 電腦介面";
-        body.className = bodyBg + " p-3 sm:p-6 min-h-screen transition-all";
-        container.className = "max-w-md sm:max-w-xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm";
+        body.className = bodyBg + " p-3 sm:p-5 md:p-6 lg:p-8 min-h-screen transition-all";
+        container.className = "w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm transition-all duration-150";
         cards.forEach(card => {
           if (card.id === 'twStockSelectorCard' || card.id === 'usStockSelectorCard') {
-            card.className = `card-box ${cardBg} p-2 sm:p-2.5 rounded-2xl shadow-sm border flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar`;
+            card.className = `card-box ${cardBg} p-2.5 sm:p-3 rounded-2xl shadow-sm border flex items-center gap-1.5 sm:gap-2 flex-nowrap overflow-x-auto no-scrollbar`;
           } else {
-            card.className = `card-box ${cardBg} p-4 sm:p-6 rounded-2xl shadow-sm space-y-3.5 border`;
+            card.className = `card-box ${cardBg} p-4 sm:p-6 rounded-2xl shadow-sm space-y-3.5 sm:space-y-4 border`;
           }
         });
         summaryCards.forEach(sc => {
@@ -3342,7 +3402,7 @@
           const borderClass = isDark
             ? (isTw ? 'border-rose-500/40' : (isUs ? 'border-teal-500/40' : 'border-cyan-500/40'))
             : (isTw ? 'border-rose-200' : (isUs ? 'border-teal-200' : 'border-cyan-200'));
-          sc.className = `summary-card ${summaryBg} p-4 sm:p-6 rounded-2xl border ${borderClass} space-y-3.5`;
+          sc.className = `summary-card ${summaryBg} p-4 sm:p-6 rounded-2xl border ${borderClass} space-y-3.5 sm:space-y-4`;
         });
       }
     }
@@ -5005,6 +5065,23 @@
     });
     const twSamePrev = document.getElementById('tw_sameAsPrev');
     if (twSamePrev) twSamePrev.addEventListener('change', () => { calculateTw(); saveData(); });
+
+    // 視窗大小改變或裝置旋轉時，即時自動適配畫面大小
+    let resizeDebounceTimer = null;
+    window.addEventListener('resize', () => {
+      if (uiModeSetting === 'auto') {
+        clearTimeout(resizeDebounceTimer);
+        resizeDebounceTimer = setTimeout(() => {
+          applyUIMode();
+        }, 80);
+      }
+    });
+
+    window.addEventListener('orientationchange', () => {
+      if (uiModeSetting === 'auto') {
+        setTimeout(applyUIMode, 100);
+      }
+    });
 
     async function init() {
       const twRule = localStorage.getItem('calc_color_rule_tw') || 'red_up';
