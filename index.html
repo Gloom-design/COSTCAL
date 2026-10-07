@@ -15,47 +15,53 @@
   </script>
   <style id="themeDynamicStyles">
     /* ══════════════════════════════════════════════════════════════
-       🌿 北歐無印風 (Nordic Clean Theme) - 白色介面專屬
+       🔮 科技玻璃風 (Glassmorphism Theme) - 白色介面專屬
        ══════════════════════════════════════════════════════════════ */
     html:not(.dark) body {
-      background-color: #faf9f6 !important; /* 奶油白背景 */
-      color: #3d3b38 !important; /* 柔和深碳灰 */
+      background: linear-gradient(135deg, #f6f8fd 0%, #f1f6f9 25%, #eef2f3 50%, #f3f5f8 75%, #f4f7fb 100%) !important;
+      background-attachment: fixed !important;
+      color: #1e293b !important;
     }
     html:not(.dark) .card-box,
     html:not(.dark) .summary-card,
     html:not(.dark) #aiMarketInsightCard,
     html:not(.dark) #portfolioHeroCard {
-      background-color: #ffffff !important;
-      color: #3d3b38 !important;
-      border-color: #eeeae1 !important; /* 暖灰邊框 */
-      box-shadow: 0 4px 20px -4px rgba(139, 115, 85, 0.08) !important; /* 大地色系柔和陰影 */
+      background-color: rgba(255, 255, 255, 0.6) !important;
+      backdrop-filter: blur(16px) !important;
+      -webkit-backdrop-filter: blur(16px) !important;
+      color: #1e293b !important;
+      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
     }
     html:not(.dark) h1, html:not(.dark) h2, html:not(.dark) h3, html:not(.dark) h4 {
-      color: #2c2a27 !important;
+      color: #0f172a !important;
       font-weight: 800 !important;
     }
     html:not(.dark) .card-box label,
     html:not(.dark) .summary-card label {
-      color: #3d3b38 !important;
+      color: #1e293b !important;
       font-weight: 700 !important;
     }
     html:not(.dark) input[type="text"],
     html:not(.dark) input[type="number"],
     html:not(.dark) select {
-      background-color: #ffffff !important;
-      color: #3d3b38 !important;
-      border-color: #e3dec9 !important;
+      background-color: rgba(255, 255, 255, 0.55) !important;
+      backdrop-filter: blur(4px) !important;
+      -webkit-backdrop-filter: blur(4px) !important;
+      color: #0f172a !important;
+      border: 1px solid rgba(255, 255, 255, 0.8) !important;
       font-weight: 700 !important;
     }
     html:not(.dark) input[type="text"]:focus,
     html:not(.dark) input[type="number"]:focus,
     html:not(.dark) select:focus {
-      border-color: #d28c5a !important; /* 暖橘/陶土色對焦 */
-      box-shadow: 0 0 0 1px rgba(210, 140, 90, 0.3) !important;
+      border-color: #6366f1 !important;
+      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+      background-color: rgba(255, 255, 255, 0.8) !important;
     }
     html:not(.dark) input[type="text"]::placeholder,
     html:not(.dark) input[type="number"]::placeholder {
-      color: #a39c90 !important;
+      color: #64748b !important;
       font-weight: 600 !important;
     }
     
@@ -64,96 +70,112 @@
     html:not(.dark) .summary-card .text-white:not(button):not([class*="bg-indigo"]):not([class*="bg-teal"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-amber"]),
     html:not(.dark) #aiMarketInsightCard .text-white,
     html:not(.dark) #portfolioHeroCard .text-white {
-      color: #3d3b38 !important;
+      color: #1e293b !important;
     }
     
     /* 柔和文字顏色 */
-    html:not(.dark) .text-slate-100, html:not(.dark) .text-slate-200, html:not(.dark) .text-slate-300 { color: #8c8983 !important; font-weight: 600; }
-    html:not(.dark) .text-slate-400, html:not(.dark) .text-slate-500 { color: #6b6964 !important; font-weight: 600; }
-    html:not(.dark) .text-slate-600, html:not(.dark) .text-slate-700 { color: #4d4b47 !important; font-weight: 700; }
-    html:not(.dark) .text-slate-800, html:not(.dark) .text-slate-900, html:not(.dark) .text-slate-950 { color: #2c2a27 !important; font-weight: 800; }
+    html:not(.dark) .text-slate-100, html:not(.dark) .text-slate-200, html:not(.dark) .text-slate-300 { color: #64748b !important; font-weight: 600; }
+    html:not(.dark) .text-slate-400, html:not(.dark) .text-slate-500 { color: #475569 !important; font-weight: 600; }
+    html:not(.dark) .text-slate-600, html:not(.dark) .text-slate-700 { color: #334155 !important; font-weight: 700; }
+    html:not(.dark) .text-slate-800, html:not(.dark) .text-slate-900, html:not(.dark) .text-slate-950 { color: #0f172a !important; font-weight: 800; }
     
-    /* 北歐低飽和度暖色強調色 */
+    /* 科技感玻璃風強調色 */
     html:not(.dark) .text-rose-400, html:not(.dark) .text-rose-500, html:not(.dark) .text-rose-600,
     html:not(.dark) .text-red-400, html:not(.dark) .text-red-500, html:not(.dark) .text-red-600 {
-      color: #c96a5b !important; /* 柔和磚紅 */
+      color: #e11d48 !important;
       font-weight: 800 !important;
     }
     html:not(.dark) .text-emerald-400, html:not(.dark) .text-emerald-500, html:not(.dark) .text-emerald-600,
     html:not(.dark) .text-green-400, html:not(.dark) .text-green-500, html:not(.dark) .text-green-600 {
-      color: #6a8c7b !important; /* 柔和鼠尾草綠 */
+      color: #059669 !important;
       font-weight: 800 !important;
     }
     html:not(.dark) .text-cyan-300, html:not(.dark) .text-cyan-400, html:not(.dark) .text-cyan-500, html:not(.dark) .text-cyan-600,
     html:not(.dark) .text-sky-400, html:not(.dark) .text-sky-500, html:not(.dark) .text-sky-600 {
-      color: #5c7b8c !important; /* 柔和莫蘭迪藍 */
+      color: #0284c7 !important;
       font-weight: 700 !important;
     }
     html:not(.dark) .text-teal-400, html:not(.dark) .text-teal-500, html:not(.dark) .text-teal-600 {
-      color: #597a70 !important; /* 柔和冷杉綠 */
+      color: #0d9488 !important;
       font-weight: 700 !important;
     }
     html:not(.dark) .text-indigo-300, html:not(.dark) .text-indigo-400, html:not(.dark) .text-indigo-500, html:not(.dark) .text-indigo-600 {
-      color: #6b6b8a !important; /* 柔和薰衣草紫 */
+      color: #4f46e5 !important;
       font-weight: 700 !important;
     }
     html:not(.dark) .text-amber-400, html:not(.dark) .text-amber-500, html:not(.dark) .text-amber-600,
     html:not(.dark) .text-yellow-300, html:not(.dark) .text-yellow-400, html:not(.dark) .text-yellow-500 {
-      color: #cca463 !important; /* 柔和芥末黃 */
+      color: #d97706 !important;
       font-weight: 700 !important;
     }
     html:not(.dark) #tw_resAvgPrice, html:not(.dark) #us_resAvgPrice {
-      color: #d28c5a !important; /* 均價反算結果使用暖橘 */
+      color: #4f46e5 !important;
       font-weight: 900 !important;
     }
 
     /* 覆蓋硬編碼的 Fintech 深色背景與邊框 */
     html:not(.dark) #topFintechAppBar {
-      background-color: rgba(250, 249, 246, 0.92) !important;
-      border-bottom-color: rgba(139, 115, 85, 0.15) !important;
+      background-color: rgba(255, 255, 255, 0.4) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
     }
-    html:not(.dark) #topAppTitle { color: #2c2a27 !important; }
+    html:not(.dark) #topAppTitle { color: #0f172a !important; }
     html:not(.dark) #topBellBtn, html:not(.dark) #topMenuBtn {
-      background-color: #eeeae1 !important;
-      color: #6b6964 !important;
-      border-color: transparent !important;
+      background-color: rgba(255, 255, 255, 0.6) !important;
+      color: #475569 !important;
+      border: 1px solid rgba(255, 255, 255, 0.8) !important;
     }
     html:not(.dark) #liveTickerBar {
-      background-color: #f7f6f1 !important;
-      border-bottom-color: rgba(139, 115, 85, 0.1) !important;
+      background-color: rgba(255, 255, 255, 0.3) !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
     }
-    html:not(.dark) #liveTickerBar span.text-slate-400 { color: #8c8983 !important; }
+    html:not(.dark) #liveTickerBar span.text-slate-400 { color: #475569 !important; }
     
     html:not(.dark) #quickActionGrid > div {
-      background-color: #ffffff !important;
-      border-color: #eeeae1 !important;
-      box-shadow: 0 2px 8px -2px rgba(139, 115, 85, 0.06) !important;
+      background-color: rgba(255, 255, 255, 0.5) !important;
+      backdrop-filter: blur(10px) !important;
+      -webkit-backdrop-filter: blur(10px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 4px 12px 0 rgba(31, 38, 135, 0.05) !important;
     }
-    html:not(.dark) #quickActionGrid > div:hover { background-color: #faf9f6 !important; }
-    html:not(.dark) #quickActionGrid span.text-slate-200 { color: #4d4b47 !important; }
+    html:not(.dark) #quickActionGrid > div:hover { 
+      background-color: rgba(255, 255, 255, 0.7) !important; 
+      transform: translateY(-2px);
+    }
+    html:not(.dark) #quickActionGrid span.text-slate-200 { color: #334155 !important; }
     
     /* 通用背景/邊框覆蓋 */
-    html:not(.dark) .bg-\[\#111622\], html:not(.dark) .bg-\[\#0b0e17\] { background-color: #ffffff !important; }
-    html:not(.dark) .border-white\\/5, html:not(.dark) .border-white\\/10 { border-color: #eeeae1 !important; }
+    html:not(.dark) .bg-\[\#111622\], html:not(.dark) .bg-\[\#0b0e17\] { 
+      background-color: rgba(255, 255, 255, 0.6) !important; 
+    }
+    html:not(.dark) .border-white\\/5, html:not(.dark) .border-white\\/10 { 
+      border-color: rgba(255, 255, 255, 0.7) !important; 
+    }
     
     /* AI 卡片硬編碼深色標籤覆蓋 */
     html:not(.dark) #aiMarketInsightCard span[class*="bg-slate-800"] {
-      background-color: #eeeae1 !important;
-      color: #6b6964 !important;
-      border-color: transparent !important;
+      background-color: rgba(255, 255, 255, 0.7) !important;
+      color: #475569 !important;
+      border: 1px solid rgba(255, 255, 255, 0.9) !important;
     }
     
     /* 懸浮導航列覆蓋 */
     html:not(.dark) .floating-bottom-nav {
-      background: rgba(250, 249, 246, 0.92) !important;
-      border: 1px solid rgba(139, 115, 85, 0.15) !important;
-      box-shadow: 0 12px 36px 0 rgba(139, 115, 85, 0.2) !important;
+      background: rgba(255, 255, 255, 0.65) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1) !important;
     }
-    html:not(.dark) .bottom-nav-btn { color: #8c8983 !important; }
+    html:not(.dark) .bottom-nav-btn { color: #64748b !important; }
     html:not(.dark) .bottom-nav-btn.bg-white\\/15 {
-      background-color: #eeeae1 !important;
-      color: #3d3b38 !important;
-      box-shadow: none !important;
+      background-color: rgba(255, 255, 255, 0.8) !important;
+      color: #0f172a !important;
+      box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.05) !important;
+      border: 1px solid rgba(255, 255, 255, 0.9) !important;
       ring-width: 0 !important;
     }
     /* Dark mode overrides */
