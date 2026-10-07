@@ -18,7 +18,7 @@
        🔮 科技玻璃風 (Glassmorphism Theme) - 白色介面專屬
        ══════════════════════════════════════════════════════════════ */
     html:not(.dark) body {
-      background: linear-gradient(135deg, #f6f8fd 0%, #f1f6f9 25%, #eef2f3 50%, #f3f5f8 75%, #f4f7fb 100%) !important;
+      background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 50%, #c2e9fb 100%) !important;
       background-attachment: fixed !important;
       color: #1e293b !important;
     }
@@ -26,12 +26,14 @@
     html:not(.dark) .summary-card,
     html:not(.dark) #aiMarketInsightCard,
     html:not(.dark) #portfolioHeroCard {
-      background-color: rgba(255, 255, 255, 0.6) !important;
-      backdrop-filter: blur(16px) !important;
-      -webkit-backdrop-filter: blur(16px) !important;
+      background-color: rgba(255, 255, 255, 0.4) !important;
+      backdrop-filter: blur(20px) !important;
+      -webkit-backdrop-filter: blur(20px) !important;
       color: #1e293b !important;
-      border: 1px solid rgba(255, 255, 255, 0.8) !important;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07) !important;
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
     }
     html:not(.dark) h1, html:not(.dark) h2, html:not(.dark) h3, html:not(.dark) h4 {
       color: #0f172a !important;
@@ -45,11 +47,13 @@
     html:not(.dark) input[type="text"],
     html:not(.dark) input[type="number"],
     html:not(.dark) select {
-      background-color: rgba(255, 255, 255, 0.55) !important;
-      backdrop-filter: blur(4px) !important;
-      -webkit-backdrop-filter: blur(4px) !important;
+      background-color: rgba(255, 255, 255, 0.35) !important;
+      backdrop-filter: blur(8px) !important;
+      -webkit-backdrop-filter: blur(8px) !important;
       color: #0f172a !important;
-      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.8) !important;
       font-weight: 700 !important;
     }
     html:not(.dark) input[type="text"]:focus,
@@ -115,44 +119,47 @@
 
     /* 覆蓋硬編碼的 Fintech 深色背景與邊框 */
     html:not(.dark) #topFintechAppBar {
-      background-color: rgba(255, 255, 255, 0.4) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.6) !important;
+      background-color: rgba(255, 255, 255, 0.3) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
     }
     html:not(.dark) #topAppTitle { color: #0f172a !important; }
     html:not(.dark) #topBellBtn, html:not(.dark) #topMenuBtn {
-      background-color: rgba(255, 255, 255, 0.6) !important;
+      background-color: rgba(255, 255, 255, 0.4) !important;
       color: #475569 !important;
-      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
     }
     html:not(.dark) #liveTickerBar {
-      background-color: rgba(255, 255, 255, 0.3) !important;
-      backdrop-filter: blur(10px) !important;
-      -webkit-backdrop-filter: blur(10px) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+      background-color: rgba(255, 255, 255, 0.2) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
     }
     html:not(.dark) #liveTickerBar span.text-slate-400 { color: #475569 !important; }
     
     html:not(.dark) #quickActionGrid > div {
-      background-color: rgba(255, 255, 255, 0.5) !important;
-      backdrop-filter: blur(10px) !important;
-      -webkit-backdrop-filter: blur(10px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      background-color: rgba(255, 255, 255, 0.35) !important;
+      backdrop-filter: blur(12px) !important;
+      -webkit-backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.5) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.7) !important;
+      border-left: 1px solid rgba(255, 255, 255, 0.7) !important;
       box-shadow: 0 4px 12px 0 rgba(31, 38, 135, 0.05) !important;
     }
     html:not(.dark) #quickActionGrid > div:hover { 
-      background-color: rgba(255, 255, 255, 0.7) !important; 
+      background-color: rgba(255, 255, 255, 0.55) !important; 
       transform: translateY(-2px);
     }
     html:not(.dark) #quickActionGrid span.text-slate-200 { color: #334155 !important; }
     
     /* 通用背景/邊框覆蓋 */
     html:not(.dark) .bg-\[\#111622\], html:not(.dark) .bg-\[\#0b0e17\] { 
-      background-color: rgba(255, 255, 255, 0.6) !important; 
+      background-color: rgba(255, 255, 255, 0.4) !important; 
     }
     html:not(.dark) .border-white\\/5, html:not(.dark) .border-white\\/10 { 
-      border-color: rgba(255, 255, 255, 0.7) !important; 
+      border-color: rgba(255, 255, 255, 0.5) !important; 
     }
     
     /* AI 卡片硬編碼深色標籤覆蓋 */
@@ -164,18 +171,19 @@
     
     /* 懸浮導航列覆蓋 */
     html:not(.dark) .floating-bottom-nav {
-      background: rgba(255, 255, 255, 0.65) !important;
-      backdrop-filter: blur(24px) !important;
-      -webkit-backdrop-filter: blur(24px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.8) !important;
-      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.1) !important;
+      background: rgba(255, 255, 255, 0.45) !important;
+      backdrop-filter: blur(30px) !important;
+      -webkit-backdrop-filter: blur(30px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15) !important;
     }
     html:not(.dark) .bottom-nav-btn { color: #64748b !important; }
     html:not(.dark) .bottom-nav-btn.bg-white\\/15 {
-      background-color: rgba(255, 255, 255, 0.8) !important;
+      background-color: rgba(255, 255, 255, 0.6) !important;
       color: #0f172a !important;
       box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.05) !important;
-      border: 1px solid rgba(255, 255, 255, 0.9) !important;
+      border: 1px solid rgba(255, 255, 255, 0.8) !important;
       ring-width: 0 !important;
     }
     /* Dark mode overrides */
