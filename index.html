@@ -579,6 +579,10 @@
       </div>
       
       <div class="flex items-center gap-2">
+        <!-- 🔑 快速登入按鈕 (未登入時明顯展示) -->
+        <button id="topNavLoginBtn" type="button" onclick="loginWithGoogle()" title="登入 Google 帳號啟用雲端同步" class="px-2.5 py-1 bg-white hover:bg-zinc-200 text-zinc-950 font-black text-xs rounded-full shadow-sm cursor-pointer transition active:scale-95 flex items-center gap-1">
+          <span>🔑</span><span>登入</span>
+        </button>
         <!-- 使用者頭像 (點擊開啟設定與帳號) -->
         <div id="topUserAvatar" onclick="switchNavTab('settings')" title="帳號與同步管理" class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-600 text-white font-black text-xs flex items-center justify-center cursor-pointer shadow-md hover:scale-105 active:scale-95 transition">
           U
@@ -629,6 +633,20 @@
   <div id="mainContainer" class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10 transition-all duration-150 p-3 sm:p-5 md:p-6 pb-36 sm:pb-40">
     <!-- 🏠 1. 資產總覽獨立檢視 (Overview Tab View) -->
     <div id="viewOverview" class="view-panel space-y-4 sm:space-y-6">
+      <!-- ☁️ 訪客提示登入橫幅 (未登入時展示) -->
+      <div id="guestLoginBanner" class="p-3.5 sm:p-4 rounded-2xl bg-[#11141d] border border-white/10 text-white flex items-center justify-between gap-3 shadow-md">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center text-base shrink-0">☁️</div>
+          <div class="min-w-0">
+            <div class="text-xs sm:text-sm font-black text-white">尚未登入 Google 雲端帳號</div>
+            <div class="text-[10px] sm:text-xs text-zinc-400 truncate">登入即可跨電腦、手機自動儲存並多端即時同步</div>
+          </div>
+        </div>
+        <button type="button" onclick="loginWithGoogle()" class="shrink-0 px-3.5 py-1.5 bg-white hover:bg-zinc-200 text-zinc-950 text-xs font-black rounded-xl transition cursor-pointer shadow-sm active:scale-95">
+          立即登入
+        </button>
+      </div>
+
 <div id="portfolioHeroCard" class="card-box bg-[#111622] text-white p-5 sm:p-6 rounded-2xl border border-white/10 shadow-lg text-center space-y-3">
       <!-- 空狀態 (無持倉資料時展示，符合富果/頂級金融 App 設計) -->
       <div id="heroEmptyView" class="py-3 space-y-3">
@@ -1910,15 +1928,7 @@
       applyUIMode();
       renderThemeModalUI();
       if (typeof calculateTw === 'function') calculateTw();
-        const badgeTw = document.getElementById('calcActiveStockBadge');
-        if (badgeTw && (localStorage.getItem('calc_current_tab') || 'tw') === 'tw') {
-          badgeTw.innerText = `🇹🇼 ${document.getElementById('tw_symbolInput')?.value || key} ${document.getElementById('tw_nameInput')?.value || key}`;
-        }
       if (typeof calculateUs === 'function') calculateUs();
-        const badgeUs = document.getElementById('calcActiveStockBadge');
-        if (badgeUs && localStorage.getItem('calc_current_tab') === 'us') {
-          badgeUs.innerText = `🇺🇸 ${document.getElementById('us_symbolInput')?.value || key} ${document.getElementById('us_nameInput')?.value || key}`;
-        }
       if (typeof calculateTwPortfolioSummary === 'function') calculateTwPortfolioSummary();
       if (typeof calculateUsPortfolioSummary === 'function') calculateUsPortfolioSummary();
     }
@@ -5176,6 +5186,12 @@
       switchNavTab(initNav);
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+        window.sbClient = sbClient;
+        window.calculateTw = calculateTw;
+        window.calculateUs = calculateUs;
+        window.calculateTwPortfolioSummary = calculateTwPortfolioSummary;
+        window.calculateUsPortfolioSummary = calculateUsPortfolioSummary;
+        window.calculateGlobalPortfolioSummary = calculateGlobalPortfolioSummary;
         const { data: sessionData } = await sbClient.auth.getSession(); currentUser = sessionData?.session?.user || null;
         updateAuthUI(); updateVersionDisplay();
         const pendingGuestRaw = sessionStorage.getItem('pending_guest_data');
@@ -5492,6 +5508,8 @@
       const loginBtn = document.getElementById('loginBtn'); 
       const loggedOptions = document.getElementById('loggedOptions');
       const topUserAvatar = document.getElementById('topUserAvatar');
+      const topNavLoginBtn = document.getElementById('topNavLoginBtn');
+      const guestLoginBanner = document.getElementById('guestLoginBanner');
       const settingsUserEmail = document.getElementById('settingsUserEmail');
       const settingsLoginBtn = document.getElementById('settingsLoginBtn');
       const settingsLogoutBtn = document.getElementById('settingsLogoutBtn');
@@ -5504,6 +5522,8 @@
           topUserAvatar.innerText = initial;
           topUserAvatar.title = `已登入：${currentUser.email}`;
         }
+        if (topNavLoginBtn) topNavLoginBtn.classList.add('hidden');
+        if (guestLoginBanner) guestLoginBanner.classList.add('hidden');
         if (settingsUserEmail) settingsUserEmail.innerText = currentUser.email;
         if (settingsLoginBtn) settingsLoginBtn.classList.add('hidden');
         if (settingsLogoutBtn) settingsLogoutBtn.classList.remove('hidden');
@@ -5517,9 +5537,11 @@
         loadAdminStats(); 
       } else { 
         if (topUserAvatar) {
-          topUserAvatar.innerText = 'U';
+          topUserAvatar.innerText = '👤';
           topUserAvatar.title = '未登入 (點擊開啟設定)';
         }
+        if (topNavLoginBtn) topNavLoginBtn.classList.remove('hidden');
+        if (guestLoginBanner) guestLoginBanner.classList.remove('hidden');
         if (settingsUserEmail) settingsUserEmail.innerText = '訪客模式 (未登入)';
         if (settingsLoginBtn) settingsLoginBtn.classList.remove('hidden');
         if (settingsLogoutBtn) settingsLogoutBtn.classList.add('hidden');
