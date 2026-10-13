@@ -15,706 +15,254 @@
   </script>
   <style id="themeDynamicStyles">
     /* ══════════════════════════════════════════════════════════════
-       🔮 科技玻璃風 (Glassmorphism Theme) - 白色介面專屬
+       ⚪ 現代黑白灰極簡風格 (Modern Monochrome Fintech Theme)
+       以黑、白、灰為核心 3 大色系設計，層次鮮明、專業典雅
        ══════════════════════════════════════════════════════════════ */
+    
+    /* ☀️ 白色介面 (Light Mode) */
     html:not(.dark) body {
-      background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 50%, #c2e9fb 100%) !important;
-      background-attachment: fixed !important;
-      color: #1e293b !important;
+      background-color: #f4f4f7 !important;
+      background-image: none !important;
+      color: #18181b !important;
     }
     html:not(.dark) .card-box,
     html:not(.dark) .summary-card,
     html:not(.dark) #aiMarketInsightCard,
-    html:not(.dark) #portfolioHeroCard {
-      background-color: rgba(255, 255, 255, 0.4) !important;
-      backdrop-filter: blur(20px) !important;
-      -webkit-backdrop-filter: blur(20px) !important;
-      color: #1e293b !important;
-      border: 1px solid rgba(255, 255, 255, 0.6) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
-      border-left: 1px solid rgba(255, 255, 255, 0.8) !important;
-      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1) !important;
+    html:not(.dark) #portfolioHeroCard,
+    html:not(.dark) #disclaimerCard,
+    html:not(.dark) #mainAppHeader {
+      background-color: #ffffff !important;
+      color: #18181b !important;
+      border: 1px solid #e4e4e7 !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
     }
     html:not(.dark) h1, html:not(.dark) h2, html:not(.dark) h3, html:not(.dark) h4 {
-      color: #0f172a !important;
+      color: #09090b !important;
       font-weight: 800 !important;
     }
     html:not(.dark) .card-box label,
     html:not(.dark) .summary-card label {
-      color: #1e293b !important;
+      color: #3f3f46 !important;
       font-weight: 700 !important;
     }
     html:not(.dark) input[type="text"],
     html:not(.dark) input[type="number"],
     html:not(.dark) select {
-      background-color: rgba(255, 255, 255, 0.35) !important;
-      backdrop-filter: blur(8px) !important;
-      -webkit-backdrop-filter: blur(8px) !important;
-      color: #0f172a !important;
-      border: 1px solid rgba(255, 255, 255, 0.6) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
-      border-left: 1px solid rgba(255, 255, 255, 0.8) !important;
+      background-color: #fafafa !important;
+      color: #09090b !important;
+      border: 1px solid #d4d4d8 !important;
       font-weight: 700 !important;
     }
     html:not(.dark) input[type="text"]:focus,
     html:not(.dark) input[type="number"]:focus,
     html:not(.dark) select:focus {
-      border-color: #6366f1 !important;
-      box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
-      background-color: rgba(255, 255, 255, 0.8) !important;
+      border-color: #18181b !important;
+      box-shadow: 0 0 0 2px rgba(24, 24, 27, 0.15) !important;
+      background-color: #ffffff !important;
     }
     html:not(.dark) input[type="text"]::placeholder,
     html:not(.dark) input[type="number"]::placeholder {
-      color: #64748b !important;
-      font-weight: 600 !important;
+      color: #a1a1aa !important;
     }
-    
-    /* 防止白色字體在亮色背景下消失 */
-    html:not(.dark) .card-box .text-white:not(button):not([class*="bg-indigo"]):not([class*="bg-teal"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-amber"]),
-    html:not(.dark) .summary-card .text-white:not(button):not([class*="bg-indigo"]):not([class*="bg-teal"]):not([class*="bg-emerald"]):not([class*="bg-rose"]):not([class*="bg-amber"]),
-    html:not(.dark) #aiMarketInsightCard .text-white,
-    html:not(.dark) #portfolioHeroCard .text-white {
-      color: #1e293b !important;
-    }
-    
-    /* 柔和文字顏色 */
-    html:not(.dark) .text-slate-100, html:not(.dark) .text-slate-200, html:not(.dark) .text-slate-300 { color: #64748b !important; font-weight: 600; }
-    html:not(.dark) .text-slate-400, html:not(.dark) .text-slate-500 { color: #475569 !important; font-weight: 600; }
-    html:not(.dark) .text-slate-600, html:not(.dark) .text-slate-700 { color: #334155 !important; font-weight: 700; }
-    html:not(.dark) .text-slate-800, html:not(.dark) .text-slate-900, html:not(.dark) .text-slate-950 { color: #0f172a !important; font-weight: 800; }
-    
-    /* 科技感玻璃風強調色 */
-    html:not(.dark) .text-rose-400, html:not(.dark) .text-rose-500, html:not(.dark) .text-rose-600,
-    html:not(.dark) .text-red-400, html:not(.dark) .text-red-500, html:not(.dark) .text-red-600 {
-      color: #e11d48 !important;
-      font-weight: 800 !important;
-    }
-    html:not(.dark) .text-emerald-400, html:not(.dark) .text-emerald-500, html:not(.dark) .text-emerald-600,
-    html:not(.dark) .text-green-400, html:not(.dark) .text-green-500, html:not(.dark) .text-green-600 {
-      color: #059669 !important;
-      font-weight: 800 !important;
-    }
-    html:not(.dark) .text-cyan-300, html:not(.dark) .text-cyan-400, html:not(.dark) .text-cyan-500, html:not(.dark) .text-cyan-600,
-    html:not(.dark) .text-sky-400, html:not(.dark) .text-sky-500, html:not(.dark) .text-sky-600 {
-      color: #0284c7 !important;
-      font-weight: 700 !important;
-    }
-    html:not(.dark) .text-teal-400, html:not(.dark) .text-teal-500, html:not(.dark) .text-teal-600 {
-      color: #0d9488 !important;
-      font-weight: 700 !important;
-    }
-    html:not(.dark) .text-indigo-300, html:not(.dark) .text-indigo-400, html:not(.dark) .text-indigo-500, html:not(.dark) .text-indigo-600 {
-      color: #4f46e5 !important;
-      font-weight: 700 !important;
-    }
-    html:not(.dark) .text-amber-400, html:not(.dark) .text-amber-500, html:not(.dark) .text-amber-600,
-    html:not(.dark) .text-yellow-300, html:not(.dark) .text-yellow-400, html:not(.dark) .text-yellow-500 {
-      color: #d97706 !important;
-      font-weight: 700 !important;
-    }
-    html:not(.dark) #tw_resAvgPrice, html:not(.dark) #us_resAvgPrice {
-      color: #4f46e5 !important;
-      font-weight: 900 !important;
-    }
-
-    /* 覆蓋硬編碼的 Fintech 深色背景與邊框 */
     html:not(.dark) #topFintechAppBar {
-      background-color: rgba(255, 255, 255, 0.3) !important;
-      backdrop-filter: blur(24px) !important;
-      -webkit-backdrop-filter: blur(24px) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05) !important;
+      background-color: rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(16px) !important;
+      border-bottom: 1px solid #e4e4e7 !important;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03) !important;
     }
-    html:not(.dark) #topAppTitle { color: #0f172a !important; }
+    html:not(.dark) #topAppTitle { color: #09090b !important; }
     html:not(.dark) #topBellBtn, html:not(.dark) #topMenuBtn {
-      background-color: rgba(255, 255, 255, 0.4) !important;
-      color: #475569 !important;
-      border: 1px solid rgba(255, 255, 255, 0.6) !important;
+      background-color: #f4f4f5 !important;
+      color: #27272a !important;
+      border: 1px solid #e4e4e7 !important;
+    }
+    html:not(.dark) #topUserAvatar {
+      background: #18181b !important;
+      color: #ffffff !important;
     }
     html:not(.dark) #liveTickerBar {
-      background-color: rgba(255, 255, 255, 0.2) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.4) !important;
+      background-color: #f8f9fa !important;
+      border-bottom: 1px solid #e4e4e7 !important;
     }
-    html:not(.dark) #liveTickerBar span.text-slate-400 { color: #475569 !important; }
-    
+    html:not(.dark) #liveTickerBar span.text-slate-400 { color: #52525b !important; }
     html:not(.dark) #quickActionGrid > div {
-      background-color: rgba(255, 255, 255, 0.35) !important;
-      backdrop-filter: blur(12px) !important;
-      -webkit-backdrop-filter: blur(12px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.5) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.7) !important;
-      border-left: 1px solid rgba(255, 255, 255, 0.7) !important;
-      box-shadow: 0 4px 12px 0 rgba(31, 38, 135, 0.05) !important;
+      background-color: #ffffff !important;
+      border: 1px solid #e4e4e7 !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
     }
-    html:not(.dark) #quickActionGrid > div:hover { 
-      background-color: rgba(255, 255, 255, 0.55) !important; 
-      transform: translateY(-2px);
+    html:not(.dark) #quickActionGrid > div:hover {
+      background-color: #f4f4f5 !important;
     }
-    html:not(.dark) #quickActionGrid span.text-slate-200 { color: #334155 !important; }
-    
-    /* 通用背景/邊框覆蓋 */
-    html:not(.dark) .bg-\[\#111622\], html:not(.dark) .bg-\[\#0b0e17\] { 
-      background-color: rgba(255, 255, 255, 0.4) !important; 
-    }
-    html:not(.dark) .border-white\\/5, html:not(.dark) .border-white\\/10 { 
-      border-color: rgba(255, 255, 255, 0.5) !important; 
-    }
-    
-    /* AI 卡片硬編碼深色標籤覆蓋 */
-    html:not(.dark) #aiMarketInsightCard span[class*="bg-slate-800"] {
-      background-color: rgba(255, 255, 255, 0.7) !important;
-      color: #475569 !important;
-      border: 1px solid rgba(255, 255, 255, 0.9) !important;
-    }
-    
-    /* 懸浮導航列覆蓋 */
+    html:not(.dark) #quickActionGrid span.text-slate-200 { color: #27272a !important; }
     html:not(.dark) .floating-bottom-nav {
-      background: rgba(255, 255, 255, 0.45) !important;
-      backdrop-filter: blur(30px) !important;
-      -webkit-backdrop-filter: blur(30px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.6) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
-      box-shadow: 0 12px 40px 0 rgba(31, 38, 135, 0.15) !important;
+      background: rgba(255, 255, 255, 0.94) !important;
+      backdrop-filter: blur(24px) !important;
+      border: 1px solid #e4e4e7 !important;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08) !important;
     }
-    html:not(.dark) .bottom-nav-btn { color: #64748b !important; }
-    html:not(.dark) .bottom-nav-btn.bg-white\\/15 {
-      background-color: rgba(255, 255, 255, 0.6) !important;
-      color: #0f172a !important;
-      box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.05) !important;
-      border: 1px solid rgba(255, 255, 255, 0.8) !important;
-      ring-width: 0 !important;
+    html:not(.dark) .bottom-nav-btn { color: #71717a !important; }
+    html:not(.dark) .bottom-nav-btn.bg-white\/20,
+    html:not(.dark) .bottom-nav-btn.bg-white\/15 {
+      background-color: #18181b !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
     }
-    /* Dark mode overrides */
-    /* ══════════════════════════════════════════════════════════════
-       💎 黑曜石奢華金融深色風格 (Obsidian Luxury Fintech Theme)
-       ══════════════════════════════════════════════════════════════ */
+    html:not(.dark) #tabSwitcherCard {
+      background-color: #e4e4e7 !important;
+      border-color: #d4d4d8 !important;
+    }
+    html:not(.dark) #tabTwBtn.bg-white, html:not(.dark) #tabUsBtn.bg-white {
+      background-color: #ffffff !important;
+      color: #09090b !important;
+      border-color: #18181b !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+    }
+    html:not(.dark) .text-rose-950,
+    html:not(.dark) .text-teal-950,
+    html:not(.dark) .text-sky-950 {
+      color: #09090b !important;
+    }
+
+    /* 🌙 黑色介面 (Dark Mode) */
     html.dark body {
       background-color: #090a0f !important;
-      color: #f1f5f9 !important;
+      color: #f4f4f5 !important;
     }
     html.dark .card-box,
     html.dark .summary-card,
     html.dark #aiMarketInsightCard,
-    html.dark #portfolioHeroCard {
-      background-color: #111622 !important;
-      color: #f8fafc !important;
+    html.dark #portfolioHeroCard,
+    html.dark #disclaimerCard,
+    html.dark #mainAppHeader {
+      background-color: #12141c !important;
+      color: #f4f4f5 !important;
       border-color: rgba(255, 255, 255, 0.08) !important;
       box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5) !important;
+    }
+    html.dark h1, html.dark h2, html.dark h3, html.dark h4 {
+      color: #ffffff !important;
+    }
+    html.dark .card-box label,
+    html.dark .summary-card label {
+      color: #d4d4d8 !important;
     }
     html.dark input[type="text"],
     html.dark input[type="number"],
     html.dark select {
-      background-color: #0b0e17 !important;
-      color: #f8fafc !important;
+      background-color: #0c0e14 !important;
+      color: #f4f4f5 !important;
       border-color: rgba(255, 255, 255, 0.12) !important;
     }
     html.dark input[type="text"]:focus,
     html.dark input[type="number"]:focus,
     html.dark select:focus {
-      border-color: #d4af37 !important;
-      box-shadow: 0 0 0 1px rgba(212, 175, 55, 0.3) !important;
+      border-color: #ffffff !important;
+      box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
     }
-    html.dark header {
-      background-color: #111622 !important;
-      color: #f8fafc !important;
-      border-color: rgba(255, 255, 255, 0.08) !important;
+    html.dark #topFintechAppBar {
+      background-color: rgba(9, 10, 15, 0.94) !important;
+      backdrop-filter: blur(16px) !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
-    html.dark header h1 {
-      color: #f8fafc !important;
-    }
-    html.dark .bg-white {
-      background-color: #111622 !important;
-      color: #f8fafc !important;
-    }
-    html.dark .bg-slate-50 {
-      background-color: #0b0e17 !important;
-    }
-    html.dark .bg-slate-100 {
-      background-color: #141a27 !important;
-      color: #f1f5f9 !important;
-    }
-    html.dark .text-slate-800,
-    html.dark .text-slate-900,
-    html.dark .text-slate-700 {
-      color: #e2e8f0 !important;
-    }
-    html.dark .text-slate-600 {
-      color: #94a3b8 !important;
-    }
-    html.dark .border-slate-200,
-    html.dark .border-slate-100 {
-      border-color: rgba(255, 255, 255, 0.08) !important;
-    }
-    html.dark #tabSwitcherCard,
-    html.dark #mainContainer > div.grid.grid-cols-2.bg-slate-200 {
-      background-color: #0b0e17 !important;
-      border-color: rgba(255, 255, 255, 0.08) !important;
-    }
-    html.dark #tabTwBtn.bg-white {
-      background-color: #1e1b2e !important;
-      color: #fb7185 !important;
-      border-color: #f43f5e !important;
-      box-shadow: 0 0 12px rgba(244, 63, 94, 0.3) !important;
-    }
-    html.dark #tabUsBtn.bg-white {
-      background-color: #13242b !important;
-      color: #2dd4bf !important;
-      border-color: #14b8a6 !important;
-      box-shadow: 0 0 12px rgba(20, 184, 166, 0.3) !important;
-    }
-    /* 金色重點 CTA 按鈕與懸浮膠囊導覽 */
-    .btn-gold {
-      background: linear-gradient(135deg, #e5c07b 0%, #d4af37 100%) !important;
-      color: #0a0d14 !important;
-      font-weight: 900 !important;
-      box-shadow: 0 4px 15px -1px rgba(212, 175, 55, 0.25) !important;
+    html.dark #topUserAvatar {
+      background: #27272a !important;
       border: 1px solid rgba(255, 255, 255, 0.2) !important;
-      cursor: pointer;
+      color: #ffffff !important;
     }
-    .btn-gold:hover {
-      background: linear-gradient(135deg, #f5d38a 0%, #e0b847 100%) !important;
-      transform: translateY(-1px);
+    html.dark #liveTickerBar {
+      background-color: #07080d !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
     }
-    .btn-gold:active {
-      transform: scale(0.97);
+    html.dark #quickActionGrid > div {
+      background-color: #12141c !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
     }
-    .floating-bottom-nav {
-      background: rgba(17, 22, 34, 0.92) !important;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+    html.dark #quickActionGrid > div:hover {
+      background-color: #181a24 !important;
+    }
+    html.dark .floating-bottom-nav {
+      background: rgba(18, 20, 28, 0.94) !important;
+      backdrop-filter: blur(20px) !important;
       border: 1px solid rgba(255, 255, 255, 0.1) !important;
       box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.65) !important;
     }
-    
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    html.dark .bottom-nav-btn { color: #a1a1aa !important; }
+    html.dark .bottom-nav-btn.bg-white\/20,
+    html.dark .bottom-nav-btn.bg-white\/15 {
+      background-color: rgba(255, 255, 255, 0.16) !important;
+      color: #ffffff !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
     }
-    .card-box, .summary-card {
-      animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    html.dark #tabSwitcherCard {
+      background-color: #0c0e14 !important;
+      border-color: rgba(255, 255, 255, 0.08) !important;
     }
-    
-    html:not(.dark) #tabTwBtn.bg-white {
-      color: #e11d48 !important;
-      border-color: #fda4af !important;
+    html.dark #tabTwBtn.bg-white, html.dark #tabUsBtn.bg-white {
+      background-color: #1e2029 !important;
+      color: #ffffff !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.08) !important;
     }
-    html:not(.dark) #tabUsBtn.bg-white {
-      color: #0f766e !important;
-      border-color: #99f6e4 !important;
-    }
-    html.dark #tabTwBtn:not(.bg-white),
-    html.dark #tabUsBtn:not(.bg-white) {
-      color: #94a3b8 !important;
-    }
-    html:not(.dark) #tabTwBtn:not(.bg-white),
-    html:not(.dark) #tabUsBtn:not(.bg-white) {
-      color: #334155 !important;
-      font-weight: 700 !important;
-    }
-    html:not(.dark) #tabSwitcherCard,
-    html:not(.dark) #mainContainer > div.grid.grid-cols-2 {
-      background-color: #e2e8f0 !important;
-      border-color: #cbd5e1 !important;
-    }
-    /* ══════════════════════════════════════════════════════════════
-       ☀️ 白色風 (Light Mode) 頂部工具按鈕與標籤「相關性分類色彩」
-       ══════════════════════════════════════════════════════════════ */
-    /* 📈 類別 1：盤中即時監控 (Emerald 翡翠薄荷綠系) */
-    html:not(.dark) #mainHeaderBody button#realtimeMonitorBtn {
-      background-color: #ecfdf5 !important;
-      color: #065f46 !important;
-      border-color: #a7f3d0 !important;
-    }
-    html:not(.dark) #mainHeaderBody button#realtimeMonitorBtn:hover {
-      background-color: #d1fae5 !important;
+    html.dark .text-rose-400,
+    html.dark .text-teal-400,
+    html.dark .text-cyan-300 {
+      color: #f4f4f5 !important;
     }
 
-    /* 📐 類別 2：版面結構與檢視維度 (Sky 晴空天藍系) */
-    html:not(.dark) #mainHeaderBody button#layoutMenuBtn,
-    html:not(.dark) #mainHeaderBody button#modeToggleBtn {
-      background-color: #f0f9ff !important;
-      color: #0369a1 !important;
-      border-color: #bae6fd !important;
-    }
-    html:not(.dark) #mainHeaderBody button#layoutMenuBtn:hover,
-    html:not(.dark) #mainHeaderBody button#modeToggleBtn:hover {
-      background-color: #e0f2fe !important;
-    }
-
-    /* 🎨 類別 3：視覺風格與主題配色 (Purple 紫羅蘭花系) */
-    html:not(.dark) #mainHeaderBody button#themeMenuBtn {
-      background-color: #faf5ff !important;
-      color: #6b21a8 !important;
-      border-color: #e9d5ff !important;
-    }
-    html:not(.dark) #mainHeaderBody button#themeMenuBtn:hover {
-      background-color: #f3e8ff !important;
-    }
-
-    /* 👤 類別 4：使用者帳號身分與切換 (Indigo 權威藍靛系) */
-    html:not(.dark) #mainHeaderBody #userInfo,
-    html:not(.dark) #mainHeaderBody button#switchAccountBtn {
-      background-color: #eef2ff !important;
-      color: #3730a3 !important;
-      border-color: #c7d2fe !important;
-    }
-    html:not(.dark) #mainHeaderBody button#switchAccountBtn:hover {
-      background-color: #e0e7ff !important;
-    }
-
-    /* 🚪 類別 5：會話管理安全登出 (Slate 中性石板灰系) */
-    html:not(.dark) #mainHeaderBody button#logoutBtn {
-      background-color: #f1f5f9 !important;
-      color: #334155 !important;
-      border-color: #cbd5e1 !important;
-    }
-    html:not(.dark) #mainHeaderBody button#logoutBtn:hover {
-      background-color: #e2e8f0 !important;
-    }
-
-    /* ⚠️ 類別 6：高風險刪除帳號 (Rose 警示玫瑰紅系) */
-    html:not(.dark) #mainHeaderBody button#deleteAccountBtn {
-      background-color: #fff1f2 !important;
-      color: #be123c !important;
-      border-color: #fecdd3 !important;
-    }
-    html:not(.dark) #mainHeaderBody button#deleteAccountBtn:hover {
-      background-color: #ffe4e6 !important;
-    }
-
-    /* 🏷️ 頂部系統版本與連線狀態標籤呼應 */
-    html:not(.dark) #backendVersionBadge {
-      background-color: #eef2ff !important;
-      color: #4338ca !important;
-      border-color: #c7d2fe !important;
-    }
-    html:not(.dark) #global_exchangeRateBadge {
-      background-color: #f8fafc !important;
-      color: #0f172a !important;
-      border-color: #cbd5e1 !important;
-    }
-    /* ══════════════════════════════════════════════════════════════
-       👑 管理者專屬後台面板：全模式高對比文字清晰保護
-       ══════════════════════════════════════════════════════════════ */
-    #adminPanel {
-      background-color: #0f172a !important;
-      color: #f8fafc !important;
-      border-color: #334155 !important;
-    }
-    #adminPanel .text-amber-400 {
-      color: #fbbf24 !important;
-    }
-    #adminPanel .text-cyan-300 {
-      color: #67e8f9 !important;
-    }
-    #adminPanel .text-indigo-300 {
-      color: #a5b4fc !important;
-    }
-    #adminPanel .text-emerald-300 {
-      color: #6ee7b7 !important;
-    }
-    #adminPanel .text-slate-300,
-    #adminPanel .text-slate-400 {
-      color: #cbd5e1 !important;
-    }
-    /* ══════════════════════════════════════════════════════════════
-       🌙 深色風 (Dark Mode) 頂部工具按鈕與標籤「相關性分類色彩」
-       ══════════════════════════════════════════════════════════════ */
-    /* 📈 類別 1：盤中即時監控 (Emerald 翡翠薄荷綠系) */
-    html.dark #mainHeaderBody button#realtimeMonitorBtn {
-      background-color: rgba(6, 78, 59, 0.4) !important;
-      color: #34d399 !important;
-      border-color: rgba(52, 211, 153, 0.35) !important;
-    }
-    html.dark #mainHeaderBody button#realtimeMonitorBtn:hover {
-      background-color: rgba(6, 78, 59, 0.65) !important;
-    }
-
-    /* 📐 類別 2：版面結構與檢視維度 (Sky 晴空天藍系) */
-    html.dark #mainHeaderBody button#layoutMenuBtn,
-    html.dark #mainHeaderBody button#modeToggleBtn {
-      background-color: rgba(12, 74, 110, 0.4) !important;
-      color: #38bdf8 !important;
-      border-color: rgba(56, 189, 248, 0.35) !important;
-    }
-    html.dark #mainHeaderBody button#layoutMenuBtn:hover,
-    html.dark #mainHeaderBody button#modeToggleBtn:hover {
-      background-color: rgba(12, 74, 110, 0.65) !important;
-    }
-
-    /* 🎨 類別 3：視覺風格與主題配色 (Purple 紫羅蘭花系) */
-    html.dark #mainHeaderBody button#themeMenuBtn {
-      background-color: rgba(88, 28, 135, 0.4) !important;
-      color: #c084fc !important;
-      border-color: rgba(192, 132, 252, 0.35) !important;
-    }
-    html.dark #mainHeaderBody button#themeMenuBtn:hover {
-      background-color: rgba(88, 28, 135, 0.65) !important;
-    }
-
-    /* 👤 類別 4：使用者帳號身分與切換 (Indigo 權威藍靛系) */
-    html.dark #mainHeaderBody #userInfo,
-    html.dark #mainHeaderBody button#switchAccountBtn {
-      background-color: rgba(49, 46, 129, 0.45) !important;
-      color: #a5b4fc !important;
-      border-color: rgba(165, 180, 252, 0.35) !important;
-    }
-    html.dark #mainHeaderBody button#switchAccountBtn:hover {
-      background-color: rgba(49, 46, 129, 0.7) !important;
-    }
-
-    /* 🚪 類別 5：會話管理安全登出 (Slate 中性石板灰系) */
-    html.dark #mainHeaderBody button#logoutBtn {
-      background-color: #1e293b !important;
-      color: #cbd5e1 !important;
-      border-color: #475569 !important;
-    }
-    html.dark #mainHeaderBody button#logoutBtn:hover {
-      background-color: #334155 !important;
-    }
-
-    /* ⚠️ 類別 6：高風險刪除帳號 (Rose 警示玫瑰紅系) */
-    html.dark #mainHeaderBody button#deleteAccountBtn {
-      background-color: rgba(136, 19, 55, 0.4) !important;
-      color: #fda4af !important;
-      border-color: rgba(251, 113, 133, 0.35) !important;
-    }
-    html.dark #mainHeaderBody button#deleteAccountBtn:hover {
-      background-color: rgba(136, 19, 55, 0.65) !important;
-    }
-
-    /* 🏷️ 頂部系統版本與連線狀態標籤呼應 */
-    html.dark #backendVersionBadge {
-      background-color: rgba(49, 46, 129, 0.4) !important;
-      color: #a5b4fc !important;
-      border-color: rgba(165, 180, 252, 0.3) !important;
-    }
-    html.dark #global_exchangeRateBadge {
-      background-color: #1e293b !important;
-      color: #cbd5e1 !important;
-      border-color: #334155 !important;
-    }
-    /* ══════════════════════════════════════════════════════════════
-       📐 自訂版面移動按鈕組：一體成型雙向膠囊、微立體懸浮、呼應各區主題色彩、加大舒適觸控
-       ══════════════════════════════════════════════════════════════ */
-    .move-btn-group {
-      display: inline-flex;
-      align-items: center;
-      height: 1.85rem;
-      border-radius: 9999px;
-      padding: 2px;
-      gap: 2px;
-      user-select: none;
-      flex-shrink: 0;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-      background-color: #f1f5f9;
-      border: 1px solid #cbd5e1;
-      box-sizing: border-box;
-    }
-    @media (min-width: 640px) {
-      .move-btn-group {
-        height: 2rem;
-      }
-    }
-    html.dark .move-btn-group {
-      background-color: #0f172a;
-      border-color: #334155;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-    }
-    .card-move-btn,
-    .main-move-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 1.55rem;
-      height: 1.55rem;
-      font-size: 0.72rem;
-      font-weight: 900;
-      border-radius: 9999px;
+    /* 🔘 黑白灰按鈕與元件樣式 (Monochrome Components) */
+    .btn-gold {
+      background: #18181b !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      font-weight: 800 !important;
       cursor: pointer;
-      border: 1px solid transparent;
-      user-select: none;
-      flex-shrink: 0;
-      transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-      line-height: 1;
-      color: #475569;
-      background: #ffffff;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
-    @media (min-width: 640px) {
-      .card-move-btn,
-      .main-move-btn {
-        width: 1.65rem;
-        height: 1.65rem;
-        font-size: 0.75rem;
-      }
+    html.dark .btn-gold {
+      background: #27272a !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
     }
-    html.dark .card-move-btn,
-    html.dark .main-move-btn {
-      color: #94a3b8;
-      background: #1e293b;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-    }
-    .card-move-btn:hover:not(:disabled),
-    .main-move-btn:hover:not(:disabled) {
+    .btn-gold:hover {
+      background: #27272a !important;
       transform: translateY(-1px);
-      box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.15);
     }
-    .card-move-btn:active:not(:disabled),
-    .main-move-btn:active:not(:disabled) {
-      transform: translateY(0) scale(0.92);
-    }
-    .card-move-btn:disabled,
-    .main-move-btn:disabled {
-      opacity: 0.22;
-      cursor: not-allowed;
-      pointer-events: none;
-      box-shadow: none !important;
-      transform: none !important;
+    html.dark .btn-gold:hover {
+      background: #3f3f46 !important;
     }
 
-    /* 🇹🇼 台股主題專屬風格 (熱情玫瑰紅系) */
-    .tw-move-group {
-      background-color: #fff1f2;
-      border-color: #fecdd3;
+    .main-move-btn, .card-move-btn {
+      color: #71717a;
+      background: transparent;
+      border: none;
+      padding: 2px 4px;
+      font-size: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
     }
-    .tw-move-group .card-move-btn {
-      color: #be123c;
-      background: #ffffff;
-      box-shadow: 0 1px 2px rgba(190, 18, 60, 0.12);
+    .main-move-btn:hover:not(:disabled), .card-move-btn:hover:not(:disabled) {
+      color: #18181b;
     }
-    .tw-move-group .card-move-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+    html.dark .main-move-btn, html.dark .card-move-btn {
+      color: #a1a1aa;
+    }
+    html.dark .main-move-btn:hover:not(:disabled), html.dark .card-move-btn:hover:not(:disabled) {
       color: #ffffff;
-      box-shadow: 0 3px 8px rgba(225, 29, 72, 0.38);
-      border-color: #fda4af;
-    }
-    html.dark .tw-move-group {
-      background-color: rgba(244, 63, 94, 0.12);
-      border-color: rgba(244, 63, 94, 0.35);
-    }
-    html.dark .tw-move-group .card-move-btn {
-      color: #fb7185;
-      background: rgba(15, 23, 42, 0.85);
-      border-color: rgba(244, 63, 94, 0.2);
-    }
-    html.dark .tw-move-group .card-move-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
-      color: #ffffff;
-      box-shadow: 0 0 12px rgba(244, 63, 94, 0.55);
-      border-color: #fb7185;
     }
 
-    /* 🇺🇸 美股主題專屬風格 (沉穩藍綠翡翠系) */
-    .us-move-group {
-      background-color: #f0fdfa;
-      border-color: #99f6e4;
+    .global-move-group, .tw-move-group, .us-move-group {
+      background-color: rgba(0, 0, 0, 0.04);
+      border: 1px solid #e4e4e7;
+      border-radius: 8px;
+      display: inline-flex;
+      padding: 1px;
     }
-    .us-move-group .card-move-btn {
-      color: #0f766e;
-      background: #ffffff;
-      box-shadow: 0 1px 2px rgba(15, 118, 110, 0.12);
-    }
-    .us-move-group .card-move-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-      color: #ffffff;
-      box-shadow: 0 3px 8px rgba(13, 148, 136, 0.38);
-      border-color: #5eead4;
-    }
-    html.dark .us-move-group {
-      background-color: rgba(20, 184, 166, 0.12);
-      border-color: rgba(20, 184, 166, 0.35);
-    }
-    html.dark .us-move-group .card-move-btn {
-      color: #2dd4bf;
-      background: rgba(15, 23, 42, 0.85);
-      border-color: rgba(20, 184, 166, 0.2);
-    }
-    html.dark .us-move-group .card-move-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #2dd4bf 0%, #14b8a6 100%);
-      color: #ffffff;
-      box-shadow: 0 0 12px rgba(20, 184, 166, 0.55);
-      border-color: #2dd4bf;
+    html.dark .global-move-group, html.dark .tw-move-group, html.dark .us-move-group {
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
-    /* 🌐 全域主區塊專屬風格 (權威藍靛／科技深藍系) */
-    .global-move-group {
-      background-color: #eef2ff;
-      border-color: #c7d2fe;
-    }
-    .global-move-group .main-move-btn,
-    .global-move-group .card-move-btn {
-      color: #4338ca;
-      background: #ffffff;
-      box-shadow: 0 1px 2px rgba(67, 56, 202, 0.12);
-    }
-    .global-move-group .main-move-btn:hover:not(:disabled),
-    .global-move-group .card-move-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-      color: #ffffff;
-      box-shadow: 0 3px 8px rgba(79, 70, 229, 0.38);
-      border-color: #a5b4fc;
-    }
-    html.dark .global-move-group {
-      background-color: rgba(99, 102, 241, 0.14);
-      border-color: rgba(99, 102, 241, 0.35);
-    }
-    html.dark .global-move-group .main-move-btn,
-    html.dark .global-move-group .card-move-btn {
-      color: #a5b4fc;
-      background: rgba(15, 23, 42, 0.85);
-      border-color: rgba(99, 102, 241, 0.2);
-    }
-    html.dark .global-move-group .main-move-btn:hover:not(:disabled),
-    html.dark .global-move-group .card-move-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-      color: #ffffff;
-      box-shadow: 0 0 12px rgba(99, 102, 241, 0.55);
-      border-color: #818cf8;
-    }
-    /* ══════════════════════════════════════════════════════════════
-       🎯 全站所有卡片與區塊水平內距 (Padding) 絕對一致，確保右上角收合按鈕 100% 垂直對齊
-       ══════════════════════════════════════════════════════════════ */
-    #disclaimerCard,
-    #mainAppHeader,
-    #adminPanel,
-    .summary-card,
-    .card-box {
-      box-sizing: border-box !important;
-      padding-left: 1rem !important;  /* 16px */
-      padding-right: 1rem !important; /* 16px */
-    }
-    @media (min-width: 640px) {
-      #disclaimerCard,
-      #mainAppHeader,
-      #adminPanel,
-      .summary-card,
-      .card-box {
-        padding-left: 1.5rem !important;  /* 24px */
-        padding-right: 1.5rem !important; /* 24px */
-      }
-    }
-    body.compact-mode #disclaimerCard,
-    body.compact-mode #mainAppHeader,
-    body.compact-mode #adminPanel,
-    body.compact-mode .summary-card,
-    body.compact-mode .card-box {
-      padding-left: 0.75rem !important;  /* 12px */
-      padding-right: 0.75rem !important; /* 12px */
-    }
-
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    /* 統一鮮明收合/展開按鈕樣式 (右上角顯眼設計) */
+    /* 鮮明收合/展開按鈕樣式 (黑白灰風格) */
     .collapse-toggle-btn {
       display: inline-flex;
       align-items: center;
@@ -746,33 +294,66 @@
     }
     .collapse-toggle-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 3px 6px -1px rgb(0 0 0 / 0.18);
     }
-    .collapse-toggle-btn:active {
-      transform: translateY(0) scale(0.95);
-    }
-    /* 展開中狀態 (顯示「收合 ▲」)：高質感藍靛漸層，清晰顯眼 */
     .collapse-toggle-btn.btn-expanded-state {
-      background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%) !important;
-      color: #ffffff !important;
-      border: 1px solid #4338ca !important;
+      background: #27272a !important;
+      color: #f4f4f5 !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
     }
-    .collapse-toggle-btn.btn-expanded-state:hover {
-      background: linear-gradient(135deg, #4338ca 0%, #2563eb 100%) !important;
+    html:not(.dark) .collapse-toggle-btn.btn-expanded-state {
+      background: #f4f4f5 !important;
+      color: #18181b !important;
+      border: 1px solid #d4d4d8 !important;
     }
-    /* 收合中狀態 (顯示「展開 ▾」)：明亮琥珀暖黃／暖橘色漸層 + 白色文字 + 微光邊框，強烈引導點擊展開 */
     .collapse-toggle-btn.btn-collapsed-state {
-      background: linear-gradient(135deg, #d97706 0%, #f59e0b 50%, #ea580c 100%) !important;
+      background: #3f3f46 !important;
       color: #ffffff !important;
-      border: 1px solid #fed7aa !important;
-      box-shadow: 0 0 8px rgba(245, 158, 11, 0.45) !important;
-      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.15) !important;
     }
-    .collapse-toggle-btn.btn-collapsed-state:hover {
-      background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #c2410c 100%) !important;
+    html:not(.dark) .collapse-toggle-btn.btn-collapsed-state {
+      background: #18181b !important;
       color: #ffffff !important;
+      border: 1px solid #27272a !important;
+    }
+
+    #disclaimerCard,
+    #mainAppHeader,
+    #adminPanel,
+    .summary-card,
+    .card-box {
+      box-sizing: border-box !important;
+      padding-left: 1rem !important;
+      padding-right: 1rem !important;
+    }
+    @media (min-width: 640px) {
+      #disclaimerCard,
+      #mainAppHeader,
+      #adminPanel,
+      .summary-card,
+      .card-box {
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+      }
+    }
+    body.compact-mode #disclaimerCard,
+    body.compact-mode #mainAppHeader,
+    body.compact-mode #adminPanel,
+    body.compact-mode .summary-card,
+    body.compact-mode .card-box {
+      padding-left: 0.75rem !important;
+      padding-right: 0.75rem !important;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
     }
   </style>
+
 </head>
 <body id="bodyBg" class="bg-slate-100 text-slate-800 p-3 sm:p-6 min-h-screen transition-all" style="padding-bottom: 120px;">
   
@@ -974,7 +555,7 @@
   <header id="topFintechAppBar" class="sticky top-0 z-30 w-full bg-[#090a0f]/92 backdrop-blur-md border-b border-white/5 py-2.5 px-3 sm:px-6">
     <div class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-indigo-500 via-sky-400 to-teal-300 p-0.5 shadow-md flex items-center justify-center">
+        <div class="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700 p-0.5 shadow-md flex items-center justify-center">
           <div class="w-full h-full bg-[#090a0f] rounded-[10px] flex items-center justify-center text-sky-400 font-black text-sm">
             ❖
           </div>
@@ -984,7 +565,7 @@
       
       <div class="flex items-center gap-2">
         <!-- 使用者頭像 (點擊開啟設定與帳號) -->
-        <div id="topUserAvatar" onclick="openSettingsModal()" title="帳號與同步管理" class="w-8 h-8 rounded-full bg-gradient-to-br from-rose-500 to-pink-600 text-white font-black text-xs flex items-center justify-center cursor-pointer shadow-md hover:scale-105 active:scale-95 transition">
+        <div id="topUserAvatar" onclick="openSettingsModal()" title="帳號與同步管理" class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-600 text-white font-black text-xs flex items-center justify-center cursor-pointer shadow-md hover:scale-105 active:scale-95 transition">
           U
         </div>
         <!-- 鈴鐺通知 (30秒即時監控狀態) -->
@@ -1032,6 +613,9 @@
 
   <div id="mainContainer" class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto space-y-4 sm:space-y-6 text-xs sm:text-sm relative z-10 transition-all duration-150 p-3 sm:p-5 md:p-6 pb-36 sm:pb-40">
 
+    <!-- 🏠 1. 概覽獨立檢視容器 (Overview Tab View) -->
+    <div id="viewOverview" class="space-y-4 sm:space-y-6">
+
     <!-- 🤖 1. AI 市場摘要與盤前策略卡片 (Fintech AI Insight Card) -->
     <div id="aiMarketInsightCard" class="card-box bg-[#111622] text-white p-4 sm:p-5 rounded-2xl border border-white/10 shadow-lg space-y-3">
       <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -1043,13 +627,15 @@
           <span class="bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full">盤前策略</span>
           <span id="aiSentimentBadge" class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-bold px-2 py-0.5 rounded-full">偏多續抱</span>
         </div>
-        <button type="button" onclick="refreshAiSummary()" title="重新計算市場動態" class="text-slate-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded cursor-pointer transition">
-          ↗
-        </button>
+        <div class="flex items-center gap-1.5">
+          <button type="button" onclick="refreshAiSummary()" title="重新計算市場動態" class="text-zinc-400 hover:text-white text-xs font-bold px-1.5 py-0.5 rounded cursor-pointer transition">↗</button>
+          <button type="button" onclick="toggleAiInsightCollapse()" id="aiInsightToggleBtn" class="text-[11px] text-zinc-300 hover:text-white px-2 py-0.5 rounded-lg border border-white/10 bg-zinc-800/80 cursor-pointer transition font-bold">展開 ▾</button>
+        </div>
       </div>
       
-      <div>
-        <h3 id="aiSummaryTitle" class="font-black text-xs sm:text-sm text-slate-100 leading-snug">
+      <div id="aiMarketInsightDetails" class="space-y-3 hidden">
+        <div>
+          <h3 id="aiSummaryTitle" class="font-black text-xs sm:text-sm text-slate-100 leading-snug">
           台美股跨市場走勢追蹤與多組合補倉規劃
         </h3>
         <p id="aiSummaryBody" class="text-[11px] sm:text-xs text-slate-400 leading-relaxed mt-1.5 line-clamp-3">
@@ -1068,6 +654,7 @@
         <div>更新時間 (台北) <span id="aiUpdateTime" class="font-mono text-slate-400">即時更新</span></div>
         <div id="aiFocusStockTag" class="text-amber-400 font-bold">焦點持股: 台美雙軌配置</div>
       </div>
+      </div> <!-- end #aiMarketInsightDetails -->
     </div>
 
     <!-- ⚡ 2. 快捷功能卡片群 (4 大入口卡片) -->
@@ -1162,7 +749,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-indigo-100 text-indigo-900 dark:bg-indigo-950/60 dark:text-indigo-300 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60">V0.0</span>
+          <span class="bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border border-zinc-300 dark:border-zinc-700">V0.1</span>
           <span id="backendVersionBadge" class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1371,6 +958,8 @@
       </div>
     </div>
 
+        </div> <!-- end #viewOverview -->
+
     <div id="stocksContainer" class="space-y-4 sm:space-y-5">
       <div id="tabSwitcherCard" class="flex items-center justify-between gap-2 bg-slate-200 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-300 dark:border-slate-700">
         <div class="grid grid-cols-2 gap-2 flex-1">
@@ -1523,107 +1112,130 @@
         </div>
 
         <div id="twCard1Body" class="space-y-3.5">
-          <!-- 🎛️ 損益顏色與折數低消設定列 (展開時顯示，收合時隨本體一併優雅摺疊) -->
-          <div class="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/60">
-            <span class="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
-              <span>損益顏色:</span>
-              <select id="twColorRule" onchange="changeColorRule('tw', this.value)" class="bg-transparent font-bold text-rose-800 dark:text-rose-400 outline-none cursor-pointer">
-                <option value="red_up">🔴漲紅 🟢跌綠 (預設)</option>
-                <option value="green_up">🟢漲綠 🔴跌紅</option>
-              </select>
-            </span>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold bg-white dark:bg-slate-900 dark:text-white" value="0.6"></span>
-              <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold bg-white dark:bg-slate-900 dark:text-white" value="20"></span>
-            </div>
-          </div>
           <div class="grid grid-cols-2 gap-3.5">
-          <div>
-            <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">台股名稱</label>
-            <input id="tw_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-rose-950">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">台股代號 (例: 台積電或2330)</label>
-            <input id="tw_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-rose-950">
-          </div>
-        </div>
-
-        <div class="flex justify-end">
-          <button type="button" onclick="fetchMarketPrice('tw')" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
-            🔍 即時行情
-          </button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3.5">
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有股數 (N1)</label>
-            <input id="tw_n1" type="number" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有均價 (P1)</label>
-            <input id="tw_p1" type="number" step="0.01" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100">
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">前日收盤價</label>
-            <input id="tw_prevClose" type="number" step="0.01" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
-          </div>
-          <div>
-            <div class="flex justify-between items-center mb-1">
-              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">目前市價</label>
-              <label class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold cursor-pointer"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label>
+            <div>
+              <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">台股名稱</label>
+              <input id="tw_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-rose-950">
             </div>
-            <input id="tw_currentPrice" type="number" step="0.01" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
+            <div>
+              <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">台股代號 (例: 台積電或2330)</label>
+              <input id="tw_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-rose-950">
+            </div>
           </div>
-        </div>
 
-        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 items-center">
-          <div>
-            <label class="text-[10px] sm:text-xs text-rose-900 dark:text-rose-300 font-bold block mb-1">手動對齊 App 損益率%</label>
-            <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -12.5" class="tw-input save-trigger w-full border border-rose-200 bg-rose-50/50 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-rose-800 outline-none">
+          <div class="flex justify-end">
+            <button type="button" onclick="fetchMarketPrice('tw')" class="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer border border-zinc-600">
+              🔍 即時行情
+            </button>
           </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">未實現損益 (現有)</label>
+
+          <div class="grid grid-cols-2 gap-3.5">
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有股數 (N1)</label>
+              <input id="tw_n1" type="number" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
+            </div>
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有均價 (P1)</label>
+              <input id="tw_p1" type="number" step="0.01" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800">
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">前日收盤價</label>
+              <input id="tw_prevClose" type="number" step="0.01" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
+            </div>
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">目前市價</label>
+                <label class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold cursor-pointer"><input id="tw_sameAsPrev" type="checkbox"> 同前收</label>
+              </div>
+              <input id="tw_currentPrice" type="number" step="0.01" placeholder="" class="tw-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
+            </div>
+          </div>
+
+          <div class="pt-2.5 border-t border-slate-100 dark:border-zinc-800 flex justify-between items-center">
+            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">未實現損益 (現有持股):</label>
             <div id="tw_pnlDisplay" class="font-extrabold text-xs sm:text-base text-slate-800 dark:text-slate-400 flex items-center gap-2 flex-wrap">
               <span>-%</span>
               <span id="tw_pnlAmtDisplay" class="text-xs font-bold text-slate-700 dark:text-slate-400"></span>
             </div>
           </div>
-        </div>
 
-        <div class="pt-2.5 border-t border-slate-100 bg-rose-50/40 dark:bg-rose-950/20 p-3 rounded-xl border border-rose-100 dark:border-rose-900/40 space-y-2">
-          <div class="grid grid-cols-2 gap-3 items-center">
-            <div>
-              <div class="flex justify-between items-center mb-1">
-                <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block">🎯 設定賣出目標價</label>
-                <button type="button" id="tw_targetAlertBtn" onclick="toggleTargetAlert('tw')" title="設定目標價達標推播通知" class="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200">
-                  <span id="tw_targetAlertIcon">🔔</span>
-                  <span id="tw_targetAlertText">提醒</span>
-                </button>
+          <!-- ⚙️ 台股進階設定收合按鈕與容器 -->
+          <div class="pt-2">
+            <button type="button" onclick="toggleAdvancedCard1('tw')" class="w-full py-2 px-3 bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 rounded-xl border border-zinc-200 dark:border-zinc-700 text-[11px] font-bold flex items-center justify-between transition cursor-pointer">
+              <span>⚙️ 進階設定 (手續費折讓、低消、損益顏色與賣出目標價)</span>
+              <span id="twCard1AdvIcon">▼</span>
+            </button>
+            
+            <div id="twCard1AdvancedSettings" class="space-y-3.5 hidden pt-3">
+              <!-- 🎛️ 損益顏色與折數低消設定列 -->
+              <div class="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap bg-slate-50 dark:bg-zinc-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700/60">
+                <span class="flex items-center gap-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
+                  <span>損益顏色:</span>
+                  <select id="twColorRule" onchange="changeColorRule('tw', this.value)" class="bg-transparent font-bold text-slate-900 dark:text-zinc-200 outline-none cursor-pointer">
+                    <option value="red_up">🔴漲紅 🟢跌綠 (預設)</option>
+                    <option value="green_up">🟢漲綠 🔴跌紅</option>
+                  </select>
+                </span>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span>折數:<input id="twDiscount" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold bg-white dark:bg-zinc-900 dark:text-white" value="0.6"></span>
+                  <span>低消:<input id="twMinFee" type="number" class="save-trigger w-12 border rounded-lg px-1 text-center ml-1 font-bold bg-white dark:bg-zinc-900 dark:text-white" value="20"></span>
+                </div>
               </div>
-              <input id="tw_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="tw-input save-trigger w-full border border-rose-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-rose-950 outline-none">
-            </div>
-            <div>
-              <label class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-300 font-bold block mb-1">現有持股達標獲利</label>
-              <div id="tw_targetPnlDisplay" class="font-extrabold text-xs sm:text-base text-slate-800 dark:text-slate-400">-%</div>
-              <div id="tw_targetPnlSub" class="text-[9px] text-slate-700 dark:text-slate-400 font-semibold">以現有持股試算</div>
-            </div>
-          </div>
 
-          <div class="pt-2 border-t border-rose-200/50 flex justify-between items-center flex-wrap gap-1">
-            <div class="text-[10px] sm:text-xs text-rose-950 dark:text-rose-200 font-bold flex items-center gap-1">
-              <span>🚀</span>
-              <span>補倉加碼後合併達標預期獲利:</span>
-            </div>
-            <div class="text-right">
-              <div id="tw_targetPostPlanPnlDisplay" class="font-extrabold text-xs sm:text-sm text-slate-800 dark:text-slate-400">-%</div>
-              <div id="tw_targetPostPlanSub" class="text-[9px] text-rose-800 dark:text-rose-300 font-bold">尚未規劃補倉筆數</div>
-            </div>
+              <div>
+                <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">手動對齊券商 App 損益率%</label>
+                <input id="tw_manualPnlPct" type="number" step="0.01" placeholder="例: -12.5" class="tw-input save-trigger w-full border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 dark:text-white outline-none">
+              </div>
+
+              <div class="bg-zinc-50 dark:bg-zinc-800/40 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 space-y-2">
+                <div class="grid grid-cols-2 gap-3 items-center">
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <label class="text-[10px] sm:text-xs text-slate-900 dark:text-zinc-200 font-bold block">🎯 設定賣出目標價</label>
+                      <button type="button" id="tw_targetAlertBtn" onclick="toggleTargetAlert('tw')" title="設定目標價達標推播通知" class="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600 hover:bg-slate-200">
+                        <span id="tw_targetAlertIcon">🔔</span>
+                        <span id="tw_targetAlertText">提醒</span>
+                      </button>
+                    </div>
+                    <input id="tw_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="tw-input save-trigger w-full border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white outline-none">
+                  </div>
+                  <div>
+                    <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有持股達標獲利</label>
+                    <div id="tw_targetPnlDisplay" class="font-extrabold text-xs sm:text-base text-slate-800 dark:text-slate-400">-%</div>
+                    <div id="tw_targetPnlSub" class="text-[9px] text-slate-700 dark:text-slate-400 font-semibold">以現有持股試算</div>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-zinc-200 dark:border-zinc-700/60 flex justify-between items-center flex-wrap gap-1">
+                  <div class="text-[10px] sm:text-xs text-slate-800 dark:text-zinc-300 font-bold flex items-center gap-1">
+                    <span>🚀</span>
+                    <span>補倉加碼後合併達標預期獲利:</span>
+                  </div>
+                  <div class="text-right">
+                    <div id="tw_targetPostPlanPnlDisplay" class="font-extrabold text-xs sm:text-sm text-slate-800 dark:text-slate-400">-%</div>
+                    <div id="tw_targetPostPlanSub" class="text-[9px] text-zinc-500 dark:text-zinc-400 font-bold">尚未規劃補倉筆數</div>
+                  </div>
+                </div>
+              </div>
+            </div> <!-- end #twCard1AdvancedSettings -->
           </div>
         </div>
-        </div>
+      </div>
+
+            <!-- 🎛️ 台股試算模式切換器 (模式 A vs 模式 B) -->
+      <div id="twCalcModeSegment" class="flex items-center p-1 bg-zinc-200 dark:bg-zinc-900 rounded-xl border border-zinc-300 dark:border-zinc-800 gap-1 text-xs font-bold select-none my-2">
+        <button type="button" id="twModeSegmentA" onclick="setCalcDisplayMode('tw', 'plan')" class="flex-1 py-2 px-3 rounded-lg text-center transition cursor-pointer bg-white text-zinc-950 dark:bg-zinc-100 dark:text-zinc-950 font-black shadow-sm">
+          <span>模式 A：分批補倉</span>
+        </button>
+        <button type="button" id="twModeSegmentB" onclick="setCalcDisplayMode('tw', 'modeB')" class="flex-1 py-2 px-3 rounded-lg text-center transition cursor-pointer text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+          <span>模式 B：目標均價</span>
+        </button>
+        <button type="button" id="twModeSegmentBoth" onclick="setCalcDisplayMode('tw', 'both')" class="py-2 px-2.5 rounded-lg text-center transition cursor-pointer text-zinc-500 dark:text-zinc-400 hover:text-zinc-300 text-[11px]" title="同時檢視兩種試算">
+          <span>全部展開</span>
+        </button>
       </div>
 
       <div id="twCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -1870,7 +1482,7 @@
 
       <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <div class="flex justify-between items-center border-b pb-2.5">
-          <h2 class="font-black text-teal-950 dark:text-teal-400 text-xs sm:text-sm">
+          <h2 class="font-black text-zinc-950 dark:text-zinc-200 text-xs sm:text-sm">
             1. 美股設定與代號查詢
           </h2>
           <div class="flex items-center gap-1.5 ml-auto">
@@ -1885,98 +1497,124 @@
         </div>
 
         <div id="usCard1Body" class="space-y-3.5">
-          <!-- 🎛️ 美股損益顏色、即時匯率與手續費設定列 (展開時顯示，收合時隨本體一併優雅摺疊) -->
-          <div class="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700/60">
-            <span class="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
-              <span>損益顏色:</span>
-              <select id="usColorRule" onchange="changeColorRule('us', this.value)" class="bg-transparent font-bold text-teal-800 dark:text-teal-400 outline-none cursor-pointer">
-                <option value="green_up">🟢漲綠 🔴跌紅 (預設)</option>
-                <option value="red_up">🔴漲紅 🟢跌綠</option>
-              </select>
-            </span>
-            <div class="flex items-center gap-2 flex-wrap">
-              <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5 font-bold bg-white dark:bg-slate-900 dark:text-white" value="32"></span>
-              <button type="button" onclick="fetchExchangeRate()" class="bg-teal-50 hover:bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 dark:border-teal-800 px-2 py-1 rounded-lg text-[10px] font-bold border border-teal-200 cursor-pointer">🔄 即時</button>
-              <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5 font-bold bg-white dark:bg-slate-900 dark:text-white" value="0"></span>
-            </div>
-          </div>
           <div class="grid grid-cols-2 gap-3.5">
-          <div>
-            <label class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-300 font-bold block mb-1">美股名稱</label>
-            <input id="us_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-950">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-300 font-bold block mb-1">美股代號 (例: 蘋果或AAPL)</label>
-            <input id="us_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-teal-950 uppercase">
-          </div>
-        </div>
-
-        <div class="flex justify-end">
-          <button type="button" onclick="fetchMarketPrice('us')" class="bg-teal-600 hover:bg-teal-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer">
-            🔍 即時行情
-          </button>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3.5">
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有股數 (N1)</label>
-            <input id="us_n1" type="number" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有均價 ($ P1)</label>
-            <input id="us_p1" type="number" step="0.01" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100">
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">前日收盤價 ($)</label>
-            <input id="us_prevClose" type="number" step="0.01" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
-          </div>
-          <div>
-            <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">目前市價 ($)</label>
-            <input id="us_currentPrice" type="number" step="0.01" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
-          </div>
-        </div>
-
-        <div class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex justify-between pt-2.5 border-t border-slate-100">
-          <span>未實現損益(現有): 
-            <strong id="us_pnlDisplay" class="text-slate-900 dark:text-slate-100">-%</strong>
-            <span id="us_pnlAmtDisplay" class="text-xs font-bold text-slate-700 dark:text-slate-400 ml-1"></span>
-          </span>
-        </div>
-
-        <div class="pt-2.5 border-t border-slate-100 bg-teal-50/40 p-3 rounded-xl border border-teal-100 space-y-2">
-          <div class="grid grid-cols-2 gap-3 items-center">
             <div>
-              <div class="flex justify-between items-center mb-1">
-                <label class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-300 font-bold block">🎯 設定賣出目標價 ($)</label>
-                <button type="button" id="us_targetAlertBtn" onclick="toggleTargetAlert('us')" title="設定目標價達標推播通知" class="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-slate-700 dark:text-slate-400 dark:border-slate-600 hover:bg-slate-200">
-                  <span id="us_targetAlertIcon">🔔</span>
-                  <span id="us_targetAlertText">提醒</span>
-                </button>
+              <label class="text-[10px] sm:text-xs text-zinc-950 dark:text-zinc-300 font-bold block mb-1">美股名稱</label>
+              <input id="us_nameInput" type="text" placeholder="點擊右上角新增" class="save-trigger w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-zinc-950">
+            </div>
+            <div>
+              <label class="text-[10px] sm:text-xs text-zinc-950 dark:text-zinc-300 font-bold block mb-1">美股代號 (例: 蘋果或AAPL)</label>
+              <input id="us_symbolInput" type="text" placeholder="點擊右上角新增" class="w-full border rounded-xl p-2.5 text-xs sm:text-sm bg-white outline-none font-bold text-zinc-950 uppercase">
+            </div>
+          </div>
+
+          <div class="flex justify-end">
+            <button type="button" onclick="fetchMarketPrice('us')" class="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer border border-zinc-600">
+              🔍 即時行情
+            </button>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3.5">
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有股數 (N1)</label>
+              <input id="us_n1" type="number" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
+            </div>
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有均價 ($ P1)</label>
+              <input id="us_p1" type="number" step="0.01" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 outline-none">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3.5 pt-2.5 border-t border-slate-100 dark:border-zinc-800">
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">前日收盤價 ($)</label>
+              <input id="us_prevClose" type="number" step="0.01" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
+            </div>
+            <div>
+              <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">目前市價 ($)</label>
+              <input id="us_currentPrice" type="number" step="0.01" placeholder="" class="us-input save-trigger w-full border rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-bold text-slate-900 bg-slate-50 outline-none">
+            </div>
+          </div>
+
+          <div class="pt-2.5 border-t border-slate-100 dark:border-zinc-800 flex justify-between items-center">
+            <span class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">未實現損益 (現有):</span>
+            <div class="flex items-center gap-2">
+              <strong id="us_pnlDisplay" class="text-slate-900 dark:text-slate-100 font-extrabold text-xs sm:text-base">-%</strong>
+              <span id="us_pnlAmtDisplay" class="text-xs font-bold text-slate-700 dark:text-slate-400"></span>
+            </div>
+          </div>
+
+          <!-- ⚙️ 美股進階設定收合按鈕與容器 -->
+          <div class="pt-2">
+            <button type="button" onclick="toggleAdvancedCard1('us')" class="w-full py-2 px-3 bg-zinc-100 dark:bg-zinc-800/80 hover:bg-zinc-200 dark:hover:bg-zinc-700/80 text-zinc-700 dark:text-zinc-300 rounded-xl border border-zinc-200 dark:border-zinc-700 text-[11px] font-bold flex items-center justify-between transition cursor-pointer">
+              <span>⚙️ 進階設定 (匯率、手續費、損益顏色與賣出目標價)</span>
+              <span id="usCard1AdvIcon">▼</span>
+            </button>
+            
+            <div id="usCard1AdvancedSettings" class="space-y-3.5 hidden pt-3">
+              <!-- 🎛️ 美股損益顏色、即時匯率與手續費設定列 -->
+              <div class="flex items-center justify-between gap-2 text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold flex-wrap bg-slate-50 dark:bg-zinc-800/60 p-2.5 rounded-xl border border-slate-200 dark:border-zinc-700/60">
+                <span class="flex items-center gap-1 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-700 px-2 py-1 rounded-lg" title="未實現損益顏色設定">
+                  <span>損益顏色:</span>
+                  <select id="usColorRule" onchange="changeColorRule('us', this.value)" class="bg-transparent font-bold text-slate-900 dark:text-zinc-200 outline-none cursor-pointer">
+                    <option value="green_up">🟢漲綠 🔴跌紅 (預設)</option>
+                    <option value="red_up">🔴漲紅 🟢跌綠</option>
+                  </select>
+                </span>
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span>匯率: <input id="us_exchangeRate" type="number" step="0.01" class="save-trigger w-14 border rounded-lg px-1 text-center ml-0.5 font-bold bg-white dark:bg-zinc-900 dark:text-white" value="32"></span>
+                  <button type="button" onclick="fetchExchangeRate()" class="bg-zinc-100 hover:bg-zinc-200 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-200 dark:border-zinc-700 px-2 py-1 rounded-lg text-[10px] font-bold border border-zinc-300 cursor-pointer">🔄 即時</button>
+                  <span>手續費$:<input id="us_fee" type="number" step="0.01" class="save-trigger w-12 border rounded-lg px-1 text-center ml-0.5 font-bold bg-white dark:bg-zinc-900 dark:text-white" value="0"></span>
+                </div>
               </div>
-              <input id="us_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="us-input save-trigger w-full border border-teal-200 bg-white rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-teal-950 outline-none">
-            </div>
-            <div>
-              <label class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-300 font-bold block mb-1">現有持股達標獲利</label>
-              <div id="us_targetPnlDisplay" class="font-extrabold text-xs sm:text-base text-slate-800 dark:text-slate-400">-%</div>
-              <div id="us_targetPnlSub" class="text-[9px] text-slate-700 dark:text-slate-400 font-semibold">以現有持股試算</div>
-            </div>
-          </div>
 
-          <div class="pt-2 border-t border-teal-200/50 flex justify-between items-center flex-wrap gap-1">
-            <div class="text-[10px] sm:text-xs text-teal-950 dark:text-teal-200 font-bold flex items-center gap-1">
-              <span>🚀</span>
-              <span>補倉加碼後合併達標預期獲利:</span>
-            </div>
-            <div class="text-right">
-              <div id="us_targetPostPlanPnlDisplay" class="font-extrabold text-xs sm:text-sm text-slate-800 dark:text-slate-400">-%</div>
-              <div id="us_targetPostPlanSub" class="text-[9px] text-teal-800 dark:text-teal-300 font-bold">尚未規劃補倉筆數</div>
-            </div>
+              <!-- 🎯 設定賣出目標價 ($) -->
+              <div class="bg-zinc-50 dark:bg-zinc-800/40 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 space-y-2">
+                <div class="grid grid-cols-2 gap-3 items-center">
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <label class="text-[10px] sm:text-xs text-slate-900 dark:text-zinc-200 font-bold block">🎯 設定賣出目標價 ($)</label>
+                      <button type="button" id="us_targetAlertBtn" onclick="toggleTargetAlert('us')" title="設定目標價達標推播通知" class="text-[10px] px-2 py-0.5 rounded-lg border font-bold flex items-center gap-1 transition cursor-pointer bg-slate-100 text-slate-600 border-slate-300 dark:bg-zinc-700 dark:text-zinc-300 dark:border-zinc-600 hover:bg-slate-200">
+                        <span id="us_targetAlertIcon">🔔</span>
+                        <span id="us_targetAlertText">提醒</span>
+                      </button>
+                    </div>
+                    <input id="us_targetPrice" type="number" step="0.01" placeholder="輸入預期賣價" class="us-input save-trigger w-full border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-extrabold text-slate-950 dark:text-white outline-none">
+                  </div>
+                  <div>
+                    <label class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold block mb-1">現有持股達標獲利</label>
+                    <div id="us_targetPnlDisplay" class="font-extrabold text-xs sm:text-base text-slate-800 dark:text-slate-400">-%</div>
+                    <div id="us_targetPnlSub" class="text-[9px] text-slate-700 dark:text-slate-400 font-semibold">以現有持股試算</div>
+                  </div>
+                </div>
+
+                <div class="pt-2 border-t border-zinc-200 dark:border-zinc-700/60 flex justify-between items-center flex-wrap gap-1">
+                  <div class="text-[10px] sm:text-xs text-slate-800 dark:text-zinc-300 font-bold flex items-center gap-1">
+                    <span>🚀</span>
+                    <span>補倉加碼後合併達標預期獲利:</span>
+                  </div>
+                  <div class="text-right">
+                    <div id="us_targetPostPlanPnlDisplay" class="font-extrabold text-xs sm:text-sm text-slate-800 dark:text-slate-400">-%</div>
+                    <div id="us_targetPostPlanSub" class="text-[9px] text-zinc-500 dark:text-zinc-400 font-bold">尚未規劃補倉筆數</div>
+                  </div>
+                </div>
+              </div>
+            </div> <!-- end #usCard1AdvancedSettings -->
           </div>
         </div>
-        </div>
+      </div>
+
+            <!-- 🎛️ 美股試算模式切換器 (模式 A vs 模式 B) -->
+      <div id="usCalcModeSegment" class="flex items-center p-1 bg-zinc-200 dark:bg-zinc-900 rounded-xl border border-zinc-300 dark:border-zinc-800 gap-1 text-xs font-bold select-none my-2">
+        <button type="button" id="usModeSegmentA" onclick="setCalcDisplayMode('us', 'plan')" class="flex-1 py-2 px-3 rounded-lg text-center transition cursor-pointer bg-white text-zinc-950 dark:bg-zinc-100 dark:text-zinc-950 font-black shadow-sm">
+          <span>模式 A：分批補倉</span>
+        </button>
+        <button type="button" id="usModeSegmentB" onclick="setCalcDisplayMode('us', 'modeB')" class="flex-1 py-2 px-3 rounded-lg text-center transition cursor-pointer text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white">
+          <span>模式 B：目標均價</span>
+        </button>
+        <button type="button" id="usModeSegmentBoth" onclick="setCalcDisplayMode('us', 'both')" class="py-2 px-2.5 rounded-lg text-center transition cursor-pointer text-zinc-500 dark:text-zinc-400 hover:text-zinc-300 text-[11px]" title="同時檢視兩種試算">
+          <span>全部展開</span>
+        </button>
       </div>
 
       <div id="usCard2" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-4">
@@ -2120,7 +1758,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'V0.0';
+    const FRONTEND_VERSION = 'V0.1';
     
     // 📐 自訂版面配置預設值與項目對應表
     const DEFAULT_LAYOUT_CONFIG = {
@@ -2362,13 +2000,18 @@
         }
       }
 
-      // 1. 排列全域主區塊 (在 mainContainer 內，排在免責聲明與主標題之後)
+      // 1. 排列全域主區塊 (支援 viewOverview 與 mainContainer 容器)
       const mainContainer = document.getElementById('mainContainer');
-      if (mainContainer && Array.isArray(cloudData.layoutConfig.mainOrder)) {
+      const overviewContainer = document.getElementById('viewOverview') || mainContainer;
+      if (overviewContainer && Array.isArray(cloudData.layoutConfig.mainOrder)) {
         cloudData.layoutConfig.mainOrder.forEach(key => {
           const el = document.getElementById(key);
-          if (el && el.parentNode === mainContainer) {
-            mainContainer.appendChild(el);
+          if (el) {
+            if (key === 'stocksContainer') {
+              if (mainContainer && el.parentNode === mainContainer) mainContainer.appendChild(el);
+            } else {
+              if (el.parentNode === overviewContainer || el.parentNode === mainContainer) overviewContainer.appendChild(el);
+            }
           }
         });
       }
@@ -5409,6 +5052,10 @@
       applyTheme();
       initAllCollapsibleSections();
       applyUIMode(); updateConnectionStatusUI(); switchTab(localStorage.getItem('calc_current_tab') || 'tw');
+      setCalcDisplayMode('tw', 'plan');
+      setCalcDisplayMode('us', 'plan');
+      const initNav = localStorage.getItem('calc_active_nav_tab') || 'overview';
+      switchNavTab(initNav);
       try {
         sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
         const { data: sessionData } = await sbClient.auth.getSession(); currentUser = sessionData?.session?.user || null;
@@ -5479,42 +5126,118 @@
     // ----------------------------------------------------
     // 💎 金融 App 導航、AI 摘要與設定管理引擎
     // ----------------------------------------------------
+    // 🎛️ 現代金融 App 視圖路由與折疊控制
+    window.toggleAiInsightCollapse = function() {
+      const details = document.getElementById('aiMarketInsightDetails');
+      const btn = document.getElementById('aiInsightToggleBtn');
+      if (!details) return;
+      const isHidden = details.classList.contains('hidden');
+      if (isHidden) {
+        details.classList.remove('hidden');
+        if (btn) btn.innerText = '收合 ▲';
+        localStorage.setItem('calc_ai_collapsed', 'false');
+      } else {
+        details.classList.add('hidden');
+        if (btn) btn.innerText = '展開 ▾';
+        localStorage.setItem('calc_ai_collapsed', 'true');
+      }
+    };
+
+    window.toggleAdvancedCard1 = function(type) {
+      const container = document.getElementById(`${type}Card1AdvancedSettings`);
+      const icon = document.getElementById(`${type}Card1AdvIcon`);
+      if (!container) return;
+      const isHidden = container.classList.contains('hidden');
+      if (isHidden) {
+        container.classList.remove('hidden');
+        if (icon) icon.innerText = '▲';
+      } else {
+        container.classList.add('hidden');
+        if (icon) icon.innerText = '▼';
+      }
+    };
+
+    window.setCalcDisplayMode = function(type, mode) {
+      const card2 = document.getElementById(type === 'tw' ? 'twCard2' : 'usCard2');
+      const cardB = document.getElementById(type === 'tw' ? 'twCardModeB' : 'usCardModeB');
+      const btnA = document.getElementById(`${type}ModeSegmentA`);
+      const btnB = document.getElementById(`${type}ModeSegmentB`);
+      const btnBoth = document.getElementById(`${type}ModeSegmentBoth`);
+
+      const activeClass = "flex-1 py-2 px-3 rounded-lg text-center transition cursor-pointer bg-white text-zinc-950 dark:bg-zinc-100 dark:text-zinc-950 font-black shadow-sm";
+      const inactiveClass = "flex-1 py-2 px-3 rounded-lg text-center transition cursor-pointer text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white";
+      const activeBothClass = "py-2 px-2.5 rounded-lg text-center transition cursor-pointer bg-zinc-700 text-white font-bold text-[11px]";
+      const inactiveBothClass = "py-2 px-2.5 rounded-lg text-center transition cursor-pointer text-zinc-500 dark:text-zinc-400 hover:text-zinc-300 text-[11px]";
+
+      if (mode === 'plan') {
+        if (card2) card2.classList.remove('hidden');
+        if (cardB) cardB.classList.add('hidden');
+        if (btnA) btnA.className = activeClass;
+        if (btnB) btnB.className = inactiveClass;
+        if (btnBoth) btnBoth.className = inactiveBothClass;
+        if (type === 'tw') switchTwResultMode('plan'); else switchUsResultMode('plan');
+      } else if (mode === 'modeB') {
+        if (cardB) cardB.classList.remove('hidden');
+        if (card2) card2.classList.add('hidden');
+        if (btnB) btnB.className = activeClass;
+        if (btnA) btnA.className = inactiveClass;
+        if (btnBoth) btnBoth.className = inactiveBothClass;
+        if (type === 'tw') switchTwResultMode('modeB'); else switchUsResultMode('modeB');
+      } else {
+        if (card2) card2.classList.remove('hidden');
+        if (cardB) cardB.classList.remove('hidden');
+        if (btnA) btnA.className = inactiveClass;
+        if (btnB) btnB.className = inactiveClass;
+        if (btnBoth) btnBoth.className = activeBothClass;
+      }
+    };
+
     window.switchNavTab = function(tab) {
       const navTabs = ['overview', 'tw', 'us', 'calc', 'settings'];
       navTabs.forEach(t => {
         const btn = document.getElementById(`navBtn-${t}`);
         if (btn) {
           if (t === tab) {
-            btn.className = "bottom-nav-btn bg-white/15 text-white shadow-sm ring-1 ring-white/20 flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer";
+            btn.className = "bottom-nav-btn bg-white/20 text-white shadow-sm ring-1 ring-white/30 dark:bg-white/20 dark:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer font-black";
           } else {
-            btn.className = "bottom-nav-btn text-slate-400 hover:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer";
+            btn.className = "bottom-nav-btn text-zinc-400 hover:text-white flex flex-col items-center justify-center py-1.5 px-3 sm:px-4 rounded-full transition-all active:scale-95 cursor-pointer";
           }
         }
       });
 
+      const viewOverview = document.getElementById('viewOverview');
+      const stocksContainer = document.getElementById('stocksContainer');
       const topTitle = document.getElementById('topAppTitle');
+
       if (tab === 'overview') {
         if (topTitle) topTitle.innerText = "概覽";
+        if (viewOverview) viewOverview.classList.remove('hidden');
+        if (stocksContainer) stocksContainer.classList.add('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (tab === 'tw') {
         if (topTitle) topTitle.innerText = "台股持倉";
+        if (viewOverview) viewOverview.classList.add('hidden');
+        if (stocksContainer) stocksContainer.classList.remove('hidden');
         switchTab('tw');
-        const el = document.getElementById('stocksContainer');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (tab === 'us') {
         if (topTitle) topTitle.innerText = "美股持倉";
+        if (viewOverview) viewOverview.classList.add('hidden');
+        if (stocksContainer) stocksContainer.classList.remove('hidden');
         switchTab('us');
-        const el = document.getElementById('stocksContainer');
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else if (tab === 'calc') {
-        if (topTitle) topTitle.innerText = "均價反算";
+        if (topTitle) topTitle.innerText = "攤平試算";
+        if (viewOverview) viewOverview.classList.add('hidden');
+        if (stocksContainer) stocksContainer.classList.remove('hidden');
         const currentTab = localStorage.getItem('calc_current_tab') || 'tw';
-        const cardBId = currentTab === 'tw' ? 'twCardModeB' : 'usCardModeB';
+        const cardBId = currentTab === 'tw' ? 'twCard2' : 'usCard2';
         const el = document.getElementById(cardBId) || document.getElementById('stocksContainer');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       } else if (tab === 'settings') {
         openSettingsModal();
       }
+      localStorage.setItem('calc_active_nav_tab', tab);
     };
 
     window.openSettingsModal = function() {
@@ -5694,7 +5417,7 @@
       </div>
 
       <div class="border-t border-white/10 pt-3 flex items-center justify-between text-[11px] text-slate-400">
-        <div>版本: <span class="font-mono text-white">V0.0 Fintech Pro</span></div>
+        <div>版本: <span class="font-mono text-white">V0.1 Fintech Pro</span></div>
         <button type="button" onclick="closeSettingsModal()" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition">
           完成
         </button>
