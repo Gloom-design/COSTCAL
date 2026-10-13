@@ -1872,7 +1872,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'V0.3';
+    const FRONTEND_VERSION = 'V0.3.3';
     
     // 📐 自訂版面配置預設值與項目對應表
     const DEFAULT_LAYOUT_CONFIG = {
@@ -2920,9 +2920,10 @@
       const { error } = await sbClient.auth.signInWithOAuth({ 
         provider: 'google',
         options: { 
-          redirectTo: window.location.origin + window.location.pathname,
+          redirectTo: window.location.href.split('?')[0].split('#')[0],
           queryParams: {
-            prompt: 'select_account'
+            prompt: 'select_account',
+            access_type: 'offline'
           }
         }
       });
@@ -2951,6 +2952,7 @@
       }
 
       currentUser = null;
+      window.currentUser = null;
       localStorage.removeItem('calc_current_tw_key');
       localStorage.removeItem('calc_current_us_key');
       localStorage.removeItem('calc_current_tab');
@@ -2960,9 +2962,10 @@
       const { error } = await sbClient.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + window.location.pathname,
+          redirectTo: window.location.href.split('?')[0].split('#')[0],
           queryParams: {
-            prompt: 'select_account'
+            prompt: 'select_account',
+            access_type: 'offline'
           }
         }
       });
@@ -5185,50 +5188,88 @@
       const initNav = localStorage.getItem('calc_active_nav_tab') || 'overview';
       switchNavTab(initNav);
       try {
-        sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { flowType: 'pkce', persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
+        sbClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+          auth: {
+            flowType: 'pkce',
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        });
         window.sbClient = sbClient;
         window.calculateTw = calculateTw;
         window.calculateUs = calculateUs;
         window.calculateTwPortfolioSummary = calculateTwPortfolioSummary;
         window.calculateUsPortfolioSummary = calculateUsPortfolioSummary;
-        window.calculateGlobalPortfolioSummary = calculateGlobalPortfolioSummary;
 
-        // 1. 優先掛載 Auth 狀態監聽，確保即時捕捉 PKCE 完成事件與初始 Session
-        sbClient.auth.onAuthStateChange(async (event, session) => {
-          currentUser = session?.user || null;
-          updateAuthUI();
-          updateVersionDisplay(); 
-          if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') && currentUser && navigator.onLine) {
-            isInitializing = true;
-            document.getElementById('syncStatus').innerText = '載入雲端資料中...';
-            try {
-              const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
-              if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0 || data.portfolio_data.layoutConfig)) {
+        // 1. 讀取暫存的訪客資料
+        const pendingGuestRaw = sessionStorage.getItem('pending_guest_data');
+        if (pendingGuestRaw) {
+          sessionStorage.removeItem('pending_guest_data');
+          try { pendingGuestData = JSON.parse(pendingGuestRaw); } catch(e) {}
+        }
+
+        // 2. 宣告雲端載入投資組合核心函式
+        async function loadCloudPortfolioData() {
+          if (!currentUser || !navigator.onLine) return;
+          isInitializing = true;
+          document.getElementById('syncStatus').innerText = '載入雲端資料中...';
+          try {
+            const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
+            if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0 || data.portfolio_data.layoutConfig)) {
+              let localParsed = null;
+              try { const localRaw = localStorage.getItem(getLocalStorageKey()); if (localRaw) localParsed = JSON.parse(localRaw); } catch(e) {}
+              if (localParsed && (localParsed.updated_at || 0) > (new Date(data.updated_at).getTime() || 0)) {
+                cloudData = sanitizeStockData(localParsed);
+                manualSaveDataSilent();
+              } else {
                 cloudData = sanitizeStockData(data.portfolio_data);
                 saveToLocalStorage();
+              }
+              initDefaultView();
+            } else {
+              if (pendingGuestData && Object.keys(pendingGuestData.twStocks || {}).length > 0) {
+                document.getElementById('dataChoiceModal')?.classList.remove('hidden');
+                cloudData = sanitizeStockData(pendingGuestData);
                 initDefaultView();
               } else {
-                if (pendingGuestData && Object.keys(pendingGuestData.twStocks || {}).length > 0) {
-                  document.getElementById('dataChoiceModal').classList.remove('hidden');
-                  cloudData = sanitizeStockData(pendingGuestData);
+                if (loadFromLocalStorage()) {
                   initDefaultView();
+                  await manualSaveDataSilent();
                 } else {
-                  if (!loadFromLocalStorage()) {
-                    initDefaultView();
-                    saveUIToCurrentStock('tw');
-                    saveUIToCurrentStock('us');
-                  } else initDefaultView();
+                  initDefaultView();
+                  saveUIToCurrentStock('tw');
+                  saveUIToCurrentStock('us');
                   await manualSaveDataSilent();
                 }
               }
-            } catch (loadErr) {
-              console.warn("載入雲端投資組合異常:", loadErr);
             }
-            isInitializing = false;
             loadAdminStats();
             document.getElementById('syncStatus').innerText = '雲端已同步';
+          } catch (loadErr) {
+            console.warn("載入雲端投資組合異常:", loadErr);
+            document.getElementById('syncStatus').innerText = '雲端連線異常';
+          } finally {
+            isInitializing = false;
+          }
+        }
+
+        // 3. 掛載 Auth 狀態監聽，確保登入/登出時即時反應
+        sbClient.auth.onAuthStateChange(async (event, session) => {
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            if (session?.user) {
+              const wasAlreadyLoaded = currentUser && currentUser.id === session.user.id;
+              currentUser = session.user;
+              window.currentUser = currentUser;
+              updateAuthUI();
+              updateVersionDisplay();
+              if (!wasAlreadyLoaded && !isInitializing) {
+                await loadCloudPortfolioData();
+              }
+            }
           } else if (event === 'SIGNED_OUT') {
             currentUser = null;
+            window.currentUser = null;
             cloudData = { twStocks: {}, twOrder: [], usStocks: {}, usOrder: [], layoutConfig: { mainOrder: [...DEFAULT_LAYOUT_CONFIG.mainOrder], cardsOrder: [...DEFAULT_LAYOUT_CONFIG.cardsOrder] } };
             loadFromLocalStorage();
             initDefaultView();
@@ -5237,79 +5278,52 @@
           }
         });
 
-        // 2. 主動驗證網址上的 PKCE 授權碼 (?code=...)，保證登入跳轉後立即生效
+        // 4. 等待 Supabase 完成網址授權碼交換與本機 Session 還原
         const urlParams = new URLSearchParams(window.location.search);
-        const authCode = urlParams.get('code');
-        if (authCode) {
+        const hasAuthParams = urlParams.has('code') || window.location.hash.includes('access_token');
+        if (hasAuthParams) {
+          document.getElementById('syncStatus').innerText = '驗證 Google 登入中...';
+        }
+
+        const oauthError = urlParams.get('error') || urlParams.get('error_description');
+        if (oauthError) {
+          console.error("Google 登入回調錯誤:", oauthError);
+          alert("Google 登入失敗: " + (urlParams.get('error_description') || oauthError));
+        }
+
+        if (sbClient.auth.initializePromise) {
           try {
-            document.getElementById('syncStatus').innerText = '正在驗證 Google 登入...';
-            const { data: exData, error: exErr } = await sbClient.auth.exchangeCodeForSession(authCode);
-            if (exData?.session?.user) {
-              currentUser = exData.session.user;
-            } else if (exErr) {
-              console.warn("PKCE 交換 Token 警告:", exErr);
+            const initRes = await sbClient.auth.initializePromise;
+            if (initRes?.error) {
+              console.warn("Supabase 初始授權警告:", initRes.error);
             }
-          } catch (e) {
-            console.warn("PKCE 授權碼交換異常:", e);
+          } catch (initErr) {
+            console.warn("Supabase 初始授權異常:", initErr);
           }
+        }
+
+        // 網址驗證完成後清理網址列，避免重複處理
+        if (hasAuthParams) {
           try {
             const cleanUrl = window.location.origin + window.location.pathname;
             window.history.replaceState({}, document.title, cleanUrl);
           } catch (e) {}
         }
 
-        // 3. 檢查現有 Session
-        if (!currentUser) {
-          const { data: sessionData } = await sbClient.auth.getSession();
-          currentUser = sessionData?.session?.user || null;
-        }
+        // 5. 獲取現有 Session 並初始化畫面
+        const { data: sessionData } = await sbClient.auth.getSession();
+        currentUser = sessionData?.session?.user || null;
+        window.currentUser = currentUser;
 
         updateAuthUI();
         updateVersionDisplay();
 
-        const pendingGuestRaw = sessionStorage.getItem('pending_guest_data');
-        if (pendingGuestRaw) {
-          sessionStorage.removeItem('pending_guest_data');
-          try { pendingGuestData = JSON.parse(pendingGuestRaw); } catch(e) {}
-        }
-
-        if (!currentUser) {
+        if (currentUser) {
+          await loadCloudPortfolioData();
+        } else {
           loadFromLocalStorage();
           initDefaultView();
           document.getElementById('syncStatus').innerText = navigator.onLine ? '訪客模式 (未登入)' : '離線模式';
-        } else {
-          document.getElementById('syncStatus').innerText = '載入中...';
-          const { data, error } = await sbClient.from('user_portfolios').select('portfolio_data, updated_at').eq('user_id', currentUser.id).maybeSingle();
-          if (!error && data && data.portfolio_data && (Object.keys(data.portfolio_data.twStocks || {}).length > 0 || Object.keys(data.portfolio_data.usStocks || {}).length > 0 || data.portfolio_data.layoutConfig)) {
-            let localParsed = null;
-            try { const localRaw = localStorage.getItem(getLocalStorageKey()); if (localRaw) localParsed = JSON.parse(localRaw); } catch(e) {}
-            if (localParsed && (localParsed.updated_at || 0) > (new Date(data.updated_at).getTime() || 0)) {
-              cloudData = sanitizeStockData(localParsed);
-              manualSaveDataSilent();
-            } else {
-              cloudData = sanitizeStockData(data.portfolio_data);
-              saveToLocalStorage();
-            }
-            initDefaultView();
-          } else {
-            if (pendingGuestData && Object.keys(pendingGuestData.twStocks || {}).length > 0) {
-              document.getElementById('dataChoiceModal').classList.remove('hidden');
-              cloudData = sanitizeStockData(pendingGuestData);
-              initDefaultView();
-            } else {
-              if (loadFromLocalStorage()) {
-                initDefaultView();
-                await manualSaveDataSilent();
-              } else {
-                initDefaultView();
-                saveUIToCurrentStock('tw');
-                saveUIToCurrentStock('us');
-                await manualSaveDataSilent();
-              }
-            }
-          }
-          loadAdminStats();
-          document.getElementById('syncStatus').innerText = '雲端已同步';
         }
         isInitializing = false;
       } catch (err) {
@@ -5608,11 +5622,13 @@
         if (settingsLogoutBtn) settingsLogoutBtn.classList.remove('hidden');
         if (settingsSwitchBtn) settingsSwitchBtn.classList.remove('hidden');
 
-        userInfoEl.innerText = emailPrefix; 
-        userInfoEl.title = `目前登入帳號：${currentUser.email}`;
-        userInfoEl.classList.remove('hidden'); 
-        loginBtn.classList.add('hidden'); 
-        loggedOptions.classList.remove('hidden'); 
+        if (userInfoEl) {
+          userInfoEl.innerText = emailPrefix; 
+          userInfoEl.title = `目前登入帳號：${currentUser.email}`;
+          userInfoEl.classList.remove('hidden'); 
+        }
+        if (loginBtn) loginBtn.classList.add('hidden'); 
+        if (loggedOptions) loggedOptions.classList.remove('hidden'); 
         loadAdminStats(); 
       } else { 
         if (topUserAvatar) {
@@ -5626,11 +5642,13 @@
         if (settingsLogoutBtn) settingsLogoutBtn.classList.add('hidden');
         if (settingsSwitchBtn) settingsSwitchBtn.classList.add('hidden');
 
-        userInfoEl.innerText = '未登入'; 
-        userInfoEl.classList.add('hidden'); 
-        loginBtn.classList.remove('hidden'); 
-        loggedOptions.classList.add('hidden'); 
-        document.getElementById('adminPanel').classList.add('hidden'); 
+        if (userInfoEl) {
+          userInfoEl.innerText = '未登入'; 
+          userInfoEl.classList.add('hidden'); 
+        }
+        if (loginBtn) loginBtn.classList.remove('hidden'); 
+        if (loggedOptions) loggedOptions.classList.add('hidden'); 
+        document.getElementById('adminPanel')?.classList.add('hidden'); 
       }
     }
     init();
