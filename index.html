@@ -30,7 +30,8 @@
     html:not(.dark) .modal-box,
     html:not(.dark) #aiMarketInsightCard,
     html:not(.dark) #portfolioHeroCard,
-    html:not(.dark) #mainAppHeader {
+    html:not(.dark) #mainAppHeader,
+    html:not(.dark) #adminPanel {
       background-color: #ffffff !important;
       color: #18181b !important;
       border: 1px solid #e4e4e7 !important;
@@ -84,8 +85,9 @@
       border: 1px solid #e4e4e7 !important;
     }
     html:not(.dark) #topUserAvatar {
-      background: #18181b !important;
-      color: #ffffff !important;
+      background: #f4f4f5 !important;
+      color: #18181b !important;
+      border: 1px solid #e4e4e7 !important;
     }
     html:not(.dark) #liveTickerBar {
       background-color: #f8f9fa !important;
@@ -110,9 +112,10 @@
     html:not(.dark) .bottom-nav-btn { color: #71717a !important; }
     html:not(.dark) .bottom-nav-btn.bg-white\/20,
     html:not(.dark) .bottom-nav-btn.bg-white\/15 {
-      background-color: #18181b !important;
-      color: #ffffff !important;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
+      background-color: #f4f4f5 !important;
+      color: #18181b !important;
+      border: 1px solid #d4d4d8 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06) !important;
     }
     html:not(.dark) #tabSwitcherCard {
       background-color: #e4e4e7 !important;
@@ -140,7 +143,8 @@
     html.dark .modal-box,
     html.dark #aiMarketInsightCard,
     html.dark #portfolioHeroCard,
-    html.dark #mainAppHeader {
+    html.dark #mainAppHeader,
+    html.dark #adminPanel {
       background-color: #12141c !important;
       color: #f4f4f5 !important;
       border-color: rgba(255, 255, 255, 0.08) !important;
@@ -584,30 +588,30 @@
   <header id="topFintechAppBar" class="sticky top-0 z-30 w-full bg-[#090a0f]/92 backdrop-blur-md border-b border-white/5 py-2.5 px-3 sm:px-6">
     <div class="w-full max-w-md sm:max-w-xl md:max-w-2xl lg:max-w-4xl xl:max-w-5xl mx-auto flex items-center justify-between">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-zinc-800 border border-zinc-700 p-0.5 shadow-md flex items-center justify-center">
-          <div class="w-full h-full bg-[#090a0f] rounded-[10px] flex items-center justify-center text-sky-400 font-black text-sm">
+        <div class="w-8 h-8 rounded-xl bg-slate-100 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 p-0.5 shadow-xs flex items-center justify-center">
+          <div class="w-full h-full bg-white dark:bg-[#090a0f] rounded-[10px] flex items-center justify-center text-sky-600 dark:text-sky-400 font-black text-sm">
             ❖
           </div>
         </div>
-        <h1 id="topAppTitle" class="font-black text-base sm:text-lg text-white tracking-tight">概覽</h1>
+        <h1 id="topAppTitle" class="font-black text-base sm:text-lg text-slate-900 dark:text-white tracking-tight">概覽</h1>
       </div>
       
       <div class="flex items-center gap-2">
         <!-- 🔑 快速登入按鈕 (未登入時明顯展示) -->
-        <button id="topNavLoginBtn" type="button" onclick="loginWithGoogle()" title="登入 Google 帳號啟用雲端同步" class="px-2.5 py-1 bg-white hover:bg-zinc-200 text-zinc-950 font-black text-xs rounded-full shadow-sm cursor-pointer transition active:scale-95 flex items-center gap-1">
+        <button id="topNavLoginBtn" type="button" onclick="loginWithGoogle()" title="登入 Google 帳號啟用雲端同步" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white dark:bg-white dark:hover:bg-zinc-200 dark:text-zinc-950 font-black text-xs rounded-full shadow-xs cursor-pointer transition active:scale-95 flex items-center gap-1">
           <span>🔑</span><span>登入</span>
         </button>
         <!-- 使用者頭像 (點擊開啟設定與帳號) -->
-        <div id="topUserAvatar" onclick="switchNavTab('settings')" title="帳號與同步管理" class="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-600 text-white font-black text-xs flex items-center justify-center cursor-pointer shadow-md hover:scale-105 active:scale-95 transition">
+        <div id="topUserAvatar" onclick="switchNavTab('settings')" title="帳號與同步管理" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:border-zinc-600 dark:text-white font-black text-xs flex items-center justify-center cursor-pointer shadow-xs hover:scale-105 active:scale-95 transition">
           👤
         </div>
         <!-- 鈴鐺通知 (30秒即時監控狀態) -->
-        <button type="button" onclick="toggleRealtimeMonitor()" id="topBellBtn" title="30秒盤中監控與到價警示" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center text-xs relative cursor-pointer active:scale-95 transition">
+        <button type="button" onclick="toggleRealtimeMonitor()" id="topBellBtn" title="30秒盤中監控與到價警示" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:border-white/10 dark:text-slate-300 dark:hover:text-white flex items-center justify-center text-xs relative cursor-pointer active:scale-95 transition shadow-2xs">
           <span>🔔</span>
           <span id="topBellDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 absolute top-1.5 right-1.5 hidden animate-ping"></span>
         </button>
         <!-- ≡ 選單按鈕 -->
-        <button type="button" onclick="openLayoutModal()" id="topMenuBtn" title="自訂版面排版" class="w-8 h-8 rounded-full bg-slate-800/80 hover:bg-slate-700/80 border border-white/10 text-slate-300 hover:text-white flex items-center justify-center text-sm font-bold cursor-pointer active:scale-95 transition">
+        <button type="button" onclick="openLayoutModal()" id="topMenuBtn" title="自訂版面排版" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:border-white/10 dark:text-slate-300 dark:hover:text-white flex items-center justify-center text-sm font-bold cursor-pointer active:scale-95 transition shadow-2xs">
           <span>≡</span>
         </button>
       </div>
@@ -672,7 +676,7 @@
         </button>
       </div>
 
-<div id="portfolioHeroCard" class="card-box bg-[#111622] text-white p-5 sm:p-6 rounded-2xl border border-white/10 shadow-lg text-center space-y-3">
+<div id="portfolioHeroCard" class="card-box bg-white dark:bg-[#111622] text-slate-900 dark:text-white p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm text-center space-y-3">
       <!-- 空狀態 (無持倉資料時展示，符合富果/頂級金融 App 設計) -->
       <div id="heroEmptyView" class="py-3 space-y-3">
         <div class="w-13 h-13 rounded-2xl bg-amber-400/10 border border-amber-400/25 text-amber-300 flex items-center justify-center text-2xl mx-auto shadow-inner">
@@ -813,36 +817,36 @@
     </div>
 
 <div id="quickActionGrid" class="grid grid-cols-4 gap-2 sm:gap-3">
-      <div onclick="switchNavTab('overview'); document.getElementById('globalPortfolioCard')?.scrollIntoView({behavior:'smooth'})" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
-        <div class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-400 flex items-center justify-center text-base">
+      <div onclick="switchNavTab('overview'); document.getElementById('globalPortfolioCard')?.scrollIntoView({behavior:'smooth'})" class="bg-white hover:bg-slate-50 dark:bg-[#111622] dark:hover:bg-[#161c2b] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-xs">
+        <div class="w-9 h-9 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-400 flex items-center justify-center text-base">
           🏢
         </div>
-        <span class="text-[10px] sm:text-xs font-bold text-slate-200">全球總覽</span>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">全球總覽</span>
       </div>
 
-      <div onclick="toggleRealtimeMonitor()" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
-        <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-400 flex items-center justify-center text-base">
+      <div onclick="toggleRealtimeMonitor()" class="bg-white hover:bg-slate-50 dark:bg-[#111622] dark:hover:bg-[#161c2b] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-xs">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base">
           ⚡
         </div>
-        <span class="text-[10px] sm:text-xs font-bold text-slate-200">盤中監控</span>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">盤中監控</span>
       </div>
 
-      <div onclick="switchNavTab('calc')" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
-        <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-base">
+      <div onclick="switchNavTab('calc')" class="bg-white hover:bg-slate-50 dark:bg-[#111622] dark:hover:bg-[#161c2b] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-xs">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base">
           📈
         </div>
-        <span class="text-[10px] sm:text-xs font-bold text-slate-200">均價反算</span>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">均價反算</span>
       </div>
 
-      <div onclick="openAddStockModal()" class="bg-[#111622] hover:bg-[#161c2b] border border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-sm">
-        <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-400 flex items-center justify-center text-base">
+      <div onclick="openAddStockModal()" class="bg-white hover:bg-slate-50 dark:bg-[#111622] dark:hover:bg-[#161c2b] border border-slate-200 dark:border-white/10 rounded-2xl p-2.5 sm:p-3 text-center cursor-pointer transition active:scale-95 flex flex-col items-center justify-center gap-1 shadow-xs">
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/15 border border-cyan-500/30 text-cyan-600 dark:text-cyan-400 flex items-center justify-center text-base">
           ➕
         </div>
-        <span class="text-[10px] sm:text-xs font-bold text-slate-200">新增持股</span>
+        <span class="text-[10px] sm:text-xs font-bold text-slate-800 dark:text-slate-200">新增持股</span>
       </div>
     </div>
 
-<div id="aiMarketInsightCard" class="card-box bg-[#111622] text-white p-4 sm:p-5 rounded-2xl border border-white/10 shadow-lg space-y-3">
+<div id="aiMarketInsightCard" class="card-box bg-white dark:bg-[#111622] text-slate-900 dark:text-white p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 shadow-sm space-y-3">
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <div class="w-7 h-7 rounded-xl bg-amber-400/10 border border-amber-400/30 text-amber-400 flex items-center justify-center text-xs shadow-xs">
@@ -1035,7 +1039,7 @@
           </div>
 
           <div class="flex justify-end">
-            <button type="button" onclick="fetchMarketPrice('tw')" class="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer border border-zinc-600">
+            <button type="button" onclick="fetchMarketPrice('tw')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-2xs cursor-pointer border border-slate-300 dark:border-zinc-600 active:scale-95">
               🔍 即時行情
             </button>
           </div>
@@ -1302,7 +1306,7 @@
           </div>
 
           <div class="flex justify-end">
-            <button type="button" onclick="fetchMarketPrice('us')" class="bg-zinc-800 hover:bg-zinc-700 text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-sm cursor-pointer border border-zinc-600">
+            <button type="button" onclick="fetchMarketPrice('us')" class="bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-zinc-800 dark:hover:bg-zinc-700 dark:text-white text-xs px-4 py-2.5 rounded-xl font-bold transition shadow-2xs cursor-pointer border border-slate-300 dark:border-zinc-600 active:scale-95">
               🔍 即時行情
             </button>
           </div>
@@ -1559,7 +1563,7 @@
             <div>本次補倉總計: <span id="tw_resAddCost" class="font-extrabold text-slate-950 dark:text-white">NTD$0</span></div>
           </div>
           <div class="pt-2.5">
-            <button type="button" onclick="manualSaveData()" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-950 font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer border border-zinc-700 dark:border-white/20 flex items-center justify-center gap-1.5 active:scale-[0.99]">
+            <button type="button" onclick="manualSaveData()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]">
               <span>💾</span><span>即時儲存至雲端</span>
             </button>
           </div>
@@ -1699,7 +1703,7 @@
             <div>本次補倉總計(美元): <span id="us_resAddCostUSD" class="font-extrabold text-slate-950 dark:text-white">USD$0</span></div>
           </div>
           <div class="pt-2.5">
-            <button type="button" onclick="manualSaveData()" class="w-full bg-zinc-900 hover:bg-zinc-800 text-white dark:bg-zinc-100 dark:hover:bg-white dark:text-zinc-950 font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer border border-zinc-700 dark:border-white/20 flex items-center justify-center gap-1.5 active:scale-[0.99]">
+            <button type="button" onclick="manualSaveData()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-xl text-xs sm:text-sm shadow-md transition cursor-pointer flex items-center justify-center gap-1.5 active:scale-[0.99]">
               <span>💾</span><span>即時儲存至雲端</span>
             </button>
           </div>
@@ -1710,13 +1714,13 @@
 
     <!-- ⚙️ 5. 設定與管理後台獨立檢視 (Settings & Admin Tab View) -->
     <div id="viewSettings" class="view-panel space-y-4 sm:space-y-6 hidden">
-<div id="adminPanel" class="hidden bg-slate-900 text-white p-4 sm:p-6 rounded-2xl shadow-md space-y-3 border border-slate-700">
-      <div class="flex justify-between items-center border-b border-slate-800 pb-2 flex-wrap gap-2">
+<div id="adminPanel" class="hidden bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm space-y-3 border border-slate-200 dark:border-slate-700">
+      <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2 flex-wrap gap-2">
         <div class="flex items-center gap-2 flex-wrap">
-          <span class="font-bold text-xs sm:text-sm text-amber-400">👑 管理者專屬後台</span>
+          <span class="font-bold text-xs sm:text-sm text-amber-600 dark:text-amber-400">👑 管理者專屬後台</span>
           <div class="flex items-center gap-2 flex-wrap">
-            <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零登入</button>
-            <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow">🔄 歸零同步</button>
+            <button type="button" onclick="resetLoginCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow-xs">🔄 歸零登入</button>
+            <button type="button" onclick="resetSyncCounts()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer shadow-xs">🔄 歸零同步</button>
           </div>
         </div>
         <div class="flex items-center gap-1.5 ml-auto">
@@ -1732,22 +1736,22 @@
       
       <div id="adminPanelBody" class="space-y-3">
         <div class="grid grid-cols-3 gap-2 text-xs pt-1">
-          <div>總人數: <strong id="adminTotalUsers" class="text-cyan-300 font-bold">0 人</strong></div>
-          <div>總登入: <strong id="adminTotalLogins" class="text-indigo-300 font-bold">0 次</strong></div>
-          <div>總同步: <strong id="adminTotalSyncs" class="text-emerald-300 font-bold">0 次</strong></div>
+          <div class="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60 text-center">總人數: <strong id="adminTotalUsers" class="text-sky-600 dark:text-cyan-300 font-bold block mt-0.5">0 人</strong></div>
+          <div class="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60 text-center">總登入: <strong id="adminTotalLogins" class="text-indigo-600 dark:text-indigo-300 font-bold block mt-0.5">0 次</strong></div>
+          <div class="bg-slate-50 dark:bg-slate-800/60 p-2 rounded-xl border border-slate-200 dark:border-slate-700/60 text-center">總同步: <strong id="adminTotalSyncs" class="text-emerald-600 dark:text-emerald-300 font-bold block mt-0.5">0 次</strong></div>
         </div>
-        <div class="border-t border-slate-700 pt-3 mt-2">
+        <div class="border-t border-slate-200 dark:border-slate-700 pt-3 mt-2">
           <div class="flex justify-between items-center pb-2">
-            <span class="font-bold text-xs text-amber-400">📄 系統檔案版本監控 (無快取連線)</span>
-            <button type="button" onclick="checkSystemVersions()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold text-[10px] px-2 py-1.5 rounded cursor-pointer border border-slate-500 transition">
+            <span class="font-bold text-xs text-amber-600 dark:text-amber-400">📄 系統檔案版本監控 (無快取連線)</span>
+            <button type="button" onclick="checkSystemVersions()" class="bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-800 dark:text-white font-bold text-[10px] px-2.5 py-1.5 rounded-lg cursor-pointer border border-slate-300 dark:border-slate-500 transition shadow-2xs">
               🔍 重新偵測
             </button>
           </div>
-          <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[11px] text-slate-300">
-            <div>index.html: <strong id="adminVerIndex" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
-            <div>stock.js: <strong id="adminVerStock" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
-            <div>manifest.json: <strong id="adminVerManifest" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
-            <div>sw.js: <strong id="adminVerSw" class="text-white bg-slate-800 px-1.5 py-0.5 rounded">讀取中...</strong></div>
+          <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-[11px] text-slate-600 dark:text-slate-300">
+            <div>index.html: <strong id="adminVerIndex" class="text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded font-mono">讀取中...</strong></div>
+            <div>stock.js: <strong id="adminVerStock" class="text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded font-mono">讀取中...</strong></div>
+            <div>manifest.json: <strong id="adminVerManifest" class="text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded font-mono">讀取中...</strong></div>
+            <div>sw.js: <strong id="adminVerSw" class="text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded font-mono">讀取中...</strong></div>
           </div>
         </div>
       </div>
@@ -1757,7 +1761,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border border-zinc-300 dark:border-zinc-700">V0.3.4</span>
+          <span class="bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border border-zinc-300 dark:border-zinc-700">V0.3.5</span>
           <span id="backendVersionBadge" class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1828,29 +1832,29 @@
     </header>
 
       <!-- 🛠️ 系統狀態與維護工具卡片 -->
-      <div class="card-box bg-[#12141c] p-4 sm:p-5 rounded-2xl border border-white/10 space-y-3">
-        <div class="flex items-center justify-between border-b border-white/5 pb-2">
+      <div class="card-box bg-white dark:bg-[#12141c] text-slate-900 dark:text-white p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-white/5 pb-2">
           <div class="flex items-center gap-2">
             <span class="text-base">⚡</span>
-            <h3 class="font-black text-xs sm:text-sm text-white">系統工具與離線狀態</h3>
+            <h3 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white">系統工具與離線狀態</h3>
           </div>
-          <span class="bg-zinc-800 text-zinc-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-zinc-700">PWA 離線支援</span>
+          <span class="bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-zinc-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-slate-300 dark:border-zinc-700">PWA 離線支援</span>
         </div>
         <div class="grid grid-cols-2 gap-2 text-xs">
-          <div class="bg-[#0b0e17] p-2.5 rounded-xl border border-white/5">
-            <div class="text-[10px] text-zinc-400 font-semibold">系統版本</div>
-            <div class="font-black text-white mt-0.5 font-mono">V0.3 Fintech Pro</div>
+          <div class="bg-slate-50 dark:bg-[#0b0e17] p-2.5 rounded-xl border border-slate-200 dark:border-white/5">
+            <div class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold">系統版本</div>
+            <div class="font-black text-slate-900 dark:text-white mt-0.5 font-mono">V0.3.5 Fintech Pro</div>
           </div>
-          <div class="bg-[#0b0e17] p-2.5 rounded-xl border border-white/5">
-            <div class="text-[10px] text-zinc-400 font-semibold">主題風格</div>
-            <div class="font-bold text-white mt-0.5">現代黑白灰極簡</div>
+          <div class="bg-slate-50 dark:bg-[#0b0e17] p-2.5 rounded-xl border border-slate-200 dark:border-white/5">
+            <div class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold">主題風格</div>
+            <div id="settingsThemeStatusText" class="font-bold text-slate-900 dark:text-white mt-0.5">現代黑白灰極簡</div>
           </div>
         </div>
         <div class="pt-1 flex gap-2">
-          <button type="button" onclick="if(confirm('確定清除快取並重新載入最新版本？')){ if('caches' in window){ caches.keys().then(names => Promise.all(names.map(n => caches.delete(n)))).then(() => location.reload(true)); } else { location.reload(true); } }" class="flex-1 py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold border border-zinc-700 transition cursor-pointer text-center active:scale-95">
+          <button type="button" onclick="if(confirm('確定清除快取並重新載入最新版本？')){ if('caches' in window){ caches.keys().then(names => Promise.all(names.map(n => caches.delete(n)))).then(() => location.reload(true)); } else { location.reload(true); } }" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold border border-slate-300 dark:border-zinc-700 transition cursor-pointer text-center active:scale-95 shadow-2xs">
             🔄 強制重整與更新
           </button>
-          <button type="button" onclick="exportDataToFile()" class="flex-1 py-2 px-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-bold border border-zinc-700 transition cursor-pointer text-center active:scale-95">
+          <button type="button" onclick="exportDataToFile()" class="flex-1 py-2 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-slate-800 dark:text-zinc-200 rounded-xl text-xs font-bold border border-slate-300 dark:border-zinc-700 transition cursor-pointer text-center active:scale-95 shadow-2xs">
             📤 備份本機資料
           </button>
         </div>
@@ -1887,7 +1891,7 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'V0.3.3';
+    const FRONTEND_VERSION = 'V0.3.5';
     
     // 📐 自訂版面配置預設值與項目對應表
     const DEFAULT_LAYOUT_CONFIG = {
@@ -1938,6 +1942,11 @@
         document.documentElement.classList.add('dark');
       } else {
         document.documentElement.classList.remove('dark');
+      }
+
+      const statusText = document.getElementById('settingsThemeStatusText');
+      if (statusText) {
+        statusText.innerText = currentThemeMode === 'dark' ? '🌙 黑色風格 (深色)' : '☀️ 白色風格 (淺色)';
       }
 
       applyUIMode();
@@ -5715,8 +5724,8 @@
       </div>
 
       <div class="border-t border-slate-200 dark:border-white/10 pt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-        <div>版本: <span class="font-mono text-slate-900 dark:text-white">V0.3.4 Fintech Pro</span></div>
-        <button type="button" onclick="closeSettingsModal()" class="bg-slate-900 hover:bg-slate-800 text-white dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-white px-4 py-1.5 rounded-lg text-xs font-bold transition active:scale-95">
+        <div>版本: <span class="font-mono text-slate-900 dark:text-white">V0.3.5 Fintech Pro</span></div>
+        <button type="button" onclick="closeSettingsModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 shadow-xs">
           完成
         </button>
       </div>
