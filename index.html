@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
@@ -888,108 +888,7 @@
 
     <!-- 🇹🇼 2. 台股持倉獨立檢視 (TW Stocks Tab View) -->
     <div id="twView" class="view-panel space-y-4 sm:space-y-6 hidden">
-<div id="twPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3.5">
-          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 gap-2 flex-nowrap overflow-x-auto no-scrollbar">
-            <div class="flex items-center gap-1.5 min-w-0 shrink-0" title="彙總您名下所有持股之成本與未實現損益">
-              <span class="text-base sm:text-lg shrink-0">💼</span>
-              <h2 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap">台股所有投資組合總覽</h2>
-            </div>
-            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto flex-nowrap">
-              <span id="tw_summaryStockCountBadge" class="h-[1.85rem] sm:h-8 flex items-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10px] font-bold px-2 sm:px-2.5 rounded-lg whitespace-nowrap shrink-0">共 0 檔持股</span>
-              <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2 sm:px-2.5 rounded-lg font-bold border border-indigo-500 transition cursor-pointer whitespace-nowrap shrink-0 shadow-xs active:scale-95">
-                <span>🔄 更新<span class="hidden md:inline">全組合</span>行情</span>
-              </button>
-              <div class="move-btn-group tw-move-group shrink-0">
-                <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
-                <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
-              </div>
-              <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state shrink-0">
-                <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-              </button>
-            </div>
-          </div>
-
-        <div id="twPortfolioSummaryBody" class="space-y-3.5">
-          <!-- KPI 數據核心面板 -->
-          <div class="grid grid-cols-2 gap-2.5">
-            <!-- 總投資成本 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本 (NTD / USD)</div>
-                <div class="space-y-0.5">
-                  <div id="tw_summaryTotalCost" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">NTD$0</div>
-                  <div id="tw_summaryTotalCostUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
-                </div>
-              </div>
-              <div id="tw_summaryCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">現有庫存成本 (共 0 組合)</div>
-            </div>
-
-            <!-- 總未實現損益 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
-                <div class="space-y-0.5">
-                  <div id="tw_summaryTotalPnl" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight leading-tight">NTD$0</div>
-                  <div id="tw_summaryTotalPnlUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
-                </div>
-              </div>
-              <div id="tw_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">總損益率: -%</div>
-            </div>
-
-            <!-- 總現值 (總市值) -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
-                <div class="space-y-0.5">
-                  <div id="tw_summaryTotalValue" class="text-base sm:text-xl font-black text-sky-950 dark:text-cyan-300 tracking-tight leading-tight">NTD$0</div>
-                  <div id="tw_summaryTotalValueUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
-                </div>
-              </div>
-              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">以現價/前收計算</div>
-            </div>
-
-            <!-- 損益分佈概況 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
-                <div id="tw_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap min-h-[1.5rem] items-center">
-                  <span>0 檔</span>
-                </div>
-              </div>
-              <div id="tw_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">補倉預計加碼: NTD$0 (USD$0)</div>
-            </div>
-          </div>
-
-          <!-- 📊 持股資金配置比重 (Asset Allocation Weighting Bar) -->
-          <div class="border-t border-slate-200 dark:border-slate-800 pt-2.5 space-y-1.5">
-            <div class="flex justify-between items-center text-[10px] sm:text-xs">
-              <span class="text-slate-800 dark:text-slate-300 font-bold flex items-center gap-1">
-                <span>📊</span> <span>持股資金配置權重</span>
-              </span>
-              <span id="tw_weightSummaryText" class="text-slate-700 dark:text-slate-400 text-[9px] sm:text-[10px] font-semibold">依現有持股成本佔比</span>
-            </div>
-            <!-- 多色彩條 -->
-            <div id="tw_weightBar" class="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
-              <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[8px] text-slate-500 dark:text-slate-500 font-medium">無庫存成本資料</div>
-            </div>
-            <!-- 標籤圓點清單 -->
-            <div id="tw_weightPills" class="flex flex-wrap gap-1.5 pt-0.5"></div>
-          </div>
-
-          <!-- 各檔明細清單摺疊區 -->
-          <div class="border-t border-slate-200 dark:border-slate-800 pt-2 space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">各持股明細損益 (點擊可切換編輯)</span>
-              <button type="button" onclick="togglePortfolioDetail('tw')" id="twToggleDetailBtn" class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold underline cursor-pointer">
-                展開明細 ▾
-              </button>
-            </div>
-            <div id="twPortfolioDetailList" class="space-y-1.5 hidden max-h-64 overflow-y-auto pr-1"></div>
-          </div>
-        </div>
-      </div>
-
-<div id="twStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar">
+      <div id="twStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar">
         <select id="twStockSelector" onchange="switchStock('tw', this.value)" class="w-28 sm:w-36 md:w-44 shrink-0 border border-slate-300 dark:border-slate-700 rounded-xl h-[1.85rem] sm:h-8 px-2 text-xs sm:text-sm font-black text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 outline-none focus:border-indigo-500 cursor-pointer shadow-2xs">
         </select>
         <button type="button" onclick="moveStockOrder('tw', -1)" title="順序往前移" class="h-[1.85rem] sm:h-8 w-7 sm:w-7.5 shrink-0 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
@@ -1009,7 +908,7 @@
         </div>
       </div>
 
-<div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
+      <div id="twCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <div class="flex justify-between items-center border-b pb-2.5">
           <h2 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">
             1. 台股設定與代號查詢
@@ -1139,8 +1038,109 @@
         </div>
       </div>
 
+      <div id="twPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3.5">
+          <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 gap-2 flex-nowrap overflow-x-auto no-scrollbar">
+            <div class="flex items-center gap-1.5 min-w-0 shrink-0" title="彙總您名下所有持股之成本與未實現損益">
+              <span class="text-base sm:text-lg shrink-0">💼</span>
+              <h2 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap">台股所有投資組合總覽</h2>
+            </div>
+            <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto flex-nowrap">
+              <span id="tw_summaryStockCountBadge" class="h-[1.85rem] sm:h-8 flex items-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10px] font-bold px-2 sm:px-2.5 rounded-lg whitespace-nowrap shrink-0">共 0 檔持股</span>
+              <button type="button" onclick="refreshAllMarketPrices('tw')" id="twRefreshAllBtn" title="依序抓取所有持股之即時市價" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2 sm:px-2.5 rounded-lg font-bold border border-indigo-500 transition cursor-pointer whitespace-nowrap shrink-0 shadow-xs active:scale-95">
+                <span>🔄 更新<span class="hidden md:inline">全組合</span>行情</span>
+              </button>
+              <div class="move-btn-group tw-move-group shrink-0">
+                <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
+                <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+              </div>
+              <button type="button" onclick="toggleSectionCollapse('twPortfolioSummary')" id="twPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state shrink-0">
+                <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+              </button>
+            </div>
+          </div>
+
+        <div id="twPortfolioSummaryBody" class="space-y-3.5">
+          <!-- KPI 數據核心面板 -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- 總投資成本 -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本 (NTD / USD)</div>
+                <div class="space-y-0.5">
+                  <div id="tw_summaryTotalCost" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">NTD$0</div>
+                  <div id="tw_summaryTotalCostUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="tw_summaryCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">現有庫存成本 (共 0 組合)</div>
+            </div>
+
+            <!-- 總未實現損益 -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
+                <div class="space-y-0.5">
+                  <div id="tw_summaryTotalPnl" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight leading-tight">NTD$0</div>
+                  <div id="tw_summaryTotalPnlUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="tw_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">總損益率: -%</div>
+            </div>
+
+            <!-- 總現值 (總市值) -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
+                <div class="space-y-0.5">
+                  <div id="tw_summaryTotalValue" class="text-base sm:text-xl font-black text-sky-950 dark:text-cyan-300 tracking-tight leading-tight">NTD$0</div>
+                  <div id="tw_summaryTotalValueUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">以現價/前收計算</div>
+            </div>
+
+            <!-- 損益分佈概況 -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
+                <div id="tw_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap min-h-[1.5rem] items-center">
+                  <span>0 檔</span>
+                </div>
+              </div>
+              <div id="tw_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">補倉預計加碼: NTD$0 (USD$0)</div>
+            </div>
+          </div>
+
+          <!-- 📊 持股資金配置比重 (Asset Allocation Weighting Bar) -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-2.5 space-y-1.5">
+            <div class="flex justify-between items-center text-[10px] sm:text-xs">
+              <span class="text-slate-800 dark:text-slate-300 font-bold flex items-center gap-1">
+                <span>📊</span> <span>持股資金配置權重</span>
+              </span>
+              <span id="tw_weightSummaryText" class="text-slate-700 dark:text-slate-400 text-[9px] sm:text-[10px] font-semibold">依現有持股成本佔比</span>
+            </div>
+            <!-- 多色彩條 -->
+            <div id="tw_weightBar" class="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+              <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[8px] text-slate-500 dark:text-slate-500 font-medium">無庫存成本資料</div>
+            </div>
+            <!-- 標籤圓點清單 -->
+            <div id="tw_weightPills" class="flex flex-wrap gap-1.5 pt-0.5"></div>
+          </div>
+
+          <!-- 各檔明細清單摺疊區 -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-2 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">各持股明細損益 (點擊可切換編輯)</span>
+              <button type="button" onclick="togglePortfolioDetail('tw')" id="twToggleDetailBtn" class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold underline cursor-pointer">
+                展開明細 ▾
+              </button>
+            </div>
+            <div id="twPortfolioDetailList" class="space-y-1.5 hidden max-h-64 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- 🧮 快速進入台股攤平試算卡片 -->
-      <div class="card-box bg-white dark:bg-[#12141c] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer hover:border-slate-300 dark:hover:border-white/20 transition active:scale-[0.99] shadow-sm" onclick="switchCalcMarket('tw'); switchNavTab('calc');">
+      <div id="twQuickCalcCard" class="card-box bg-white dark:bg-[#12141c] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer hover:border-slate-300 dark:hover:border-white/20 transition active:scale-[0.99] shadow-sm" onclick="switchCalcMarket('tw'); switchNavTab('calc');">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-lg shrink-0">🧮</div>
           <div>
@@ -1155,108 +1155,7 @@
 
     <!-- 🇺🇸 3. 美股持倉獨立檢視 (US Stocks Tab View) -->
     <div id="usView" class="view-panel space-y-4 sm:space-y-6 hidden">
-<div id="usPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3.5">
-        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 gap-2 flex-nowrap overflow-x-auto no-scrollbar">
-          <div class="flex items-center gap-1.5 min-w-0 shrink-0" title="彙總您名下所有持股之成本與未實現損益 (含台幣換算)">
-            <span class="text-base sm:text-lg shrink-0">💼</span>
-            <h2 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap">美股所有投資組合總覽</h2>
-          </div>
-          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto flex-nowrap">
-            <span id="us_summaryStockCountBadge" class="h-[1.85rem] sm:h-8 flex items-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10px] font-bold px-2 sm:px-2.5 rounded-lg whitespace-nowrap shrink-0">共 0 檔持股</span>
-            <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2 sm:px-2.5 rounded-lg font-bold border border-indigo-500 transition cursor-pointer whitespace-nowrap shrink-0 shadow-xs active:scale-95">
-              <span>🔄 更新<span class="hidden md:inline">全組合</span>行情</span>
-            </button>
-            <div class="move-btn-group us-move-group shrink-0">
-              <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
-              <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
-            </div>
-            <button type="button" onclick="toggleSectionCollapse('usPortfolioSummary')" id="usPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state shrink-0">
-              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
-            </button>
-          </div>
-        </div>
-
-        <div id="usPortfolioSummaryBody" class="space-y-3.5">
-          <!-- KPI 數據核心面板 -->
-          <div class="grid grid-cols-2 gap-2.5">
-            <!-- 總投資成本 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本 (NTD / USD)</div>
-                <div class="space-y-0.5">
-                  <div id="us_summaryTotalCostTWD" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">NTD$0</div>
-                  <div id="us_summaryTotalCostUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
-                </div>
-              </div>
-              <div id="us_summaryCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">現有庫存成本 (共 0 組合)</div>
-            </div>
-
-            <!-- 總未實現損益 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
-                <div class="space-y-0.5">
-                  <div id="us_summaryTotalPnlTWD" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight leading-tight">NTD$0</div>
-                  <div id="us_summaryTotalPnlUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
-                </div>
-              </div>
-              <div id="us_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">總損益率: -%</div>
-            </div>
-
-            <!-- 總現值 (總市值) -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
-                <div class="space-y-0.5">
-                  <div id="us_summaryTotalValueTWD" class="text-base sm:text-xl font-black text-sky-950 dark:text-cyan-300 tracking-tight leading-tight">NTD$0</div>
-                  <div id="us_summaryTotalValueUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
-                </div>
-              </div>
-              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">折合台幣與美元現值</div>
-            </div>
-
-            <!-- 損益分佈概況 -->
-            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
-              <div class="space-y-0.5">
-                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
-                <div id="us_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap min-h-[1.5rem] items-center">
-                  <span>0 檔</span>
-                </div>
-              </div>
-              <div id="us_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">補倉預計投入: NTD$0 (USD$0)</div>
-            </div>
-          </div>
-
-          <!-- 📊 持股資金配置比重 (Asset Allocation Weighting Bar) -->
-          <div class="border-t border-slate-200 dark:border-slate-800 pt-2.5 space-y-1.5">
-            <div class="flex justify-between items-center text-[10px] sm:text-xs">
-              <span class="text-slate-800 dark:text-slate-300 font-bold flex items-center gap-1">
-                <span>📊</span> <span>持股資金配置權重</span>
-              </span>
-              <span id="us_weightSummaryText" class="text-slate-700 dark:text-slate-400 text-[9px] sm:text-[10px] font-semibold">依現有持股成本佔比</span>
-            </div>
-            <!-- 多色彩條 -->
-            <div id="us_weightBar" class="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
-              <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[8px] text-slate-500 dark:text-slate-500 font-medium">無庫存成本資料</div>
-            </div>
-            <!-- 標籤圓點清單 -->
-            <div id="us_weightPills" class="flex flex-wrap gap-1.5 pt-0.5"></div>
-          </div>
-
-          <!-- 各檔明細清單摺疊區 -->
-          <div class="border-t border-slate-200 dark:border-slate-800 pt-2 space-y-2">
-            <div class="flex justify-between items-center">
-              <span class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">各持股明細損益 (點擊可切換編輯)</span>
-              <button type="button" onclick="togglePortfolioDetail('us')" id="usToggleDetailBtn" class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold underline cursor-pointer">
-                展開明細 ▾
-              </button>
-            </div>
-            <div id="usPortfolioDetailList" class="space-y-1.5 hidden max-h-64 overflow-y-auto pr-1"></div>
-          </div>
-        </div>
-      </div>
-
-<div id="usStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar">
+      <div id="usStockSelectorCard" class="card-box bg-white dark:bg-slate-900 p-2 sm:p-2.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-1 sm:gap-1.5 flex-nowrap overflow-x-auto no-scrollbar">
         <select id="usStockSelector" onchange="switchStock('us', this.value)" class="w-28 sm:w-36 md:w-44 shrink-0 border border-slate-300 dark:border-slate-700 rounded-xl h-[1.85rem] sm:h-8 px-2 text-xs sm:text-sm font-black text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 outline-none focus:border-indigo-500 cursor-pointer shadow-2xs">
         </select>
         <button type="button" onclick="moveStockOrder('us', -1)" title="順序往前移" class="h-[1.85rem] sm:h-8 w-7 sm:w-7.5 shrink-0 flex items-center justify-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 rounded-xl font-bold text-xs transition cursor-pointer shadow-2xs active:scale-95">▲</button>
@@ -1276,7 +1175,7 @@
         </div>
       </div>
 
-<div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
+      <div id="usCard1" class="card-box bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 space-y-3.5">
         <div class="flex justify-between items-center border-b pb-2.5">
           <h2 class="font-black text-slate-900 dark:text-white text-xs sm:text-sm">
             1. 美股設定與代號查詢
@@ -1400,8 +1299,109 @@
         </div>
       </div>
 
+      <div id="usPortfolioSummaryCard" class="summary-card bg-white dark:bg-slate-900 text-slate-900 dark:text-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 space-y-3.5">
+        <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2.5 gap-2 flex-nowrap overflow-x-auto no-scrollbar">
+          <div class="flex items-center gap-1.5 min-w-0 shrink-0" title="彙總您名下所有持股之成本與未實現損益 (含台幣換算)">
+            <span class="text-base sm:text-lg shrink-0">💼</span>
+            <h2 class="font-black text-xs sm:text-sm text-slate-900 dark:text-white whitespace-nowrap">美股所有投資組合總覽</h2>
+          </div>
+          <div class="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto flex-nowrap">
+            <span id="us_summaryStockCountBadge" class="h-[1.85rem] sm:h-8 flex items-center bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-[10px] font-bold px-2 sm:px-2.5 rounded-lg whitespace-nowrap shrink-0">共 0 檔持股</span>
+            <button type="button" onclick="refreshAllMarketPrices('us')" id="usRefreshAllBtn" title="依序抓取所有持股之即時市價" class="h-[1.85rem] sm:h-8 flex items-center gap-1 bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-2 sm:px-2.5 rounded-lg font-bold border border-indigo-500 transition cursor-pointer whitespace-nowrap shrink-0 shadow-xs active:scale-95">
+              <span>🔄 更新<span class="hidden md:inline">全組合</span>行情</span>
+            </button>
+            <div class="move-btn-group us-move-group shrink-0">
+              <button type="button" onclick="moveCalculationCard('summary', -1)" data-card-move="summary" data-dir="-1" title="總覽面板版面上移" class="card-move-btn">▲</button>
+              <button type="button" onclick="moveCalculationCard('summary', 1)" data-card-move="summary" data-dir="1" title="總覽面板版面下移" class="card-move-btn">▼</button>
+            </div>
+            <button type="button" onclick="toggleSectionCollapse('usPortfolioSummary')" id="usPortfolioSummaryCollapseBtn" class="collapse-toggle-btn btn-expanded-state shrink-0">
+              <span class="collapse-text">收合</span> <span class="collapse-icon">▲</span>
+            </button>
+          </div>
+        </div>
+
+        <div id="usPortfolioSummaryBody" class="space-y-3.5">
+          <!-- KPI 數據核心面板 -->
+          <div class="grid grid-cols-2 gap-2.5">
+            <!-- 總投資成本 -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總投資成本 (NTD / USD)</div>
+                <div class="space-y-0.5">
+                  <div id="us_summaryTotalCostTWD" class="text-base sm:text-xl font-black text-slate-950 dark:text-white tracking-tight leading-tight">NTD$0</div>
+                  <div id="us_summaryTotalCostUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="us_summaryCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">現有庫存成本 (共 0 組合)</div>
+            </div>
+
+            <!-- 總未實現損益 -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總未實現損益</div>
+                <div class="space-y-0.5">
+                  <div id="us_summaryTotalPnlTWD" class="text-base sm:text-xl font-black text-slate-800 dark:text-slate-400 tracking-tight leading-tight">NTD$0</div>
+                  <div id="us_summaryTotalPnlUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div id="us_summaryPnlRate" class="text-[10px] font-black text-slate-700 dark:text-slate-400 pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">總損益率: -%</div>
+            </div>
+
+            <!-- 總現值 (總市值) -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">總市值現值</div>
+                <div class="space-y-0.5">
+                  <div id="us_summaryTotalValueTWD" class="text-base sm:text-xl font-black text-sky-950 dark:text-cyan-300 tracking-tight leading-tight">NTD$0</div>
+                  <div id="us_summaryTotalValueUSD" class="text-[10px] sm:text-[11px] font-bold text-slate-700 dark:text-slate-400 leading-tight">USD$0</div>
+                </div>
+              </div>
+              <div class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">折合台幣與美元現值</div>
+            </div>
+
+            <!-- 損益分佈概況 -->
+            <div class="bg-slate-50 dark:bg-slate-800/70 p-3 rounded-xl border border-slate-300 dark:border-slate-700/60 flex flex-col justify-between">
+              <div class="space-y-0.5">
+                <div class="text-[10px] sm:text-xs text-slate-700 dark:text-slate-400 font-bold">持股損益分佈</div>
+                <div id="us_summaryDist" class="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-300 flex items-center gap-1.5 flex-wrap min-h-[1.5rem] items-center">
+                  <span>0 檔</span>
+                </div>
+              </div>
+              <div id="us_summaryPlanAddCostSub" class="text-[10px] text-slate-700 dark:text-slate-400 font-semibold truncate pt-1.5 border-t border-slate-200/80 dark:border-slate-700/60 mt-1">補倉預計投入: NTD$0 (USD$0)</div>
+            </div>
+          </div>
+
+          <!-- 📊 持股資金配置比重 (Asset Allocation Weighting Bar) -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-2.5 space-y-1.5">
+            <div class="flex justify-between items-center text-[10px] sm:text-xs">
+              <span class="text-slate-800 dark:text-slate-300 font-bold flex items-center gap-1">
+                <span>📊</span> <span>持股資金配置權重</span>
+              </span>
+              <span id="us_weightSummaryText" class="text-slate-700 dark:text-slate-400 text-[9px] sm:text-[10px] font-semibold">依現有持股成本佔比</span>
+            </div>
+            <!-- 多色彩條 -->
+            <div id="us_weightBar" class="w-full h-2.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden flex gap-0.5 shadow-inner">
+              <div class="w-full h-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-[8px] text-slate-500 dark:text-slate-500 font-medium">無庫存成本資料</div>
+            </div>
+            <!-- 標籤圓點清單 -->
+            <div id="us_weightPills" class="flex flex-wrap gap-1.5 pt-0.5"></div>
+          </div>
+
+          <!-- 各檔明細清單摺疊區 -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-2 space-y-2">
+            <div class="flex justify-between items-center">
+              <span class="text-[10px] sm:text-xs text-slate-800 dark:text-slate-300 font-bold">各持股明細損益 (點擊可切換編輯)</span>
+              <button type="button" onclick="togglePortfolioDetail('us')" id="usToggleDetailBtn" class="text-[10px] text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-bold underline cursor-pointer">
+                展開明細 ▾
+              </button>
+            </div>
+            <div id="usPortfolioDetailList" class="space-y-1.5 hidden max-h-64 overflow-y-auto pr-1"></div>
+          </div>
+        </div>
+      </div>
+
       <!-- 🧮 快速進入美股攤平試算卡片 -->
-      <div class="card-box bg-white dark:bg-[#12141c] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer hover:border-slate-300 dark:hover:border-white/20 transition active:scale-[0.99] shadow-sm" onclick="switchCalcMarket('us'); switchNavTab('calc');">
+      <div id="usQuickCalcCard" class="card-box bg-white dark:bg-[#12141c] p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 cursor-pointer hover:border-slate-300 dark:hover:border-white/20 transition active:scale-[0.99] shadow-sm" onclick="switchCalcMarket('us'); switchNavTab('calc');">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 flex items-center justify-center text-lg shrink-0">🧮</div>
           <div>
@@ -1760,7 +1760,7 @@
       <div class="flex items-center justify-between gap-2 flex-wrap">
         <div class="flex items-center gap-2 flex-wrap">
           <h1 class="font-extrabold text-sm sm:text-lg text-slate-950 dark:text-white leading-tight">台美股攤平與損益計算器</h1>
-          <span class="bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border border-zinc-300 dark:border-zinc-700">V0.3.6</span>
+          <span class="bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-200 text-[10px] sm:text-xs font-black px-2 py-0.5 rounded-full border border-zinc-300 dark:border-zinc-700">V0.3.7</span>
           <span id="backendVersionBadge" class="bg-indigo-50 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800/60">尚未查詢</span>
           <span id="connectionBadge" class="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700/60 text-[10px] sm:text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
             <span id="connectionDot" class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -1842,7 +1842,7 @@
         <div class="grid grid-cols-2 gap-2 text-xs">
           <div class="bg-slate-50 dark:bg-[#0b0e17] p-2.5 rounded-xl border border-slate-200 dark:border-white/5">
             <div class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold">系統版本</div>
-            <div class="font-black text-slate-900 dark:text-white mt-0.5 font-mono">V0.3.6 Fintech Pro</div>
+            <div class="font-black text-slate-900 dark:text-white mt-0.5 font-mono">V0.3.7 Fintech Pro</div>
           </div>
           <div class="bg-slate-50 dark:bg-[#0b0e17] p-2.5 rounded-xl border border-slate-200 dark:border-white/5">
             <div class="text-[10px] text-slate-500 dark:text-zinc-400 font-semibold">主題風格</div>
@@ -1890,12 +1890,12 @@
     const LOCAL_STORAGE_BASE_KEY = 'costcal_offline_portfolio_v5';
     
     // 💡 定義前端版本
-    const FRONTEND_VERSION = 'V0.3.6';
+    const FRONTEND_VERSION = 'V0.3.7';
     
     // 📐 自訂版面配置預設值與項目對應表
     const DEFAULT_LAYOUT_CONFIG = {
       mainOrder: ['adminPanel', 'globalPortfolioCard', 'stocksContainer'],
-      cardsOrder: ['summary', 'selector', 'card1', 'card2', 'cardModeB', 'result']
+      cardsOrder: ['selector', 'card1', 'summary', 'card2', 'cardModeB', 'result']
     };
 
     const CARD_MAP = {
@@ -1924,9 +1924,9 @@
     };
 
     const CARD_NAMES = {
-      summary: { icon: '💼', name: '投資組合總覽面板', sub: '彙總名下所有持股損益與資金配置' },
       selector: { icon: '🗂️', name: '股票切換與操作列', sub: '股票選單、改名、新增、刪除' },
       card1: { icon: '1️⃣', name: '1. 現有持股試算與行情', sub: '股數、均價、即時市價、停利目標價' },
+      summary: { icon: '💼', name: '投資組合總覽面板', sub: '彙總名下所有持股損益與資金配置' },
       card2: { icon: '2️⃣', name: '2. 分批補倉規劃 (模式A)', sub: '多批次買入股數與價格試算' },
       cardModeB: { icon: '🎯', name: '3. 目標攤平均價 (模式B)', sub: '設定目標均價與預估買價反算股數與資金' },
       result: { icon: '4️⃣', name: '4. 試算結果與雲端儲存', sub: '綜合調整後均價、成本與即時儲存按鈕' }
@@ -2135,6 +2135,9 @@
             cloudData.layoutConfig.cardsOrder.push('cardModeB');
           }
         }
+        if (cloudData.layoutConfig.cardsOrder[0] === 'summary' && cloudData.layoutConfig.cardsOrder[1] === 'selector' && cloudData.layoutConfig.cardsOrder[2] === 'card1') {
+          cloudData.layoutConfig.cardsOrder = ['selector', 'card1', 'summary', ...cloudData.layoutConfig.cardsOrder.filter(k => !['selector', 'card1', 'summary'].includes(k))];
+        }
       }
 
       // 1. 排列全域概覽區塊
@@ -2176,6 +2179,8 @@
             const el = document.getElementById(id);
             if (el && el.parentNode === twView) twView.appendChild(el);
           });
+          const twQuick = document.getElementById('twQuickCalcCard');
+          if (twQuick && twQuick.parentNode === twView) twView.appendChild(twQuick);
         }
 
         const usView = document.getElementById('usView');
@@ -2185,10 +2190,14 @@
             const el = document.getElementById(id);
             if (el && el.parentNode === usView) usView.appendChild(el);
           });
+          const usQuick = document.getElementById('usQuickCalcCard');
+          if (usQuick && usQuick.parentNode === usView) usView.appendChild(usQuick);
         }
 
         const calcTwContainer = document.getElementById('calcTwContainer');
         if (calcTwContainer) {
+          const modeSeg = document.getElementById('twCalcModeSegment');
+          if (modeSeg && modeSeg.parentNode === calcTwContainer) calcTwContainer.appendChild(modeSeg);
           cloudData.layoutConfig.cardsOrder.forEach(k => {
             const id = CARD_MAP.tw[k];
             const el = document.getElementById(id);
@@ -2198,6 +2207,8 @@
 
         const calcUsContainer = document.getElementById('calcUsContainer');
         if (calcUsContainer) {
+          const modeSeg = document.getElementById('usCalcModeSegment');
+          if (modeSeg && modeSeg.parentNode === calcUsContainer) calcUsContainer.appendChild(modeSeg);
           cloudData.layoutConfig.cardsOrder.forEach(k => {
             const id = CARD_MAP.us[k];
             const el = document.getElementById(id);
@@ -2893,6 +2904,10 @@
           }
         }
         validCardKeys.forEach(k => { if (!cOrder.includes(k)) cOrder.push(k); });
+
+        if (cOrder[0] === 'summary' && cOrder[1] === 'selector' && cOrder[2] === 'card1') {
+          cOrder = ['selector', 'card1', 'summary', ...cOrder.filter(k => !['selector', 'card1', 'summary'].includes(k))];
+        }
 
         data.layoutConfig = {
           mainOrder: mOrder,
@@ -5715,7 +5730,7 @@
       </div>
 
       <div class="border-t border-slate-200 dark:border-white/10 pt-3 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-        <div>版本: <span class="font-mono text-slate-900 dark:text-white">V0.3.6 Fintech Pro</span></div>
+        <div>版本: <span class="font-mono text-slate-900 dark:text-white">V0.3.7 Fintech Pro</span></div>
         <button type="button" onclick="closeSettingsModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition active:scale-95 shadow-xs">
           完成
         </button>
